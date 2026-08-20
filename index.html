@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>EV & Hybrid Route Planner Pro</title>
+  <title>HV planner - Planejamento de viagem para carros elétricos</title>
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- FontAwesome Icons -->
@@ -61,9 +61,9 @@
         <img src="logo.png" alt="Logo EV Planner" class="h-20 md:h-24 rounded-lg shadow-lg border border-blue-800 object-contain" onerror="this.style.display='none'">
         <div>
           <h1 class="text-2xl font-black text-white tracking-wide uppercase mt-1">
-            EV & Hybrid <span class="text-emerald-400">Route Planner Pro</span>
+            HV planner - <span class="text-emerald-400">Planejamento de viagem para carros elétricos</span>
           </h1>
-          <p class="text-xs text-blue-200">Planejador de Viagem, Telemetria, Comparador Fóssil e Guia de Eletropostos</p>
+          <p class="text-xs text-blue-200">Telemetria, Comparador Fóssil e Guia de Eletropostos na Rota</p>
         </div>
       </div>
       
@@ -76,6 +76,14 @@
         </button>
       </div>
     </header>
+
+    <!-- Mensagem de Confirmação de Cálculo -->
+    <div id="routeToast" class="hidden bg-emerald-950/90 border border-emerald-500 text-emerald-200 px-4 py-2.5 rounded-lg text-xs font-bold flex items-center justify-between shadow-lg">
+      <span class="flex items-center gap-2">
+        <i class="fa-solid fa-circle-check text-emerald-400 text-sm"></i> Rota calculada com sucesso!
+      </span>
+      <span class="text-[10px] text-emerald-400 font-normal">Telemetria e pontos atualizados</span>
+    </div>
 
     <!-- Grid de Controle -->
     <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -228,7 +236,7 @@
     <div class="bg-blue-950/80 p-3 rounded-xl border border-blue-900 space-y-3 shadow-lg">
       <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-blue-900 pb-2 text-xs">
         <span class="font-semibold text-blue-100 flex items-center gap-1.5">
-          <i class="fa-solid fa-charging-station text-yellow-400"></i> Filtro de Eletropostos Exibidos:
+          <i class="fa-solid fa-charging-station text-yellow-400"></i> Filtro de Eletropostos na Rota:
         </span>
         <div class="flex flex-wrap gap-3 text-blue-200">
           <label class="flex items-center gap-1 cursor-pointer"><input type="checkbox" id="filterCCS2" checked class="rounded text-emerald-500"> CCS2 / Ultra-Rápido DC</label>
@@ -239,10 +247,10 @@
       <div id="map"></div>
     </div>
 
-    <!-- Relação / Tabela de Eletropostos na Região e Rota -->
+    <!-- Relação / Tabela de Eletropostos na Rota -->
     <div class="bg-blue-950/80 p-4 rounded-xl border border-blue-900 space-y-3 shadow-lg">
       <h3 class="text-sm font-bold text-white flex items-center gap-2 border-b border-blue-900 pb-2">
-        <i class="fa-solid fa-list-check text-emerald-400"></i> Relação de Locais com Pontos de Carregamento
+        <i class="fa-solid fa-list-check text-emerald-400"></i> Eletropostos Localizados na Rota
       </h3>
       <div class="overflow-x-auto">
         <table class="w-full text-left text-xs text-blue-200">
@@ -278,7 +286,6 @@
         { model: 'Sealion 7 AWD', type: 'BEV (100% Elétrico)', battery: 82.5, range: 380, consumption: 21.7 },
         { model: 'King DM-i GL', type: 'PHEV (Híbrido Plug-in)', battery: 8.3, range: 55, consumption: 15.1 },
         { model: 'King DM-i GS', type: 'PHEV (Híbrido Plug-in)', battery: 18.3, range: 120, consumption: 15.2 },
-        { model: 'Song Pro DM-i GL', type: 'PHEV (Híbrido Plug-in)', battery: 12.9, range: 71, consumption: 18.1 },
         { model: 'Song Pro DM-i GS', type: 'PHEV (Híbrido Plug-in)', battery: 18.3, range: 110, consumption: 16.6 },
         { model: 'Song Plus DM-i', type: 'PHEV (Híbrido Plug-in)', battery: 18.3, range: 105, consumption: 17.4 },
         { model: 'Han EV AWD', type: 'BEV (100% Elétrico)', battery: 85.4, range: 349, consumption: 24.4 },
@@ -331,7 +338,6 @@
       "BMW": [
         { model: 'iX1 eDrive20', type: 'BEV (100% Elétrico)', battery: 64.7, range: 303, consumption: 21.3 },
         { model: 'iX1 xDrive30', type: 'BEV (100% Elétrico)', battery: 64.7, range: 303, consumption: 21.3 },
-        { model: 'iX2 xDrive30', type: 'BEV (100% Elétrico)', battery: 64.7, range: 300, consumption: 21.5 },
         { model: 'i4 eDrive40', type: 'BEV (100% Elétrico)', battery: 80.7, range: 420, consumption: 19.2 },
         { model: 'iX xDrive50', type: 'BEV (100% Elétrico)', battery: 105.2, range: 520, consumption: 20.2 },
         { model: '330e M Sport', type: 'PHEV (Híbrido Plug-in)', battery: 12.0, range: 37, consumption: 32.4 }
@@ -376,18 +382,19 @@
       ]
     };
 
-    // Pontos de Eletropostos Locais e Rodoviários
+    // Pontos de Eletropostos Cadastrados
     const chargingStations = [
       { id: 1, name: "Shell Recharge - Shopping Recife (PE)", lat: -8.1182, lng: -34.9042, power: "CCS2 / 150kW DC Ultra-Rápido", type: "DC" },
-      { id: 2, name: "Volts Eletroposto - Lajedo (PE)", lat: -8.6621, lng: -36.3218, power: "CCS2 / 50kW DC Rápido", type: "DC" },
-      { id: 3, name: "EZVolt - Maceió Shopping (AL)", lat: -9.6465, lng: -35.7089, power: "CCS2 / 60kW DC Rápido", type: "DC" },
-      { id: 4, name: "E Charge Station - Delmiro Gouveia (AL)", lat: -9.3871, lng: -37.9984, power: "DC 24kW / Posto Ipiranga", type: "DC" },
-      { id: 5, name: "Tupinambá - Caruaru (PE)", lat: -8.2831, lng: -35.9761, power: "CCS2 / 50kW DC Rápido", type: "DC" },
+      { id: 2, name: "Tupinambá - Caruaru (PE)", lat: -8.2831, lng: -35.9761, power: "CCS2 / 50kW DC Rápido", type: "DC" },
+      { id: 3, name: "Volts Eletroposto - Lajedo (PE)", lat: -8.6621, lng: -36.3218, power: "CCS2 / 50kW DC Rápido", type: "DC" },
+      { id: 4, name: "Zletric Wallbox - Garanhuns (PE)", lat: -8.8824, lng: -36.4962, power: "AC Wallbox 22kW Semi-Rápido", type: "AC" },
+      { id: 5, name: "E Charge Station - Delmiro Gouveia (AL)", lat: -9.3871, lng: -37.9984, power: "DC 24kW / Posto Ipiranga", type: "DC" },
       { id: 6, name: "Hotel Wallbox - Piranhas (AL)", lat: -9.6256, lng: -37.7569, power: "AC Wallbox 7kW Lento", type: "AC" },
-      { id: 7, name: "Zletric Wallbox - Garanhuns (PE)", lat: -8.8824, lng: -36.4962, power: "AC Wallbox 22kW Semi-Rápido", type: "AC" }
+      { id: 7, name: "EZVolt - Maceió Shopping (AL)", lat: -9.6465, lng: -35.7089, power: "CCS2 / 60kW DC Rápido", type: "DC" }
     ];
 
     let map, routeLayer, originCoords = [-8.0476, -34.8770], destCoords = [-9.6658, -35.7350];
+    let currentRouteGeoJson = null;
     let selectedCar = null;
     let stationMarkers = [];
 
@@ -398,8 +405,6 @@
         attribution: '© OpenStreetMap contributors'
       }).addTo(map);
 
-      renderStationMarkers();
-      renderStationsTable();
       initVehicleSelectors();
       setupAutocomplete('originInput', 'originResults', coords => originCoords = coords);
       setupAutocomplete('destInput', 'destResults', coords => destCoords = coords);
@@ -407,16 +412,57 @@
       calculateRoute();
     }
 
-    function renderStationMarkers() {
+    // Função de Distância Mínima de um Ponto até os Segmentos da Rota (em km)
+    function getMinDistanceToRouteKm(lat, lng, routeGeoJson) {
+      if (!routeGeoJson || !routeGeoJson.coordinates) return 0;
+      const coords = routeGeoJson.coordinates;
+      let minDistance = Infinity;
+
+      for (let i = 0; i < coords.length; i++) {
+        const ptLat = coords[i][1];
+        const ptLng = coords[i][0];
+        
+        // Haversine simplificado
+        const R = 6371; // Raio da Terra em km
+        const dLat = (ptLat - lat) * Math.PI / 180;
+        const dLng = (ptLng - lng) * Math.PI / 180;
+        const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                  Math.cos(lat * Math.PI / 180) * Math.cos(ptLat * Math.PI / 180) *
+                  Math.sin(dLng/2) * Math.sin(dLng/2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        const dist = R * c;
+
+        if (dist < minDistance) minDistance = dist;
+      }
+      return minDistance;
+    }
+
+    // Filtra e Renderiza apenas Eletropostos localizados até 25km da Rota
+    function renderRouteStations() {
       stationMarkers.forEach(m => map.removeLayer(m));
       stationMarkers = [];
+
+      const tbody = document.getElementById('stationsTableBody');
+      tbody.innerHTML = '';
 
       const showDC = document.getElementById("filterCCS2").checked;
       const showAC = document.getElementById("filterAC").checked;
 
-      chargingStations.forEach(station => {
-        if ((station.type === 'DC' && !showDC) || (station.type === 'AC' && !showAC)) return;
+      const filteredStations = chargingStations.filter(station => {
+        if ((station.type === 'DC' && !showDC) || (station.type === 'AC' && !showAC)) return false;
+        if (!currentRouteGeoJson) return true;
+        
+        const distKm = getMinDistanceToRouteKm(station.lat, station.lng, currentRouteGeoJson);
+        return distKm <= 25; // Limite de 25km de desvio da rota
+      });
 
+      if (filteredStations.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="4" class="p-3 text-center text-slate-400">Nenhum eletroposto encontrado na rota selecionada.</td></tr>`;
+        return;
+      }
+
+      filteredStations.forEach(station => {
+        // Marcador no Mapa
         const marker = L.circleMarker([station.lat, station.lng], {
           radius: 8,
           fillColor: station.type === 'DC' ? '#ef4444' : '#10b981',
@@ -427,19 +473,8 @@
         }).addTo(map).bindPopup(`<b>⚡ ${station.name}</b><br><span style="font-size:11px;">${station.power}</span>`);
 
         stationMarkers.push(marker);
-      });
-    }
 
-    function renderStationsTable() {
-      const tbody = document.getElementById('stationsTableBody');
-      const showDC = document.getElementById("filterCCS2").checked;
-      const showAC = document.getElementById("filterAC").checked;
-
-      tbody.innerHTML = '';
-
-      chargingStations.forEach(station => {
-        if ((station.type === 'DC' && !showDC) || (station.type === 'AC' && !showAC)) return;
-
+        // Linha na Tabela
         const tr = document.createElement('tr');
         tr.className = "hover:bg-blue-900/30 transition";
         tr.innerHTML = `
@@ -552,6 +587,8 @@
 
         if (data.routes && data.routes.length > 0) {
           const route = data.routes[0];
+          currentRouteGeoJson = route.geometry;
+
           const distKm = Math.round(route.distance / 1000);
           document.getElementById('totalDistance').innerText = `${distKm} km`;
 
@@ -603,10 +640,22 @@
 
           document.getElementById('fossilCost').innerText = `R$ ${totalCostFossil.toFixed(2)}`;
           document.getElementById('savingsEV').innerText = `R$ ${savings.toFixed(2)}`;
+
+          // Renderizar pontos de carregamento na rota
+          renderRouteStations();
+
+          // Exibe Notificação de Sucesso
+          showRouteToast();
         }
       } catch (err) {
         console.error("Erro ao calcular rota:", err);
       }
+    }
+
+    function showRouteToast() {
+      const toast = document.getElementById('routeToast');
+      toast.classList.remove('hidden');
+      setTimeout(() => toast.classList.add('hidden'), 4000);
     }
 
     function updateBatteryUI(percent) {
@@ -644,8 +693,8 @@
     document.getElementById('startBattery').addEventListener('input', calculateRoute);
     document.getElementById('costPerLiter').addEventListener('input', calculateRoute);
     document.getElementById('fossilKmPerLiter').addEventListener('input', calculateRoute);
-    document.getElementById('filterCCS2').addEventListener('change', () => { renderStationMarkers(); renderStationsTable(); });
-    document.getElementById('filterAC').addEventListener('change', () => { renderStationMarkers(); renderStationsTable(); });
+    document.getElementById('filterCCS2').addEventListener('change', renderRouteStations);
+    document.getElementById('filterAC').addEventListener('change', renderRouteStations);
 
     window.onload = initMap;
   </script>
