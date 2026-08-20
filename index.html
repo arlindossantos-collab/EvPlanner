@@ -21,7 +21,7 @@
     }
     
     #map { 
-      height: 480px; 
+      height: 440px; 
       width: 100%; 
       border-radius: 0.75rem; 
       z-index: 1; 
@@ -63,7 +63,7 @@
           <h1 class="text-2xl font-black text-white tracking-wide uppercase mt-1">
             EV & Hybrid <span class="text-emerald-400">Route Planner Pro</span>
           </h1>
-          <p class="text-xs text-blue-200">Planejador de Viagem, Telemetria e Calculadora Financeira de Recarga</p>
+          <p class="text-xs text-blue-200">Planejador de Viagem, Telemetria, Comparador Fóssil e Guia de Eletropostos</p>
         </div>
       </div>
       
@@ -150,16 +150,16 @@
         </button>
       </div>
 
-      <!-- Card 3: Custos & Carga Inicial -->
+      <!-- Card 3: Status Atual da Bateria & Tarifas -->
       <div class="bg-blue-950/80 p-4 rounded-xl border border-blue-900 space-y-3 shadow-md flex flex-col justify-between">
         <div>
           <h2 class="text-sm font-semibold text-blue-100 border-b border-blue-900 pb-1.5 mb-2 flex items-center gap-1.5">
-            <i class="fa-solid fa-coins text-emerald-400"></i> 3. Custos & Bateria
+            <i class="fa-solid fa-battery-three-quarters text-emerald-400"></i> 3. Carga Atual & Custos
           </h2>
           <div class="space-y-2">
             <div>
-              <label class="block text-[10px] text-blue-300 mb-0.5">Carga Atual da Bateria (%)</label>
-              <input type="number" id="startBattery" value="100" min="5" max="100" class="w-full bg-[#031038] border border-blue-800 rounded p-1.5 text-emerald-400 font-bold text-xs">
+              <label class="block text-[10px] font-bold text-emerald-400 mb-0.5">Status Atual da Bateria (%)</label>
+              <input type="number" id="startBattery" value="80" min="5" max="100" class="w-full bg-[#031038] border border-emerald-500 rounded p-1.5 text-emerald-300 font-black text-sm outline-none">
             </div>
             <div class="grid grid-cols-2 gap-2">
               <div>
@@ -167,29 +167,33 @@
                 <input type="number" id="costPerKwh" value="2.39" step="0.01" class="w-full bg-[#031038] border border-blue-800 rounded p-1.5 text-white text-xs">
               </div>
               <div>
-                <label class="block text-[10px] text-blue-300 mb-0.5">Passageiros</label>
-                <select id="passengerCount" class="w-full bg-[#031038] border border-blue-800 rounded p-1.5 text-xs text-white">
-                  <option value="1">1 Ocupante</option>
-                  <option value="2">2 Ocupantes</option>
-                  <option value="3" selected>3 Ocupantes</option>
-                  <option value="4">4 Ocupantes</option>
-                </select>
+                <label class="block text-[10px] text-blue-300 mb-0.5">Gasolina (R$/L)</label>
+                <input type="number" id="costPerLiter" value="5.89" step="0.01" class="w-full bg-[#031038] border border-blue-800 rounded p-1.5 text-white text-xs">
               </div>
+            </div>
+            <div>
+              <label class="block text-[10px] text-blue-300 mb-0.5">Consumo Fóssil (km/L)</label>
+              <input type="number" id="fossilKmPerLiter" value="11.5" step="0.1" class="w-full bg-[#031038] border border-blue-800 rounded p-1.5 text-white text-xs">
             </div>
           </div>
         </div>
 
         <div class="bg-[#020b29] p-2.5 rounded-lg text-[11px] space-y-1 border border-blue-900 mt-2">
-          <div class="flex justify-between"><span class="text-blue-300">Custo Total Estimado:</span><span id="totalCost" class="font-bold text-emerald-400">R$ 0,00</span></div>
-          <div class="flex justify-between"><span class="text-blue-300">Custo por Passageiro:</span><span id="costPax" class="font-bold text-white">R$ 0,00</span></div>
+          <div class="flex justify-between"><span class="text-blue-300">Custo Total EV:</span><span id="totalCost" class="font-bold text-emerald-400">R$ 0,00</span></div>
+          <div class="flex justify-between"><span class="text-blue-300">Passageiros:</span>
+            <select id="passengerCount" class="bg-[#031038] border border-blue-800 text-[10px] text-white rounded px-1">
+              <option value="1">1</option><option value="2">2</option><option value="3" selected>3</option><option value="4">4</option>
+            </select>
+          </div>
+          <div class="flex justify-between"><span class="text-blue-300">Por Passageiro:</span><span id="costPax" class="font-bold text-white">R$ 0,00</span></div>
         </div>
       </div>
 
-      <!-- Card 4: Telemetria & Alerta de Bateria Segura -->
+      <!-- Card 4: Telemetria, Abastecimento & Comparativo -->
       <div class="bg-blue-950/80 p-4 rounded-xl border border-blue-900 space-y-3 shadow-md flex flex-col justify-between">
         <div>
           <h2 class="text-sm font-semibold text-blue-100 border-b border-blue-900 pb-1.5 mb-2 flex items-center gap-1.5">
-            <i class="fa-solid fa-battery-half text-emerald-400"></i> 4. Telemetria
+            <i class="fa-solid fa-chart-line text-emerald-400"></i> 4. Telemetria & Alertas
           </h2>
           
           <div class="space-y-2">
@@ -198,23 +202,23 @@
               <span id="batteryPercentage" class="font-bold text-sm">--%</span>
             </div>
             
-            <div class="w-full bg-[#031038] border-2 border-blue-800 rounded-xl h-8 p-1 relative flex items-center">
+            <div class="w-full bg-[#031038] border-2 border-blue-800 rounded-xl h-7 p-1 relative flex items-center">
               <div id="batteryBar" class="h-full rounded-lg transition-all duration-500 bg-emerald-500" style="width: 100%;"></div>
               <div class="absolute -right-3 w-2 h-3.5 bg-blue-800 rounded-r-sm"></div>
-            </div>
-            
-            <div class="flex justify-between text-[9px] font-medium text-blue-400 pt-0.5">
-              <span class="text-red-400">0% Crítico</span>
-              <span class="text-amber-400">30-60% Atenção</span>
-              <span class="text-emerald-400">60-100% Seguro</span>
             </div>
           </div>
         </div>
 
-        <div class="text-[11px] text-blue-200 space-y-1 border-t border-blue-900 pt-2 mt-2">
-          <div class="flex justify-between"><span class="text-blue-300">📏 Distância Rota:</span><span id="totalDistance" class="font-bold text-emerald-400">0 km</span></div>
-          <div class="flex justify-between items-center"><span class="text-blue-300">🛡️ Carga Mínima Segura:</span><span id="safeMinCharge" class="font-bold text-yellow-400 text-right">--%</span></div>
-          <div class="flex justify-between items-center"><span class="text-blue-300">⛽ Status da Viagem:</span><span id="rechargeAlert" class="font-bold text-white text-right">Calculando...</span></div>
+        <div class="text-[11px] text-blue-200 space-y-1.5 border-t border-blue-900 pt-2">
+          <div class="flex justify-between"><span class="text-blue-300">📏 Distância Total:</span><span id="totalDistance" class="font-bold text-emerald-400">0 km</span></div>
+          <div class="flex justify-between items-center"><span class="text-blue-300">⚡ Abastecer em:</span><span id="rechargeDistanceAlert" class="font-bold text-amber-400 text-right">-- km</span></div>
+          <div class="flex justify-between items-center"><span class="text-blue-300">🛡️ Carga Mín. Segura:</span><span id="safeMinCharge" class="font-bold text-yellow-400 text-right">--%</span></div>
+          <div class="border-t border-blue-900/60 pt-1 flex justify-between items-center">
+            <span class="text-blue-300">⛽ Custo no Fóssil:</span><span id="fossilCost" class="font-bold text-red-400">R$ 0,00</span>
+          </div>
+          <div class="flex justify-between items-center bg-emerald-950/40 p-1 rounded border border-emerald-500/30">
+            <span class="text-emerald-300 font-semibold">Economia com EV:</span><span id="savingsEV" class="font-black text-emerald-400">R$ 0,00</span>
+          </div>
         </div>
       </div>
 
@@ -224,7 +228,7 @@
     <div class="bg-blue-950/80 p-3 rounded-xl border border-blue-900 space-y-3 shadow-lg">
       <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-blue-900 pb-2 text-xs">
         <span class="font-semibold text-blue-100 flex items-center gap-1.5">
-          <i class="fa-solid fa-charging-station text-yellow-400"></i> Filtro de Eletropostos na Rota:
+          <i class="fa-solid fa-charging-station text-yellow-400"></i> Filtro de Eletropostos Exibidos:
         </span>
         <div class="flex flex-wrap gap-3 text-blue-200">
           <label class="flex items-center gap-1 cursor-pointer"><input type="checkbox" id="filterCCS2" checked class="rounded text-emerald-500"> CCS2 / Ultra-Rápido DC</label>
@@ -233,6 +237,28 @@
       </div>
 
       <div id="map"></div>
+    </div>
+
+    <!-- Relação / Tabela de Eletropostos na Região e Rota -->
+    <div class="bg-blue-950/80 p-4 rounded-xl border border-blue-900 space-y-3 shadow-lg">
+      <h3 class="text-sm font-bold text-white flex items-center gap-2 border-b border-blue-900 pb-2">
+        <i class="fa-solid fa-list-check text-emerald-400"></i> Relação de Locais com Pontos de Carregamento
+      </h3>
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs text-blue-200">
+          <thead class="bg-[#020b29] text-emerald-400 uppercase text-[10px] font-bold border-b border-blue-900">
+            <tr>
+              <th class="p-2.5">Local / Eletroposto</th>
+              <th class="p-2.5">Tipo de Plug / Potência</th>
+              <th class="p-2.5">Categoria</th>
+              <th class="p-2.5 text-right">Ação</th>
+            </tr>
+          </thead>
+          <tbody id="stationsTableBody" class="divide-y divide-blue-900/50">
+            <!-- Preenchido via JavaScript -->
+          </tbody>
+        </table>
+      </div>
     </div>
 
   </div>
@@ -249,13 +275,11 @@
         { model: 'Yuan Plus EV500', type: 'BEV (100% Elétrico)', battery: 60.5, range: 294, consumption: 20.5 },
         { model: 'Seal AWD Performance', type: 'BEV (100% Elétrico)', battery: 82.5, range: 372, consumption: 22.1 },
         { model: 'Sealion 7 AWD', type: 'BEV (100% Elétrico)', battery: 82.5, range: 380, consumption: 21.7 },
-        { model: 'King DM-i GL', type: 'PHEV (Híbrido Plug-in)', battery: 8.3, range: 55, consumption: 15.1 },
         { model: 'King DM-i GS', type: 'PHEV (Híbrido Plug-in)', battery: 18.3, range: 120, consumption: 15.2 },
         { model: 'Song Pro DM-i GS', type: 'PHEV (Híbrido Plug-in)', battery: 18.3, range: 110, consumption: 16.6 },
         { model: 'Song Plus DM-i', type: 'PHEV (Híbrido Plug-in)', battery: 18.3, range: 105, consumption: 17.4 },
         { model: 'Han EV AWD', type: 'BEV (100% Elétrico)', battery: 85.4, range: 349, consumption: 24.4 },
-        { model: 'Tan EV AWD', type: 'BEV (100% Elétrico)', battery: 108.8, range: 430, consumption: 25.3 },
-        { model: 'Shark Pickup', type: 'PHEV (Híbrido Plug-in)', battery: 29.5, range: 100, consumption: 29.5 }
+        { model: 'Tan EV AWD', type: 'BEV (100% Elétrico)', battery: 108.8, range: 430, consumption: 25.3 }
       ],
       "Leapmotor": [
         { model: 'T03 Hatch', type: 'BEV (100% Elétrico)', battery: 37.3, range: 265, consumption: 14.1 },
@@ -267,51 +291,31 @@
       "GWM (Haval, Ora, Tank)": [
         { model: 'Ora 03 Skin', type: 'BEV (100% Elétrico)', battery: 48.0, range: 232, consumption: 20.6 },
         { model: 'Ora 03 GT', type: 'BEV (100% Elétrico)', battery: 63.0, range: 319, consumption: 19.7 },
-        { model: 'Haval H6 HEV', type: 'HEV (Híbrido Convencional)', battery: 1.6, range: 25, consumption: 6.4 },
         { model: 'Haval H6 PHEV19', type: 'PHEV (Híbrido Plug-in)', battery: 19.0, range: 115, consumption: 16.5 },
-        { model: 'Haval H6 PHEV34', type: 'PHEV (Híbrido Plug-in)', battery: 34.0, range: 170, consumption: 20.0 },
-        { model: 'Haval H6 GT PHEV', type: 'PHEV (Híbrido Plug-in)', battery: 34.0, range: 170, consumption: 20.0 },
-        { model: 'Tank 300 PHEV', type: 'PHEV (Híbrido Plug-in)', battery: 37.1, range: 105, consumption: 35.3 }
+        { model: 'Haval H6 PHEV34', type: 'PHEV (Híbrido Plug-in)', battery: 34.0, range: 170, consumption: 20.0 }
       ],
       "Volvo": [
         { model: 'EX30 Core Single', type: 'BEV (100% Elétrico)', battery: 51.0, range: 250, consumption: 20.4 },
         { model: 'EX30 Extended Range', type: 'BEV (100% Elétrico)', battery: 69.0, range: 340, consumption: 20.2 },
         { model: 'XC40 / EX40 Recharge', type: 'BEV (100% Elétrico)', battery: 78.0, range: 305, consumption: 25.5 },
-        { model: 'C40 / EC40 Recharge', type: 'BEV (100% Elétrico)', battery: 78.0, range: 385, consumption: 20.2 },
         { model: 'XC60 Recharge T8', type: 'PHEV (Híbrido Plug-in)', battery: 18.8, range: 78, consumption: 24.1 }
       ],
       "BMW": [
         { model: 'iX1 eDrive20', type: 'BEV (100% Elétrico)', battery: 64.7, range: 303, consumption: 21.3 },
-        { model: 'iX1 xDrive30', type: 'BEV (100% Elétrico)', battery: 64.7, range: 303, consumption: 21.3 },
         { model: 'i4 eDrive40', type: 'BEV (100% Elétrico)', battery: 80.7, range: 420, consumption: 19.2 },
-        { model: 'iX xDrive50', type: 'BEV (100% Elétrico)', battery: 105.2, range: 520, consumption: 20.2 },
-        { model: '330e M Sport', type: 'PHEV (Híbrido Plug-in)', battery: 12.0, range: 37, consumption: 32.4 }
-      ],
-      "Porsche": [
-        { model: 'Taycan 4S', type: 'BEV (100% Elétrico)', battery: 89.0, range: 380, consumption: 23.4 },
-        { model: 'Macan EV 4 AWD', type: 'BEV (100% Elétrico)', battery: 100.0, range: 430, consumption: 23.2 }
-      ],
-      "Renault & Nissan": [
-        { model: 'Kwid E-Tech', type: 'BEV (100% Elétrico)', battery: 26.8, range: 185, consumption: 14.4 },
-        { model: 'Megane E-Tech', type: 'BEV (100% Elétrico)', battery: 60.0, range: 337, consumption: 17.8 },
-        { model: 'Nissan Leaf Tekna', type: 'BEV (100% Elétrico)', battery: 40.0, range: 192, consumption: 20.8 }
-      ],
-      "Caoa Chery & Jaecoo": [
-        { model: 'iCar', type: 'BEV (100% Elétrico)', battery: 30.8, range: 197, consumption: 15.6 },
-        { model: 'Tiggo 8 Pro PHEV', type: 'PHEV (Híbrido Plug-in)', battery: 19.2, range: 77, consumption: 24.9 },
-        { model: 'Jaecoo 7 PHEV', type: 'PHEV (Híbrido Plug-in)', battery: 18.3, range: 88, consumption: 20.7 }
+        { model: 'iX xDrive50', type: 'BEV (100% Elétrico)', battery: 105.2, range: 520, consumption: 20.2 }
       ]
     };
 
     // Pontos de Eletropostos Locais e Rodoviários
     const chargingStations = [
-      { name: "Volts Eletroposto - Lajedo (PE)", lat: -8.6621, lng: -36.3218, power: "CCS2 / 50kW DC", type: "DC" },
-      { name: "E Charge Station - Delmiro Gouveia (AL)", lat: -9.3871, lng: -37.9984, power: "DC 24kW / Posto Ipiranga", type: "DC" },
-      { name: "Hotel Wallbox - Piranhas (AL)", lat: -9.6256, lng: -37.7569, power: "AC Wallbox 7kW", type: "AC" },
-      { name: "Shell Recharge - Shopping Recife (PE)", lat: -8.1182, lng: -34.9042, power: "CCS2 / 150kW DC", type: "DC" },
-      { name: "EZVolt - Maceió Shopping (AL)", lat: -9.6465, lng: -35.7089, power: "CCS2 / 60kW DC", type: "DC" },
-      { name: "Tupinambá - Caruaru (PE)", lat: -8.2831, lng: -35.9761, power: "CCS2 / 50kW DC", type: "DC" },
-      { name: "Zletric Wallbox - Garanhuns (PE)", lat: -8.8824, lng: -36.4962, power: "AC Wallbox 22kW", type: "AC" }
+      { id: 1, name: "Shell Recharge - Shopping Recife (PE)", lat: -8.1182, lng: -34.9042, power: "CCS2 / 150kW DC Ultra-Rápido", type: "DC" },
+      { id: 2, name: "Volts Eletroposto - Lajedo (PE)", lat: -8.6621, lng: -36.3218, power: "CCS2 / 50kW DC Rápido", type: "DC" },
+      { id: 3, name: "EZVolt - Maceió Shopping (AL)", lat: -9.6465, lng: -35.7089, power: "CCS2 / 60kW DC Rápido", type: "DC" },
+      { id: 4, name: "E Charge Station - Delmiro Gouveia (AL)", lat: -9.3871, lng: -37.9984, power: "DC 24kW / Posto Ipiranga", type: "DC" },
+      { id: 5, name: "Tupinambá - Caruaru (PE)", lat: -8.2831, lng: -35.9761, power: "CCS2 / 50kW DC Rápido", type: "DC" },
+      { id: 6, name: "Hotel Wallbox - Piranhas (AL)", lat: -9.6256, lng: -37.7569, power: "AC Wallbox 7kW Lento", type: "AC" },
+      { id: 7, name: "Zletric Wallbox - Garanhuns (PE)", lat: -8.8824, lng: -36.4962, power: "AC Wallbox 22kW Semi-Rápido", type: "AC" }
     ];
 
     let map, routeLayer, originCoords = [-8.0476, -34.8770], destCoords = [-9.6658, -35.7350];
@@ -326,6 +330,7 @@
       }).addTo(map);
 
       renderStationMarkers();
+      renderStationsTable();
       initVehicleSelectors();
       setupAutocomplete('originInput', 'originResults', coords => originCoords = coords);
       setupAutocomplete('destInput', 'destResults', coords => destCoords = coords);
@@ -354,6 +359,40 @@
 
         stationMarkers.push(marker);
       });
+    }
+
+    function renderStationsTable() {
+      const tbody = document.getElementById('stationsTableBody');
+      const showDC = document.getElementById("filterCCS2").checked;
+      const showAC = document.getElementById("filterAC").checked;
+
+      tbody.innerHTML = '';
+
+      chargingStations.forEach(station => {
+        if ((station.type === 'DC' && !showDC) || (station.type === 'AC' && !showAC)) return;
+
+        const tr = document.createElement('tr');
+        tr.className = "hover:bg-blue-900/30 transition";
+        tr.innerHTML = `
+          <td class="p-2.5 font-semibold text-white flex items-center gap-1.5">
+            <i class="fa-solid fa-location-dot text-red-400"></i> ${station.name}
+          </td>
+          <td class="p-2.5"><span class="bg-blue-900 text-blue-100 px-2 py-0.5 rounded border border-blue-700">${station.power}</span></td>
+          <td class="p-2.5 font-bold ${station.type === 'DC' ? 'text-red-400' : 'text-emerald-400'}">
+            ${station.type === 'DC' ? 'Carga Rápida DC' : 'Wallbox AC'}
+          </td>
+          <td class="p-2.5 text-right">
+            <button onclick="focusStation(${station.lat}, ${station.lng})" class="bg-blue-600 hover:bg-blue-500 text-white font-bold px-2.5 py-1 rounded text-[10px] transition">
+              <i class="fa-solid fa-eye"></i> Ver no Mapa
+            </button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function focusStation(lat, lng) {
+      map.setView([lat, lng], 14);
     }
 
     function setupAutocomplete(inputId, resultsId, callback) {
@@ -458,50 +497,43 @@
           const acFactor = parseFloat(document.getElementById('acMode').value);
           const adjustedRange = selectedCar.range / (driveFactor * acFactor);
 
-          // Entrada do Status Atual da Bateria
-          const startPercent = parseFloat(document.getElementById('startBattery').value) || 100;
-          const currentBatteryRange = (adjustedRange * startPercent) / 100;
+          // Entrada de Carga Atual
+          const startPercent = parseFloat(document.getElementById('startBattery').value) || 80;
+          const currentAutonomyKm = Math.round((adjustedRange * startPercent) / 100);
 
-          // Porcentagem gasta na viagem
-          const usedPercent = (distKm / adjustedRange) * 100;
-          const remainingPercent = startPercent - usedPercent;
+          // Em quantos km precisará abastecer (com margem de segurança de 15% de bateria)
+          const safeReserveKm = Math.round(adjustedRange * 0.15);
+          const rechargePointKm = Math.max(0, currentAutonomyKm - safeReserveKm);
+          document.getElementById('rechargeDistanceAlert').innerText = `em ${rechargePointKm} km`;
 
-          // Cálculo da Carga Mínima Segura (Viagem + 20% de Reserva)
+          // Carga mínima necessária
           const neededRangeWithReserve = distKm * 1.20;
           const minSafeStartPercent = Math.min(100, Math.ceil((neededRangeWithReserve / adjustedRange) * 100));
           document.getElementById('safeMinCharge').innerText = `${minSafeStartPercent}%`;
 
+          // Porcentagem restante na chegada
+          const usedPercent = (distKm / adjustedRange) * 100;
+          const remainingPercent = startPercent - usedPercent;
           updateBatteryUI(remainingPercent);
 
+          // Calculadora Financeira EV
           const kwhCost = parseFloat(document.getElementById('costPerKwh').value) || 0;
           const paxCount = parseInt(document.getElementById('passengerCount').value) || 1;
           const totalKwhNeeded = (distKm / 100) * selectedCar.consumption;
-          const totalCostVal = totalKwhNeeded * kwhCost;
+          const totalCostEV = totalKwhNeeded * kwhCost;
 
-          document.getElementById('totalCost').innerText = `R$ ${totalCostVal.toFixed(2)}`;
-          document.getElementById('costPax').innerText = `R$ ${(totalCostVal / paxCount).toFixed(2)}`;
+          document.getElementById('totalCost').innerText = `R$ ${totalCostEV.toFixed(2)}`;
+          document.getElementById('costPax').innerText = `R$ ${(totalCostEV / paxCount).toFixed(2)}`;
 
-          const alertElem = document.getElementById('rechargeAlert');
-          if (selectedCar.type.includes('PHEV') || selectedCar.type.includes('HEV') || selectedCar.type.includes('MHEV') || selectedCar.type.includes('REEV')) {
-            if (remainingPercent <= 0) {
-              alertElem.innerText = "⛽ Modo Combustível Ativado";
-              alertElem.className = "font-bold text-amber-400 text-right";
-            } else {
-              alertElem.innerText = "⚡ Bateria cobre o trajeto";
-              alertElem.className = "font-bold text-emerald-400 text-right";
-            }
-          } else {
-            if (startPercent < minSafeStartPercent) {
-              alertElem.innerText = `⚠️ Recarregue até ${minSafeStartPercent}%!`;
-              alertElem.className = "font-bold text-red-400 text-right";
-            } else if (remainingPercent <= 15) {
-              alertElem.innerText = "⚠️ Reserva Crítica na Chegada";
-              alertElem.className = "font-bold text-amber-400 text-right";
-            } else {
-              alertElem.innerText = "✅ Chegada Garantida";
-              alertElem.className = "font-bold text-emerald-400 text-right";
-            }
-          }
+          // Comparativo Fóssil (Gasolina)
+          const literCost = parseFloat(document.getElementById('costPerLiter').value) || 5.89;
+          const fossilKmLiter = parseFloat(document.getElementById('fossilKmPerLiter').value) || 11.5;
+          const totalLitersNeeded = distKm / fossilKmLiter;
+          const totalCostFossil = totalLitersNeeded * literCost;
+          const savings = Math.max(0, totalCostFossil - totalCostEV);
+
+          document.getElementById('fossilCost').innerText = `R$ ${totalCostFossil.toFixed(2)}`;
+          document.getElementById('savingsEV').innerText = `R$ ${savings.toFixed(2)}`;
         }
       } catch (err) {
         console.error("Erro ao calcular rota:", err);
@@ -541,8 +573,10 @@
 
     document.getElementById('calcBtn').addEventListener('click', calculateRoute);
     document.getElementById('startBattery').addEventListener('input', calculateRoute);
-    document.getElementById('filterCCS2').addEventListener('change', renderStationMarkers);
-    document.getElementById('filterAC').addEventListener('change', renderStationMarkers);
+    document.getElementById('costPerLiter').addEventListener('input', calculateRoute);
+    document.getElementById('fossilKmPerLiter').addEventListener('input', calculateRoute);
+    document.getElementById('filterCCS2').addEventListener('change', () => { renderStationMarkers(); renderStationsTable(); });
+    document.getElementById('filterAC').addEventListener('change', () => { renderStationMarkers(); renderStationsTable(); });
 
     window.onload = initMap;
   </script>
