@@ -292,6 +292,7 @@
 
         <div class="text-xs md:text-sm text-blue-200 space-y-1.5 border-t border-blue-900 pt-2">
           <div class="flex justify-between"><span class="text-blue-300">📏 Distância Total:</span><span id="totalDistance" class="font-bold text-emerald-400">0 km</span></div>
+          <div class="flex justify-between"><span class="text-blue-300">⏱️ Tempo Condução:</span><span id="travelTime" class="font-bold text-white">-- h -- min</span></div>
           <div class="flex justify-between items-center"><span class="text-blue-300">⚡ Parar em até:</span><span id="rechargeDistanceAlert" class="font-bold text-amber-400">-- km</span></div>
           
           <div class="bg-[#020b29] p-2 rounded border border-blue-800 my-1 space-y-1 text-xs">
@@ -484,7 +485,6 @@
     let activeRouteIndex = 0;
     let routePolylines = [];
 
-    // INICIALIZAÇÃO LEVE COM OPENSTREETMAP MAPNIK NATIVO
     async function initMap() {
       map = L.map('map').setView([-8.0476, -34.8770], 8);
 
@@ -552,7 +552,6 @@
       if (clickPopup) map.closePopup(clickPopup);
     };
 
-    // GEOCODIFICAÇÃO DIRETA E RÁPIDA (NOMINATIM DIRECT ENDPOINT)
     async function geocodeFast(addressStr) {
       if (!addressStr) return null;
       try {
@@ -662,7 +661,6 @@
       } else wrapper.classList.add('hidden');
     }
 
-    // AUTOCOMPLETE OTIMIZADO E ULTRA-RÁPIDO (250ms DEBOUNCE)
     function setupFastAutocomplete(inputId, resultsId, callback) {
       const input = document.getElementById(inputId);
       const results = document.getElementById(resultsId);
@@ -943,7 +941,14 @@
 
       const route = availableRoutes[activeRouteIndex];
       const distKm = Math.round(route.distance / 1000);
+      
+      // Cálculo de Tempo Condução
+      const durationSeconds = route.duration;
+      const hours = Math.floor(durationSeconds / 3600);
+      const minutes = Math.round((durationSeconds % 3600) / 60);
+
       document.getElementById('totalDistance').innerText = `${distKm} km`;
+      document.getElementById('travelTime').innerText = hours > 0 ? `${hours}h ${minutes}min` : `${minutes} min`;
 
       const bounds = L.geoJSON(route.geometry).getBounds();
       map.fitBounds(bounds, { padding: [30, 30] });
@@ -958,37 +963,47 @@
       await fetchRouteStationsFromOSM(bbox, route.geometry);
       renderStationsOnMapAndTable();
 
+      // CÁLCULO DE AUTONOMIA E NECESSIDADE DE RECARGA (CORRIGIDO)
       const driveFactor = parseFloat(document.getElementById('driveMode').value);
       const acFactor = parseFloat(document.getElementById('acMode').value);
-      const adjustedRange = selectedCar.range / (driveFactor * acFactor);
+      const fullRangeAdjusted = selectedCar.range / (driveFactor * acFactor);
 
       const startPercent = parseFloat(document.getElementById('startBattery').value) || 80;
-      const currentAutonomyKm = Math.round((adjustedRange * startPercent) / 100);
+      // Autonomia real considerando a carga inicial atual
+      const currentAutonomyKm = Math.round(fullRangeAdjusted * (startPercent / 100));
 
-      const safeReserveKm = Math.round(adjustedRange * 0.15);
-      const rechargePointKm = Math.max(0, currentAutonomyKm - safeReserveKm);
+      // Margem de segurança de 15% da autonomia total
+      const safeReserveKm = Math.round(fullRangeAdjusted * 0.15);
       
-      document.getElementById('rechargeDistanceAlert').innerText = (distKm > currentAutonomyKm - safeReserveKm) ? `em ${rechargePointKm} km` : "Não necessária";
+      // Distância segura recomendada para realizar parada
+      const safeDriveDistanceKm = Math.max(0, currentAutonomyKm - safeReserveKm);
 
-      const totalPercentNeeded = (distKm / adjustedRange) * 100;
-      const safeTargetPercent = Math.min(100, Math.ceil(totalPercentNeeded + 15));
+      const needsRecharge = distKm > safeDriveDistanceKm;
 
-      if (distKm > currentAutonomyKm - safeReserveKm) {
-        const percentToCharge = Math.max(0, safeTargetPercent - startPercent);
+      if (needsRecharge) {
+        document.getElementById('rechargeDistanceAlert').innerText = `em até ${safeDriveDistanceKm} km`;
+        
+        // Porcentagem total requerida para a viagem inteira + 15% de reserva
+        const percentNeededTotal = Math.ceil(((distKm / fullRangeAdjusted) * 100) + 15);
+        const targetPercent = Math.min(100, Math.max(100, percentNeededTotal)); // Recomenda carregar até 100% caso exceda
+        const percentToCharge = Math.max(0, percentNeededTotal - startPercent);
+        
         const kwhToCharge = (percentToCharge / 100) * selectedCar.battery;
 
         const minutesDC = Math.ceil((kwhToCharge / 50) * 60);
         const minutesAC = Math.ceil((kwhToCharge / 7) * 60);
 
-        document.getElementById('targetBatteryNeeded').innerText = `${safeTargetPercent}% (carregar +${Math.ceil(percentToCharge)}%)`;
+        document.getElementById('targetBatteryNeeded').innerText = `${percentNeededTotal}% (carregar +${Math.ceil(percentToCharge)}%)`;
         document.getElementById('chargeTimeDC').innerText = `~${minutesDC} min`;
         document.getElementById('chargeTimeAC').innerText = `~${minutesAC} min`;
       } else {
+        document.getElementById('rechargeDistanceAlert').innerText = "Não necessária";
         document.getElementById('targetBatteryNeeded').innerText = "Carga Atual Suficiente";
         document.getElementById('chargeTimeDC').innerText = "0 min";
         document.getElementById('chargeTimeAC').innerText = "0 min";
       }
 
+      // Custos e Comparativo de Combustíveis
       const kwhCost = parseFloat(document.getElementById('costPerKwh').value) || 0;
       const adultCount = parseInt(document.getElementById('adultCount').value) || 1;
       const totalKwhNeeded = (distKm / 100) * selectedCar.consumption;
@@ -1015,7 +1030,8 @@
       const savings = Math.max(0, bestFossilCost - totalCostEV);
       document.getElementById('savingsEV').innerText = `R$ ${savings.toFixed(2)}`;
 
-      const usedPercent = (distKm / adjustedRange) * 100;
+      // Bateria Restante na Chegada
+      const usedPercent = (distKm / fullRangeAdjusted) * 100;
       const remainingPercent = startPercent - usedPercent;
       updateBatteryUI(remainingPercent);
     }
