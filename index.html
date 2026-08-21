@@ -20,7 +20,7 @@
       color: #f8fafc;
     }
     #map { 
-      height: 480px; 
+      height: 440px; 
       width: 100%; 
       border-radius: 0.75rem; 
       z-index: 1; 
@@ -57,11 +57,15 @@
       border: 2px solid white;
       box-shadow: 0 0 8px rgba(0,0,0,0.6);
     }
+    .pdf-page-break {
+      page-break-before: always;
+      break-before: page;
+    }
   </style>
 </head>
 <body class="min-h-screen p-2 md:p-6 font-sans">
   
-  <div id="exportableContent" class="max-w-7xl mx-auto space-y-4 p-2 rounded-xl" style="background-color: #031038;">
+  <div class="max-w-7xl mx-auto space-y-4 p-2 rounded-xl">
     
     <!-- Cabeçalho -->
     <header class="flex flex-col items-center justify-center border-b border-blue-900/60 pb-4 gap-2 text-center">
@@ -78,7 +82,7 @@
           <i class="fa-solid fa-location-arrow"></i> Abrir no Google Maps App
         </button>
         <button id="exportPdfBtn" class="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold text-xs md:text-sm px-3.5 py-2 rounded-lg transition flex items-center gap-2 shadow-md">
-          <i class="fa-solid fa-file-pdf"></i> Exportar Resumo PDF
+          <i class="fa-solid fa-file-pdf"></i> Exportar Relatório PDF (2 Págs)
         </button>
       </div>
     </header>
@@ -358,6 +362,75 @@
           </tbody>
         </table>
       </div>
+    </div>
+
+  </div>
+
+  <!-- CONTAINER DE EXPORTAÇÃO PDF ESTRUTURADO EM 2 PÁGINAS (OCULTO NA TELA) -->
+  <div id="pdfContainer" style="display: none; background-color: #031038; color: #f8fafc; font-family: sans-serif; width: 1000px; padding: 20px;">
+    
+    <!-- PÁGINA 1: DADOS DA VIAGEM + TELEMETRIA + MAPA -->
+    <div id="pdfPage1" style="padding-bottom: 20px;">
+      <div style="text-align: center; border-bottom: 2px solid #1e3a8a; padding-bottom: 10px; margin-bottom: 15px;">
+        <h1 style="color: #34d399; font-size: 22px; font-weight: bold; margin: 0; text-transform: uppercase;">Relatório Executivo de Viagem - HV Planner</h1>
+        <p style="color: #93c5fd; font-size: 12px; margin: 5px 0 0 0;">Planejamento Inteligente e Telemetria para Veículos Elétricos</p>
+      </div>
+
+      <table style="width: 100%; border-collapse: collapse; margin-bottom: 15px; font-size: 12px;">
+        <tr>
+          <td style="width: 50%; vertical-align: top; padding-right: 10px;">
+            <div style="background-color: #091a4a; border: 1px solid #1e3a8a; border-radius: 8px; padding: 12px;">
+              <h3 style="color: #34d399; border-bottom: 1px solid #1e3a8a; padding-bottom: 5px; margin-top: 0; font-size: 14px;">📍 Rota & Veículo</h3>
+              <p style="margin: 4px 0;"><b>Origem:</b> <span id="pdfOrigin">-</span></p>
+              <p style="margin: 4px 0;"><b>Destino:</b> <span id="pdfDest">-</span></p>
+              <p style="margin: 4px 0;"><b>Veículo Selecionado:</b> <span id="pdfCarModel">-</span></p>
+              <p style="margin: 4px 0;"><b>Bateria Útil:</b> <span id="pdfCarBattery">-</span> | <b>Autonomia Base:</b> <span id="pdfCarRange">-</span></p>
+              <p style="margin: 4px 0;"><b>Condições:</b> <span id="pdfDriveConditions">-</span></p>
+            </div>
+          </td>
+          <td style="width: 50%; vertical-align: top; padding-left: 10px;">
+            <div style="background-color: #091a4a; border: 1px solid #1e3a8a; border-radius: 8px; padding: 12px;">
+              <h3 style="color: #34d399; border-bottom: 1px solid #1e3a8a; padding-bottom: 5px; margin-top: 0; font-size: 14px;">⚡ Telemetria, Tempo & Custos</h3>
+              <p style="margin: 4px 0;"><b>Distância Total:</b> <span id="pdfDistance" style="color: #34d399; font-weight: bold;">-</span></p>
+              <p style="margin: 4px 0;"><b>Tempo de Condução Estimado:</b> <span id="pdfTime" style="color: #ffffff; font-weight: bold;">-</span></p>
+              <p style="margin: 4px 0;"><b>Bateria Inicial / Estimada Chegada:</b> <span id="pdfBatteryState">-</span></p>
+              <p style="margin: 4px 0;"><b>Necessidade de Parada:</b> <span id="pdfRechargeAlert" style="color: #fbbf24; font-weight: bold;">-</span></p>
+              <p style="margin: 4px 0;"><b>Tempo Estimado de Recarga (DC 50kW):</b> <span id="pdfChargeTimeDC">-</span></p>
+              <p style="margin: 4px 0;"><b>Custo Estimado EV:</b> <span id="pdfCostEV" style="color: #34d399; font-weight: bold;">-</span> | <b>Economia vs Fóssil:</b> <span id="pdfSavings" style="color: #34d399; font-weight: bold;">-</span></p>
+            </div>
+          </td>
+        </tr>
+      </table>
+
+      <div style="background-color: #091a4a; border: 1px solid #1e3a8a; border-radius: 8px; padding: 10px;">
+        <h3 style="color: #34d399; margin-top: 0; font-size: 14px; margin-bottom: 8px;">🗺️ Trajeto no Mapa e Pontos de Recarga</h3>
+        <div id="pdfMapImageContainer" style="width: 100%; height: 380px; border-radius: 6px; overflow: hidden; background-color: #031038;"></div>
+      </div>
+    </div>
+
+    <div class="pdf-page-break"></div>
+
+    <!-- PÁGINA 2: RELAÇÃO DOS ELETROPOSTOS NA ROTA -->
+    <div id="pdfPage2" style="padding-top: 10px;">
+      <div style="border-bottom: 2px solid #1e3a8a; padding-bottom: 10px; margin-bottom: 15px;">
+        <h2 style="color: #34d399; font-size: 18px; font-weight: bold; margin: 0; text-transform: uppercase;">Mapeamento de Eletropostos na Rota</h2>
+        <p style="color: #93c5fd; font-size: 12px; margin: 4px 0 0 0;">Relação detalhada de pontos de carga até 10km ao longo do trajeto selecionado</p>
+      </div>
+
+      <table style="width: 100%; border-collapse: collapse; font-size: 11px; text-align: left;">
+        <thead>
+          <tr style="background-color: #020b29; color: #34d399; border-bottom: 2px solid #1e3a8a;">
+            <th style="padding: 8px;">#</th>
+            <th style="padding: 8px;">Eletroposto / Ponto</th>
+            <th style="padding: 8px;">Cidade / UF</th>
+            <th style="padding: 8px;">Especificação Técnicas</th>
+            <th style="padding: 8px;">Tipo</th>
+          </tr>
+        </thead>
+        <tbody id="pdfStationsTableBody">
+          <tr><td colspan="5" style="padding: 12px; text-align: center; color: #94a3b8;">Nenhum eletroposto mapeado nesta rota.</td></tr>
+        </tbody>
+      </table>
     </div>
 
   </div>
@@ -712,7 +785,7 @@
 
     function getMinDistanceToRouteInKm(lat, lng, routeCoords) {
       let minDistance = Infinity;
-      for (let i = 0; i < routeCoords.length - 1; i += 3) {
+      for (let i = 0; i < routeCoords.length - 1; i += 4) {
         const rLat = routeCoords[i][1];
         const rLng = routeCoords[i][0];
         const d = L.latLng(lat, lng).distanceTo(L.latLng(rLat, rLng)) / 1000;
@@ -721,53 +794,64 @@
       return minDistance;
     }
 
+    // BUSCA DE ELETROPOSTOS ROBUSTA COM ENDPOINTS DE FALLBACK
     async function fetchRouteStationsFromOSM(bbox, routeGeometry) {
+      document.getElementById('stationsCount').innerText = "Buscando eletropostos...";
       const [south, west, north, east] = bbox;
-      const query = `
-        [out:json][timeout:15];
-        (
-          node["amenity"="charging_station"](${south},${west},${north},${east});
-          way["amenity"="charging_station"](${south},${west},${north},${east});
-        );
-        out body center;
-      `;
       
-      try {
-        const response = await fetch('https://overpass-api.de/api/interpreter', {
-          method: 'POST',
-          body: query
-        });
-        const data = await response.json();
-        const routeCoords = routeGeometry.coordinates;
+      const query = `[out:json][timeout:25];(node["amenity"="charging_station"](${south},${west},${north},${east});way["amenity"="charging_station"](${south},${west},${north},${east}););out body center;`;
+      
+      const endpoints = [
+        'https://overpass-api.de/api/interpreter',
+        'https://overpass.kumi.systems/api/interpreter',
+        'https://maps.mail.ru/osm/tools/overpass/api/interpreter'
+      ];
 
-        fetchedStations = data.elements.map((item, idx) => {
-          const lat = item.lat || (item.center ? item.center.lat : null);
-          const lng = item.lon || (item.center ? item.center.lon : null);
-          const name = item.tags.name || item.tags.operator || `Eletroposto Rota #${idx + 1}`;
-          const isDC = item.tags['socket:ccs'] || (item.tags.description && item.tags.description.includes('DC'));
+      let data = null;
 
-          const city = item.tags['addr:city'] || item.tags['addr:town'] || item.tags['addr:municipality'] || "Ponto de Carga";
-          const state = item.tags['addr:state'] || "UF";
-
-          return {
-            id: item.id || idx,
-            name: name,
-            cityState: `${city} / ${state}`,
-            lat: lat,
-            lng: lng,
-            power: isDC ? 'CCS2 / Carga Rápida DC' : 'AC Wallbox / Type 2',
-            type: isDC ? 'DC' : 'AC'
-          };
-        }).filter(s => {
-          if (!s.lat || !s.lng) return false;
-          const distToRoute = getMinDistanceToRouteInKm(s.lat, s.lng, routeCoords);
-          return distToRoute <= 10;
-        });
-
-      } catch (err) {
-        console.warn("Consulta OSM falhou:", err);
-        fetchedStations = [];
+      for (let url of endpoints) {
+        try {
+          const res = await fetch(url, { method: 'POST', body: query });
+          if (res.ok) {
+            data = await res.json();
+            if (data && data.elements) break;
+          }
+        } catch (e) {
+          console.warn(`Servidor Overpass (${url}) falhou, tentando fallback...`);
+        }
       }
+
+      if (!data || !data.elements) {
+        fetchedStations = [];
+        document.getElementById('stationsCount').innerText = "0 encontrados";
+        return;
+      }
+
+      const routeCoords = routeGeometry.coordinates;
+
+      fetchedStations = data.elements.map((item, idx) => {
+        const lat = item.lat || (item.center ? item.center.lat : null);
+        const lng = item.lon || (item.center ? item.center.lon : null);
+        const name = item.tags.name || item.tags.operator || `Eletroposto Rota #${idx + 1}`;
+        const isDC = item.tags['socket:ccs'] || (item.tags.description && item.tags.description.includes('DC'));
+
+        const city = item.tags['addr:city'] || item.tags['addr:town'] || item.tags['addr:municipality'] || "Ponto de Carga";
+        const state = item.tags['addr:state'] || "UF";
+
+        return {
+          id: item.id || idx,
+          name: name,
+          cityState: `${city} / ${state}`,
+          lat: lat,
+          lng: lng,
+          power: isDC ? 'CCS2 / Carga Rápida DC' : 'AC Wallbox / Type 2',
+          type: isDC ? 'DC' : 'AC'
+        };
+      }).filter(s => {
+        if (!s.lat || !s.lng) return false;
+        const distToRoute = getMinDistanceToRouteInKm(s.lat, s.lng, routeCoords);
+        return distToRoute <= 12; // Raio máximo de 12km do trajeto
+      });
     }
 
     function renderStationsOnMapAndTable() {
@@ -775,7 +859,10 @@
       stationMarkers = [];
 
       const tbody = document.getElementById('stationsTableBody');
+      const pdfTbody = document.getElementById('pdfStationsTableBody');
+      
       tbody.innerHTML = '';
+      pdfTbody.innerHTML = '';
 
       const showDC = document.getElementById("filterCCS2").checked;
       const showAC = document.getElementById("filterAC").checked;
@@ -788,6 +875,7 @@
 
       if (activeStations.length === 0) {
         tbody.innerHTML = `<tr><td colspan="6" class="p-3 text-center text-slate-400">Nenhum eletroposto encontrado ao longo desta rota.</td></tr>`;
+        pdfTbody.innerHTML = `<tr><td colspan="5" style="padding: 12px; text-align: center; color: #94a3b8;">Nenhum eletroposto mapeado nesta rota.</td></tr>`;
         return;
       }
 
@@ -807,6 +895,7 @@
 
         stationMarkers.push(marker);
 
+        // Tabela Interativa na Tela
         const tr = document.createElement('tr');
         tr.className = "hover:bg-blue-900/30 transition text-xs md:text-sm";
         tr.innerHTML = `
@@ -828,6 +917,19 @@
           </td>
         `;
         tbody.appendChild(tr);
+
+        // Tabela Formatada para PDF (Página 2)
+        const pdfTr = document.createElement('tr');
+        pdfTr.style.borderBottom = "1px solid #1e293b";
+        pdfTr.style.backgroundColor = index % 2 === 0 ? "#031038" : "#091a4a";
+        pdfTr.innerHTML = `
+          <td style="padding: 6px 8px; font-weight: bold; color: #fbbf24;">#${index + 1}</td>
+          <td style="padding: 6px 8px; font-weight: bold; color: #ffffff;">${station.name}</td>
+          <td style="padding: 6px 8px; color: #cbd5e1;">${station.cityState}</td>
+          <td style="padding: 6px 8px; color: #93c5fd;">${station.power}</td>
+          <td style="padding: 6px 8px; font-weight: bold; color: ${station.type === 'DC' ? '#f87171' : '#34d399'};">${station.type === 'DC' ? 'DC Rápido' : 'AC Wallbox'}</td>
+        `;
+        pdfTbody.appendChild(pdfTr);
       });
     }
 
@@ -942,13 +1044,14 @@
       const route = availableRoutes[activeRouteIndex];
       const distKm = Math.round(route.distance / 1000);
       
-      // Cálculo de Tempo Condução
+      // Tempo Condução
       const durationSeconds = route.duration;
       const hours = Math.floor(durationSeconds / 3600);
       const minutes = Math.round((durationSeconds % 3600) / 60);
+      const travelTimeStr = hours > 0 ? `${hours}h ${minutes}min` : `${minutes} min`;
 
       document.getElementById('totalDistance').innerText = `${distKm} km`;
-      document.getElementById('travelTime').innerText = hours > 0 ? `${hours}h ${minutes}min` : `${minutes} min`;
+      document.getElementById('travelTime').innerText = travelTimeStr;
 
       const bounds = L.geoJSON(route.geometry).getBounds();
       map.fitBounds(bounds, { padding: [30, 30] });
@@ -963,47 +1066,50 @@
       await fetchRouteStationsFromOSM(bbox, route.geometry);
       renderStationsOnMapAndTable();
 
-      // CÁLCULO DE AUTONOMIA E NECESSIDADE DE RECARGA (CORRIGIDO)
+      // CÁLCULO DE AUTONOMIA E NECESSIDADE DE RECARGA
       const driveFactor = parseFloat(document.getElementById('driveMode').value);
       const acFactor = parseFloat(document.getElementById('acMode').value);
       const fullRangeAdjusted = selectedCar.range / (driveFactor * acFactor);
 
       const startPercent = parseFloat(document.getElementById('startBattery').value) || 80;
-      // Autonomia real considerando a carga inicial atual
       const currentAutonomyKm = Math.round(fullRangeAdjusted * (startPercent / 100));
 
-      // Margem de segurança de 15% da autonomia total
       const safeReserveKm = Math.round(fullRangeAdjusted * 0.15);
-      
-      // Distância segura recomendada para realizar parada
       const safeDriveDistanceKm = Math.max(0, currentAutonomyKm - safeReserveKm);
 
       const needsRecharge = distKm > safeDriveDistanceKm;
 
+      let rechargeAlertText = "";
+      let targetBatteryText = "";
+      let chargeTimeDCText = "0 min";
+
       if (needsRecharge) {
+        rechargeAlertText = `Parar em até ${safeDriveDistanceKm} km`;
         document.getElementById('rechargeDistanceAlert').innerText = `em até ${safeDriveDistanceKm} km`;
         
-        // Porcentagem total requerida para a viagem inteira + 15% de reserva
         const percentNeededTotal = Math.ceil(((distKm / fullRangeAdjusted) * 100) + 15);
-        const targetPercent = Math.min(100, Math.max(100, percentNeededTotal)); // Recomenda carregar até 100% caso exceda
         const percentToCharge = Math.max(0, percentNeededTotal - startPercent);
-        
         const kwhToCharge = (percentToCharge / 100) * selectedCar.battery;
 
         const minutesDC = Math.ceil((kwhToCharge / 50) * 60);
         const minutesAC = Math.ceil((kwhToCharge / 7) * 60);
 
-        document.getElementById('targetBatteryNeeded').innerText = `${percentNeededTotal}% (carregar +${Math.ceil(percentToCharge)}%)`;
-        document.getElementById('chargeTimeDC').innerText = `~${minutesDC} min`;
+        targetBatteryText = `${percentNeededTotal}% (+${Math.ceil(percentToCharge)}%)`;
+        chargeTimeDCText = `~${minutesDC} min`;
+
+        document.getElementById('targetBatteryNeeded').innerText = targetBatteryText;
+        document.getElementById('chargeTimeDC').innerText = chargeTimeDCText;
         document.getElementById('chargeTimeAC').innerText = `~${minutesAC} min`;
       } else {
+        rechargeAlertText = "Não necessária";
+        targetBatteryText = "Suficiente";
         document.getElementById('rechargeDistanceAlert').innerText = "Não necessária";
         document.getElementById('targetBatteryNeeded').innerText = "Carga Atual Suficiente";
         document.getElementById('chargeTimeDC').innerText = "0 min";
         document.getElementById('chargeTimeAC').innerText = "0 min";
       }
 
-      // Custos e Comparativo de Combustíveis
+      // Custos
       const kwhCost = parseFloat(document.getElementById('costPerKwh').value) || 0;
       const adultCount = parseInt(document.getElementById('adultCount').value) || 1;
       const totalKwhNeeded = (distKm / 100) * selectedCar.consumption;
@@ -1024,16 +1130,30 @@
       document.getElementById('ethanolCost').innerText = `R$ ${totalEthanolCost.toFixed(2)}`;
 
       const bestFossilCost = Math.min(totalGasCost, totalEthanolCost);
-      const bestFossilName = totalEthanolCost < totalGasCost ? "Álcool (Etanol)" : "Gasolina";
+      const bestFossilName = totalEthanolCost < totalGasCost ? "Álcool" : "Gasolina";
       document.getElementById('bestFossilOption').innerText = `${bestFossilName} (R$ ${bestFossilCost.toFixed(2)})`;
 
       const savings = Math.max(0, bestFossilCost - totalCostEV);
       document.getElementById('savingsEV').innerText = `R$ ${savings.toFixed(2)}`;
 
-      // Bateria Restante na Chegada
       const usedPercent = (distKm / fullRangeAdjusted) * 100;
-      const remainingPercent = startPercent - usedPercent;
+      const remainingPercent = Math.max(0, Math.round(startPercent - usedPercent));
       updateBatteryUI(remainingPercent);
+
+      // Preenchimento dos Dados Ocultos para o PDF (Página 1)
+      document.getElementById('pdfOrigin').innerText = document.getElementById('originInput').value;
+      document.getElementById('pdfDest').innerText = document.getElementById('destInput').value;
+      document.getElementById('pdfCarModel').innerText = `${selectedCar.model} (${selectedCar.type})`;
+      document.getElementById('pdfCarBattery').innerText = `${selectedCar.battery} kWh`;
+      document.getElementById('pdfCarRange').innerText = `${selectedCar.range} km`;
+      document.getElementById('pdfDriveConditions').innerText = `Modo: ${driveFactor > 1 ? 'Sport/Rodovia' : 'Eco'} | AC: ${acFactor > 1 ? 'Ligado' : 'Desligado'}`;
+      document.getElementById('pdfDistance').innerText = `${distKm} km`;
+      document.getElementById('pdfTime').innerText = travelTimeStr;
+      document.getElementById('pdfBatteryState').innerText = `${startPercent}% / Est. ${remainingPercent}%`;
+      document.getElementById('pdfRechargeAlert').innerText = rechargeAlertText;
+      document.getElementById('pdfChargeTimeDC').innerText = chargeTimeDCText;
+      document.getElementById('pdfCostEV').innerText = `R$ ${totalCostEV.toFixed(2)}`;
+      document.getElementById('pdfSavings').innerText = `R$ ${savings.toFixed(2)}`;
     }
 
     async function calculateRoute() {
@@ -1105,16 +1225,53 @@
       else batteryBar.className = "h-full rounded-lg transition-all duration-500 bg-red-600";
     }
 
-    // Eventos
-    document.getElementById('exportPdfBtn').addEventListener('click', () => {
-      const element = document.getElementById('exportableContent');
-      html2pdf().set({
-        margin: 0.3,
-        filename: 'resumo_viagem_eletrica.pdf',
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2 },
-        jsPDF: { unit: 'in', format: 'letter', orientation: 'landscape' }
-      }).from(element).save();
+    // EXPORTAÇÃO PDF ESTRUTURADA EM 2 PÁGINAS COM PRINT LIMPO DO MAPA
+    document.getElementById('exportPdfBtn').addEventListener('click', async () => {
+      const btn = document.getElementById('exportPdfBtn');
+      btn.innerText = "Gerando PDF...";
+      btn.disabled = true;
+
+      const pdfMapContainer = document.getElementById('pdfMapImageContainer');
+      pdfMapContainer.innerHTML = '';
+
+      // Captura o elemento do mapa na tela
+      const mapElement = document.getElementById('map');
+
+      try {
+        const canvas = await html2canvas(mapElement, {
+          useCORS: true,
+          allowTaint: true,
+          scale: 2
+        });
+
+        const img = document.createElement('img');
+        img.src = canvas.toDataURL('image/jpeg', 0.95);
+        img.style.width = '100%';
+        img.style.height = '100%';
+        img.style.objectFit = 'cover';
+        pdfMapContainer.appendChild(img);
+
+        const pdfElement = document.getElementById('pdfContainer');
+        pdfElement.style.display = 'block';
+
+        const opt = {
+          margin: 0.2,
+          filename: 'relatorio_viagem_eletrica.pdf',
+          image: { type: 'jpeg', quality: 0.98 },
+          html2canvas: { scale: 2, useCORS: true },
+          jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+        };
+
+        await html2pdf().set(opt).from(pdfElement).save();
+
+        pdfElement.style.display = 'none';
+      } catch (e) {
+        console.error("Erro ao gerar PDF:", e);
+        alert("Ocorreu um erro ao gerar o PDF. Verifique os dados da rota e tente novamente.");
+      } finally {
+        btn.innerHTML = '<i class="fa-solid fa-file-pdf"></i> Exportar Relatório PDF (2 Págs)';
+        btn.disabled = false;
+      }
     });
 
     document.getElementById('openGoogleMapsBtn').addEventListener('click', () => {
