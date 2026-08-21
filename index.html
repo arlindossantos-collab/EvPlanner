@@ -8,10 +8,10 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- FontAwesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <!-- Leaflet CSS & JS (Gratuito / OpenSource) -->
+  <!-- Leaflet CSS & JS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <!-- html2pdf.js para Exportação de PDF -->
+  <!-- html2pdf.js -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
   <style>
@@ -55,30 +55,25 @@
   
   <div id="exportableContent" class="max-w-7xl mx-auto space-y-5 p-2 rounded-xl" style="background-color: #031038;">
     
-    <!-- Cabeçalho (Sem título) -->
-    <header class="flex flex-col md:flex-row justify-between items-center border-b border-blue-900/60 pb-4 gap-4">
-      <div class="flex items-center gap-4">
-        <img src="logo.png" alt="Logo HV Planner" class="h-16 md:h-20 rounded-lg shadow-lg border border-blue-800 object-contain" onerror="this.style.display='none'">
+    <!-- Cabeçalho com Logo Centralizada e Maior -->
+    <header class="flex flex-col items-center justify-center border-b border-blue-900/60 pb-5 gap-3 text-center">
+      <div class="flex flex-col items-center gap-2">
+        <img src="logo.png" alt="Logo HV Planner" class="h-28 md:h-36 rounded-xl shadow-2xl border-2 border-blue-800/80 object-contain" onerror="this.style.display='none'">
+        <h1 class="text-lg md:text-xl font-extrabold text-emerald-400 tracking-wide uppercase mt-1">
+          Planeje sua viagem!
+        </h1>
         <p class="text-xs text-blue-200">Telemetria, Comparador Fóssil e Mapeamento de Eletropostos em Tempo Real</p>
       </div>
       
-      <div class="flex items-center gap-2 w-full md:w-auto justify-end">
-        <button id="openGoogleMapsBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs px-4 py-2.5 rounded-lg transition flex items-center gap-1.5 shadow-md">
+      <div class="flex items-center gap-2 w-full justify-center mt-2">
+        <button id="openGoogleMapsBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs px-4 py-2 rounded-lg transition flex items-center gap-1.5 shadow-md">
           <i class="fa-solid fa-location-arrow"></i> Abrir no Google Maps App
         </button>
-        <button id="exportPdfBtn" class="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold text-xs px-4 py-2.5 rounded-lg transition flex items-center gap-1.5 shadow-md">
+        <button id="exportPdfBtn" class="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold text-xs px-4 py-2 rounded-lg transition flex items-center gap-1.5 shadow-md">
           <i class="fa-solid fa-file-pdf"></i> Exportar Resumo PDF
         </button>
       </div>
     </header>
-
-    <!-- Notificação de Confirmação -->
-    <div id="routeToast" class="hidden bg-emerald-950/90 border border-emerald-500 text-emerald-200 px-4 py-2.5 rounded-lg text-xs font-bold flex items-center justify-between shadow-lg">
-      <span class="flex items-center gap-2">
-        <i class="fa-solid fa-circle-check text-emerald-400 text-sm"></i> Rota calculada com sucesso!
-      </span>
-      <span class="text-[10px] text-emerald-400 font-normal">Telemetria e eletropostos mapeados</span>
-    </div>
 
     <!-- Grid de Controle -->
     <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -113,7 +108,7 @@
         </div>
       </div>
 
-      <!-- Card 2: Trajeto e Condições -->
+      <!-- Card 2: Trajeto e Condições + Notificação Abaixo do Botão -->
       <div class="bg-blue-950/80 p-4 rounded-xl border border-blue-900 space-y-3 shadow-md flex flex-col justify-between">
         <div>
           <h2 class="text-sm font-semibold text-blue-100 border-b border-blue-900 pb-1.5 mb-2 flex items-center gap-1.5">
@@ -148,9 +143,17 @@
             </div>
           </div>
         </div>
-        <button id="calcBtn" class="w-full bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold py-2 rounded-lg text-xs transition shadow mt-2">
-          Calcular Rota
-        </button>
+
+        <div class="space-y-2 mt-2">
+          <button id="calcBtn" class="w-full bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold py-2 rounded-lg text-xs transition shadow">
+            Calcular Rota
+          </button>
+
+          <!-- Notificação de Planejamento Concluído (Sempre abaixo do botão) -->
+          <div id="routeToast" class="hidden bg-emerald-950/90 border border-emerald-500 text-emerald-300 p-2 rounded-lg text-[11px] font-bold text-center flex items-center justify-center gap-1.5 shadow">
+            <i class="fa-solid fa-circle-check text-emerald-400"></i> Planejamento concluído!
+          </div>
+        </div>
       </div>
 
       <!-- Card 3: Carga Atual & Custos -->
@@ -395,8 +398,6 @@
       initVehicleSelectors();
       setupAutocomplete('originInput', 'originResults', coords => originCoords = coords);
       setupAutocomplete('destInput', 'destResults', coords => destCoords = coords);
-      
-      calculateRoute();
     }
 
     async function fetchRouteStationsFromOSM(bbox) {
@@ -527,7 +528,6 @@
               input.value = place.display_name;
               results.classList.add('hidden');
               callback([parseFloat(place.lat), parseFloat(place.lon)]);
-              calculateRoute();
             };
             results.appendChild(div);
           });
@@ -572,7 +572,6 @@
           document.getElementById('specBattery').innerText = `${selectedCar.battery} kWh`;
           document.getElementById('specRange').innerText = `${selectedCar.range} km`;
           document.getElementById('specConsumption').innerText = `${selectedCar.consumption} kWh/100km`;
-          calculateRoute();
         }
       });
 
@@ -650,6 +649,7 @@
           document.getElementById('fossilCost').innerText = `R$ ${totalCostFossil.toFixed(2)}`;
           document.getElementById('savingsEV').innerText = `R$ ${savings.toFixed(2)}`;
 
+          // Exibe a notificação de sucesso abaixo do botão
           showRouteToast();
         }
       } catch (err) {
