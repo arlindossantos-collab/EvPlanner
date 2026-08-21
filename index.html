@@ -33,7 +33,7 @@
       background-color: #091a4a;
       border: 1px solid #1e3a8a;
       border-radius: 0.5rem;
-      max-height: 180px;
+      max-height: 220px;
       overflow-y: auto;
       z-index: 50;
       box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.7);
@@ -55,7 +55,7 @@
   
   <div id="exportableContent" class="max-w-7xl mx-auto space-y-5 p-2 rounded-xl" style="background-color: #031038;">
     
-    <!-- Cabeçalho com Logo Centralizada e Frase Atualizada -->
+    <!-- Cabeçalho -->
     <header class="flex flex-col items-center justify-center border-b border-blue-900/60 pb-5 gap-3 text-center">
       <div class="flex flex-col items-center gap-2">
         <img src="logo.png" alt="Logo HV Planner" class="h-28 md:h-36 rounded-xl shadow-2xl border-2 border-blue-800/80 object-contain" onerror="this.style.display='none'">
@@ -108,7 +108,7 @@
         </div>
       </div>
 
-      <!-- Card 2: Trajeto e Condições + Notificação Abaixo do Botão -->
+      <!-- Card 2: Trajeto com Autocomplete de Ruas e Avenidas -->
       <div class="bg-blue-950/80 p-4 rounded-xl border border-blue-900 space-y-3 shadow-md flex flex-col justify-between">
         <div>
           <h2 class="text-sm font-semibold text-blue-100 border-b border-blue-900 pb-1.5 mb-2 flex items-center gap-1.5">
@@ -116,13 +116,13 @@
           </h2>
           <div class="space-y-2">
             <div class="relative">
-              <label class="block text-[11px] text-blue-300 mb-0.5">Origem</label>
-              <input type="text" id="originInput" value="Recife, PE, Brasil" class="w-full bg-[#031038] border border-blue-800 rounded-md p-1.5 text-white text-xs outline-none" placeholder="Digite cidade ou endereço...">
+              <label class="block text-[11px] text-blue-300 mb-0.5">Origem (Endereço, Rua, Cidade)</label>
+              <input type="text" id="originInput" value="Recife, PE, Brasil" class="w-full bg-[#031038] border border-blue-800 rounded-md p-1.5 text-white text-xs outline-none focus:border-emerald-500" placeholder="Digite rua, avenida ou cidade...">
               <div id="originResults" class="autocomplete-results hidden"></div>
             </div>
             <div class="relative">
-              <label class="block text-[11px] text-blue-300 mb-0.5">Destino</label>
-              <input type="text" id="destInput" value="Maceió, AL, Brasil" class="w-full bg-[#031038] border border-blue-800 rounded-md p-1.5 text-white text-xs outline-none" placeholder="Digite cidade ou endereço...">
+              <label class="block text-[11px] text-blue-300 mb-0.5">Destino (Endereço, Rua, Cidade)</label>
+              <input type="text" id="destInput" value="Maceió, AL, Brasil" class="w-full bg-[#031038] border border-blue-800 rounded-md p-1.5 text-white text-xs outline-none focus:border-emerald-500" placeholder="Digite rua, avenida ou cidade...">
               <div id="destResults" class="autocomplete-results hidden"></div>
             </div>
             <div class="grid grid-cols-2 gap-2">
@@ -383,7 +383,22 @@
       ]
     };
 
+    // Base Reserva Ampla de Eletropostos para Garantia em Qualquer Rota
+    const backupStations = [
+      { id: 101, name: "Shell Recharge - Shopping Recife (PE)", lat: -8.1182, lng: -34.9042, power: "CCS2 / 150kW DC Ultra-Rápido", type: "DC" },
+      { id: 102, name: "Tupinambá - Caruaru (PE)", lat: -8.2831, lng: -35.9761, power: "CCS2 / 50kW DC Rápido", type: "DC" },
+      { id: 103, name: "Volts Eletroposto - Lajedo (PE)", lat: -8.6621, lng: -36.3218, power: "CCS2 / 50kW DC Rápido", type: "DC" },
+      { id: 104, name: "Zletric Wallbox - Garanhuns (PE)", lat: -8.8824, lng: -36.4962, power: "AC Wallbox 22kW Semi-Rápido", type: "AC" },
+      { id: 105, name: "EZVolt - Maceió Shopping (AL)", lat: -9.6465, lng: -35.7089, power: "CCS2 / 60kW DC Rápido", type: "DC" },
+      { id: 106, name: "E Charge Station - Delmiro Gouveia (AL)", lat: -9.3871, lng: -37.9984, power: "DC 24kW / Posto Ipiranga", type: "DC" },
+      { id: 107, name: "Hotel Wallbox - Piranhas (AL)", lat: -9.6256, lng: -37.7569, power: "AC Wallbox 7kW Lento", type: "AC" },
+      { id: 108, name: "Shell Recharge - João Pessoa (PB)", lat: -7.1195, lng: -34.8450, power: "CCS2 / 100kW DC Ultra-Rápido", type: "DC" },
+      { id: 109, name: "Tupinambá - Natal (RN)", lat: -5.8115, lng: -35.2052, power: "CCS2 / 50kW DC Rápido", type: "DC" },
+      { id: 110, name: "EZVolt - Aracaju (SE)", lat: -10.9472, lng: -37.0731, power: "CCS2 / 60kW DC Rápido", type: "DC" }
+    ];
+
     let map, routeLayer, originCoords = [-8.0476, -34.8770], destCoords = [-9.6658, -35.7350];
+    let originMarker, destMarker;
     let selectedCar = null;
     let stationMarkers = [];
     let fetchedStations = [];
@@ -396,14 +411,80 @@
       }).addTo(map);
 
       initVehicleSelectors();
-      setupAutocomplete('originInput', 'originResults', coords => originCoords = coords);
-      setupAutocomplete('destInput', 'destResults', coords => destCoords = coords);
+      setupAutocomplete('originInput', 'originResults', (coords, name) => {
+        originCoords = coords;
+        updateLocationMarkers();
+      });
+      setupAutocomplete('destInput', 'destResults', (coords, name) => {
+        destCoords = coords;
+        updateLocationMarkers();
+      });
+
+      updateLocationMarkers();
+    }
+
+    function updateLocationMarkers() {
+      if (originMarker) map.removeLayer(originMarker);
+      if (destMarker) map.removeLayer(destMarker);
+
+      if (originCoords) {
+        originMarker = L.marker(originCoords).addTo(map).bindPopup("<b>Origem</b>");
+      }
+      if (destCoords) {
+        destMarker = L.marker(destCoords).addTo(map).bindPopup("<b>Destino</b>");
+      }
+    }
+
+    // Autocomplete corrigido com suporte pleno a ruas, avenidas e números no Brasil
+    function setupAutocomplete(inputId, resultsId, callback) {
+      const input = document.getElementById(inputId);
+      const results = document.getElementById(resultsId);
+
+      let timeout = null;
+      input.addEventListener('input', () => {
+        clearTimeout(timeout);
+        const query = input.value;
+        if (query.length < 3) { results.classList.add('hidden'); return; }
+
+        timeout = setTimeout(async () => {
+          try {
+            // Consulta aberta com prioridade no Brasil e suporte a endereços de rua
+            const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&countrycodes=br&addressdetails=1&limit=6`;
+            const res = await fetch(url);
+            const data = await res.json();
+            
+            results.innerHTML = '';
+            if (!data || data.length === 0) { results.classList.add('hidden'); return; }
+
+            data.forEach(place => {
+              const div = document.createElement('div');
+              div.className = 'autocomplete-item';
+              div.innerText = place.display_name;
+              div.onclick = () => {
+                input.value = place.display_name;
+                results.classList.add('hidden');
+                callback([parseFloat(place.lat), parseFloat(place.lon)], place.display_name);
+              };
+              results.appendChild(div);
+            });
+            results.classList.remove('hidden');
+          } catch (err) {
+            console.error("Erro na busca de endereço:", err);
+          }
+        }, 350);
+      });
+
+      document.addEventListener('click', (e) => {
+        if (!input.contains(e.target) && !results.contains(e.target)) {
+          results.classList.add('hidden');
+        }
+      });
     }
 
     async function fetchRouteStationsFromOSM(bbox) {
       const [south, west, north, east] = bbox;
       const query = `
-        [out:json][timeout:15];
+        [out:json][timeout:12];
         (
           node["amenity"="charging_station"](${south},${west},${north},${east});
           way["amenity"="charging_station"](${south},${west},${north},${east});
@@ -418,7 +499,7 @@
         });
         const data = await response.json();
         
-        fetchedStations = data.elements.map((item, idx) => {
+        const osmStations = data.elements.map((item, idx) => {
           const lat = item.lat || (item.center ? item.center.lat : null);
           const lng = item.lon || (item.center ? item.center.lon : null);
           const name = item.tags.name || item.tags.operator || `Eletroposto ${idx + 1}`;
@@ -434,15 +515,24 @@
           };
         }).filter(s => s.lat && s.lng);
 
+        // Mescla com a base de segurança garantindo que os postos do trajeto sejam exibidos
+        const combined = [...osmStations, ...backupStations];
+        const uniqueStations = [];
+        const mapKeys = new Set();
+
+        combined.forEach(st => {
+          const key = `${st.lat.toFixed(3)},${st.lng.toFixed(3)}`;
+          if (!mapKeys.has(key)) {
+            mapKeys.add(key);
+            uniqueStations.push(st);
+          }
+        });
+
+        fetchedStations = uniqueStations;
+
       } catch (err) {
-        console.warn("Consulta OSM falhou, utilizando base reserva:", err);
-        fetchedStations = [
-          { id: 101, name: "Shell Recharge - Shopping Recife (PE)", lat: -8.1182, lng: -34.9042, power: "CCS2 / 150kW DC Ultra-Rápido", type: "DC" },
-          { id: 102, name: "Tupinambá - Caruaru (PE)", lat: -8.2831, lng: -35.9761, power: "CCS2 / 50kW DC Rápido", type: "DC" },
-          { id: 103, name: "Volts Eletroposto - Lajedo (PE)", lat: -8.6621, lng: -36.3218, power: "CCS2 / 50kW DC Rápido", type: "DC" },
-          { id: 104, name: "Zletric Wallbox - Garanhuns (PE)", lat: -8.8824, lng: -36.4962, power: "AC Wallbox 22kW Semi-Rápido", type: "AC" },
-          { id: 105, name: "EZVolt - Maceió Shopping (AL)", lat: -9.6465, lng: -35.7089, power: "CCS2 / 60kW DC Rápido", type: "DC" }
-        ];
+        console.warn("Consulta OSM falhou ou demorou. Utilizando base reserva:", err);
+        fetchedStations = backupStations;
       }
     }
 
@@ -501,39 +591,6 @@
 
     function focusStation(lat, lng) {
       map.setView([lat, lng], 14);
-    }
-
-    function setupAutocomplete(inputId, resultsId, callback) {
-      const input = document.getElementById(inputId);
-      const results = document.getElementById(resultsId);
-
-      let timeout = null;
-      input.addEventListener('input', () => {
-        clearTimeout(timeout);
-        const query = input.value;
-        if (query.length < 3) { results.classList.add('hidden'); return; }
-
-        timeout = setTimeout(async () => {
-          const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&countrycodes=br&limit=4`);
-          const data = await res.json();
-          
-          results.innerHTML = '';
-          if (data.length === 0) { results.classList.add('hidden'); return; }
-
-          data.forEach(place => {
-            const div = document.createElement('div');
-            div.className = 'autocomplete-item';
-            div.innerText = place.display_name;
-            div.onclick = () => {
-              input.value = place.display_name;
-              results.classList.add('hidden');
-              callback([parseFloat(place.lat), parseFloat(place.lon)]);
-            };
-            results.appendChild(div);
-          });
-          results.classList.remove('hidden');
-        }, 300);
-      });
     }
 
     function initVehicleSelectors() {
@@ -600,14 +657,16 @@
             style: { color: '#10b981', weight: 5 }
           }).addTo(map);
 
+          updateLocationMarkers();
+
           const bounds = routeLayer.getBounds();
           map.fitBounds(bounds, { padding: [30, 30] });
 
           const bbox = [
-            bounds.getSouth() - 0.15,
-            bounds.getWest() - 0.15,
-            bounds.getNorth() + 0.15,
-            bounds.getEast() + 0.15
+            bounds.getSouth() - 0.20,
+            bounds.getWest() - 0.20,
+            bounds.getNorth() + 0.20,
+            bounds.getEast() + 0.20
           ];
 
           await fetchRouteStationsFromOSM(bbox);
@@ -649,7 +708,6 @@
           document.getElementById('fossilCost').innerText = `R$ ${totalCostFossil.toFixed(2)}`;
           document.getElementById('savingsEV').innerText = `R$ ${savings.toFixed(2)}`;
 
-          // Exibe a notificação de sucesso abaixo do botão
           showRouteToast();
         }
       } catch (err) {
