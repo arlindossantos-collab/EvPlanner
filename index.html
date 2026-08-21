@@ -51,56 +51,56 @@
     }
   </style>
 </head>
-<body class="min-h-screen p-3 md:p-6 font-sans">
+<body class="min-h-screen p-2 md:p-6 font-sans">
   
-  <div id="exportableContent" class="max-w-7xl mx-auto space-y-5 p-2 rounded-xl" style="background-color: #031038;">
+  <div id="exportableContent" class="max-w-7xl mx-auto space-y-4 p-1 md:p-2 rounded-xl" style="background-color: #031038;">
     
     <!-- Cabeçalho -->
-    <header class="flex flex-col items-center justify-center border-b border-blue-900/60 pb-5 gap-3 text-center">
-      <div class="flex flex-col items-center gap-2">
-        <img src="logo.png" alt="Logo HV Planner" class="h-28 md:h-36 rounded-xl shadow-2xl border-2 border-blue-800/80 object-contain" onerror="this.style.display='none'">
-        <h1 class="text-lg md:text-xl font-extrabold text-emerald-400 tracking-wide uppercase mt-1">
+    <header class="flex flex-col items-center justify-center border-b border-blue-900/60 pb-4 gap-2 text-center">
+      <div class="flex flex-col items-center gap-1.5">
+        <img src="logo.png" alt="Logo HV Planner" class="h-24 md:h-36 rounded-xl shadow-2xl border-2 border-blue-800/80 object-contain" onerror="this.style.display='none'">
+        <h1 class="text-base md:text-xl font-extrabold text-emerald-400 tracking-wide uppercase mt-1">
           Planeje sua viagem!
         </h1>
-        <p class="text-xs text-blue-200">Chegue ao seu destino de forma segura</p>
+        <p class="text-[11px] md:text-xs text-blue-200">Chegue ao seu destino de forma segura</p>
       </div>
       
-      <div class="flex items-center gap-2 w-full justify-center mt-2">
-        <button id="openGoogleMapsBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs px-4 py-2 rounded-lg transition flex items-center gap-1.5 shadow-md">
+      <div class="flex items-center gap-2 w-full justify-center mt-1">
+        <button id="openGoogleMapsBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold text-[11px] md:text-xs px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 shadow-md">
           <i class="fa-solid fa-location-arrow"></i> Abrir no Google Maps App
         </button>
-        <button id="exportPdfBtn" class="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold text-xs px-4 py-2 rounded-lg transition flex items-center gap-1.5 shadow-md">
+        <button id="exportPdfBtn" class="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold text-[11px] md:text-xs px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 shadow-md">
           <i class="fa-solid fa-file-pdf"></i> Exportar Resumo PDF
         </button>
       </div>
     </header>
 
     <!-- Grid de Controle -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
       
       <!-- Card 1: Veículo -->
-      <div class="bg-blue-950/80 p-4 rounded-xl border border-blue-900 space-y-3 shadow-md flex flex-col justify-between">
+      <div class="bg-blue-950/80 p-3.5 rounded-xl border border-blue-900 space-y-2.5 shadow-md flex flex-col justify-between">
         <div>
-          <h2 class="text-sm font-semibold text-blue-100 border-b border-blue-900 pb-1.5 mb-2 flex items-center gap-1.5">
+          <h2 class="text-xs md:text-sm font-semibold text-blue-100 border-b border-blue-900 pb-1 mb-2 flex items-center gap-1.5">
             <i class="fa-solid fa-car text-emerald-400"></i> 1. Veículo
           </h2>
           <div class="space-y-2">
             <div>
-              <label class="block text-[11px] font-medium text-blue-300 mb-0.5">Marca / Fabricante</label>
-              <select id="brandSelect" class="w-full bg-[#031038] border border-blue-800 rounded-md p-2 text-white text-xs focus:ring-1 focus:ring-emerald-500 outline-none">
+              <label class="block text-[10px] md:text-[11px] font-medium text-blue-300 mb-0.5">Marca / Fabricante</label>
+              <select id="brandSelect" class="w-full bg-[#031038] border border-blue-800 rounded-md p-1.5 text-white text-xs focus:ring-1 focus:ring-emerald-500 outline-none">
                 <option value="">Selecione a marca...</option>
               </select>
             </div>
             <div>
-              <label class="block text-[11px] font-medium text-blue-300 mb-0.5">Modelo & Versão</label>
-              <select id="modelSelect" disabled class="w-full bg-[#031038] border border-blue-800 rounded-md p-2 text-white text-xs focus:ring-1 focus:ring-emerald-500 outline-none disabled:opacity-50">
+              <label class="block text-[10px] md:text-[11px] font-medium text-blue-300 mb-0.5">Modelo & Versão</label>
+              <select id="modelSelect" disabled class="w-full bg-[#031038] border border-blue-800 rounded-md p-1.5 text-white text-xs focus:ring-1 focus:ring-emerald-500 outline-none disabled:opacity-50">
                 <option value="">Aguardando marca...</option>
               </select>
             </div>
           </div>
         </div>
 
-        <div id="carSpecs" class="bg-[#020b29] p-2.5 rounded-lg text-[11px] space-y-1 border border-blue-900 mt-2">
+        <div id="carSpecs" class="bg-[#020b29] p-2 rounded-lg text-[10px] md:text-[11px] space-y-1 border border-blue-900 mt-2">
           <div class="flex justify-between"><span class="text-blue-300">Propulsão:</span><span id="specType" class="font-bold text-emerald-400">-</span></div>
           <div class="flex justify-between"><span class="text-blue-300">Bateria Útil:</span><span id="specBattery" class="font-bold text-white">-</span></div>
           <div class="flex justify-between"><span class="text-blue-300">Autonomia Base:</span><span id="specRange" class="font-bold text-emerald-400">-</span></div>
@@ -108,34 +108,34 @@
         </div>
       </div>
 
-      <!-- Card 2: Trajeto com Autocomplete Avançado -->
-      <div class="bg-blue-950/80 p-4 rounded-xl border border-blue-900 space-y-3 shadow-md flex flex-col justify-between">
+      <!-- Card 2: Trajeto -->
+      <div class="bg-blue-950/80 p-3.5 rounded-xl border border-blue-900 space-y-2.5 shadow-md flex flex-col justify-between">
         <div>
-          <h2 class="text-sm font-semibold text-blue-100 border-b border-blue-900 pb-1.5 mb-2 flex items-center gap-1.5">
+          <h2 class="text-xs md:text-sm font-semibold text-blue-100 border-b border-blue-900 pb-1 mb-2 flex items-center gap-1.5">
             <i class="fa-solid fa-route text-emerald-400"></i> 2. Trajeto & Condições
           </h2>
           <div class="space-y-2">
             <div class="relative">
-              <label class="block text-[11px] text-blue-300 mb-0.5">Origem (Rua, Nº, Cidade, Estado)</label>
+              <label class="block text-[10px] md:text-[11px] text-blue-300 mb-0.5">Origem (Rua, Nº, Cidade, Estado)</label>
               <input type="text" id="originInput" value="Recife, PE, Brasil" class="w-full bg-[#031038] border border-blue-800 rounded-md p-1.5 text-white text-xs outline-none focus:border-emerald-500" placeholder="Ex: Av. Boa Viagem, 500, Recife">
               <div id="originResults" class="autocomplete-results hidden"></div>
             </div>
             <div class="relative">
-              <label class="block text-[11px] text-blue-300 mb-0.5">Destino (Rua, Nº, Cidade, Estado)</label>
+              <label class="block text-[10px] md:text-[11px] text-blue-300 mb-0.5">Destino (Rua, Nº, Cidade, Estado)</label>
               <input type="text" id="destInput" value="Maceió, AL, Brasil" class="w-full bg-[#031038] border border-blue-800 rounded-md p-1.5 text-white text-xs outline-none focus:border-emerald-500" placeholder="Ex: Av. Epitácio Pessoa, 4985, João Pessoa">
               <div id="destResults" class="autocomplete-results hidden"></div>
             </div>
-            <div class="grid grid-cols-2 gap-2">
+            <div class="grid grid-cols-2 gap-1.5">
               <div>
-                <label class="block text-[10px] text-blue-300 mb-0.5">Modo Condução</label>
-                <select id="driveMode" class="w-full bg-[#031038] border border-blue-800 rounded p-1 text-[11px] text-white">
+                <label class="block text-[9px] md:text-[10px] text-blue-300 mb-0.5">Modo Condução</label>
+                <select id="driveMode" class="w-full bg-[#031038] border border-blue-800 rounded p-1 text-[10px] md:text-[11px] text-white">
                   <option value="1.0">Eco (Normal)</option>
                   <option value="1.15">Sport / Rodovia (+15%)</option>
                 </select>
               </div>
               <div>
-                <label class="block text-[10px] text-blue-300 mb-0.5">Ar-Condicionado</label>
-                <select id="acMode" class="w-full bg-[#031038] border border-blue-800 rounded p-1 text-[11px] text-white">
+                <label class="block text-[9px] md:text-[10px] text-blue-300 mb-0.5">Ar-Condicionado</label>
+                <select id="acMode" class="w-full bg-[#031038] border border-blue-800 rounded p-1 text-[10px] md:text-[11px] text-white">
                   <option value="1.0">Desligado</option>
                   <option value="1.1" selected>Ligado (+10%)</option>
                 </select>
@@ -145,49 +145,49 @@
         </div>
 
         <div class="space-y-2 mt-2">
-          <button id="calcBtn" class="w-full bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold py-2 rounded-lg text-xs transition shadow">
+          <button id="calcBtn" class="w-full bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold py-1.5 rounded-lg text-xs transition shadow">
             Calcular Rota
           </button>
 
           <!-- Notificação de Planejamento Concluído -->
-          <div id="routeToast" class="hidden bg-emerald-950/90 border border-emerald-500 text-emerald-300 p-2 rounded-lg text-[11px] font-bold text-center flex items-center justify-center gap-1.5 shadow">
+          <div id="routeToast" class="hidden bg-emerald-950/90 border border-emerald-500 text-emerald-300 p-1.5 rounded-lg text-[10px] md:text-[11px] font-bold text-center flex items-center justify-center gap-1.5 shadow">
             <i class="fa-solid fa-circle-check text-emerald-400"></i> Planejamento concluído!
           </div>
         </div>
       </div>
 
       <!-- Card 3: Carga Atual & Custos -->
-      <div class="bg-blue-950/80 p-4 rounded-xl border border-blue-900 space-y-3 shadow-md flex flex-col justify-between">
+      <div class="bg-blue-950/80 p-3.5 rounded-xl border border-blue-900 space-y-2.5 shadow-md flex flex-col justify-between">
         <div>
-          <h2 class="text-sm font-semibold text-blue-100 border-b border-blue-900 pb-1.5 mb-2 flex items-center gap-1.5">
+          <h2 class="text-xs md:text-sm font-semibold text-blue-100 border-b border-blue-900 pb-1 mb-2 flex items-center gap-1.5">
             <i class="fa-solid fa-battery-three-quarters text-emerald-400"></i> 3. Carga Atual & Custos
           </h2>
           <div class="space-y-2">
             <div>
               <label class="block text-[10px] font-bold text-emerald-400 mb-0.5">Status Atual da Bateria (%)</label>
-              <input type="number" id="startBattery" value="80" min="5" max="100" class="w-full bg-[#031038] border border-emerald-500 rounded p-1.5 text-emerald-300 font-black text-sm outline-none">
+              <input type="number" id="startBattery" value="80" min="5" max="100" class="w-full bg-[#031038] border border-emerald-500 rounded p-1.5 text-emerald-300 font-black text-xs md:text-sm outline-none">
             </div>
-            <div class="grid grid-cols-2 gap-2">
+            <div class="grid grid-cols-2 gap-1.5">
               <div>
-                <label class="block text-[10px] text-blue-300 mb-0.5">Tarifa R$/kWh</label>
-                <input type="number" id="costPerKwh" value="2.39" step="0.01" class="w-full bg-[#031038] border border-blue-800 rounded p-1.5 text-white text-xs">
+                <label class="block text-[9px] md:text-[10px] text-blue-300 mb-0.5">Tarifa R$/kWh</label>
+                <input type="number" id="costPerKwh" value="2.39" step="0.01" class="w-full bg-[#031038] border border-blue-800 rounded p-1 text-white text-[11px]">
               </div>
               <div>
-                <label class="block text-[10px] text-blue-300 mb-0.5">Gasolina (R$/L)</label>
-                <input type="number" id="costPerLiter" value="5.89" step="0.01" class="w-full bg-[#031038] border border-blue-800 rounded p-1.5 text-white text-xs">
+                <label class="block text-[9px] md:text-[10px] text-blue-300 mb-0.5">Gasolina (R$/L)</label>
+                <input type="number" id="costPerLiter" value="5.89" step="0.01" class="w-full bg-[#031038] border border-blue-800 rounded p-1 text-white text-[11px]">
               </div>
             </div>
             <div>
-              <label class="block text-[10px] text-blue-300 mb-0.5">Consumo Fóssil (km/L)</label>
-              <input type="number" id="fossilKmPerLiter" value="11.5" step="0.1" class="w-full bg-[#031038] border border-blue-800 rounded p-1.5 text-white text-xs">
+              <label class="block text-[9px] md:text-[10px] text-blue-300 mb-0.5">Consumo Fóssil (km/L)</label>
+              <input type="number" id="fossilKmPerLiter" value="11.5" step="0.1" class="w-full bg-[#031038] border border-blue-800 rounded p-1 text-white text-[11px]">
             </div>
           </div>
         </div>
 
-        <div class="bg-[#020b29] p-2.5 rounded-lg text-[11px] space-y-1 border border-blue-900 mt-2">
+        <div class="bg-[#020b29] p-2 rounded-lg text-[10px] md:text-[11px] space-y-1 border border-blue-900 mt-2">
           <div class="flex justify-between"><span class="text-blue-300">Custo Total EV:</span><span id="totalCost" class="font-bold text-emerald-400">R$ 0,00</span></div>
           <div class="flex justify-between"><span class="text-blue-300">Passageiros:</span>
-            <select id="passengerCount" class="bg-[#031038] border border-blue-800 text-[10px] text-white rounded px-1">
+            <select id="passengerCount" class="bg-[#031038] border border-blue-800 text-[9px] text-white rounded px-1">
               <option value="1">1</option><option value="2">2</option><option value="3" selected>3</option><option value="4">4</option>
             </select>
           </div>
@@ -195,42 +195,41 @@
         </div>
       </div>
 
-      <!-- Card 4: Telemetria & Plano de Parada Detalhado -->
-      <div class="bg-blue-950/80 p-4 rounded-xl border border-blue-900 space-y-3 shadow-md flex flex-col justify-between">
+      <!-- Card 4: Telemetria & Parada -->
+      <div class="bg-blue-950/80 p-3.5 rounded-xl border border-blue-900 space-y-2.5 shadow-md flex flex-col justify-between">
         <div>
-          <h2 class="text-sm font-semibold text-blue-100 border-b border-blue-900 pb-1.5 mb-2 flex items-center gap-1.5">
+          <h2 class="text-xs md:text-sm font-semibold text-blue-100 border-b border-blue-900 pb-1 mb-2 flex items-center gap-1.5">
             <i class="fa-solid fa-chart-line text-emerald-400"></i> 4. Telemetria & Parada
           </h2>
           
-          <div class="space-y-2">
-            <div class="flex justify-between text-xs text-blue-300">
+          <div class="space-y-1.5">
+            <div class="flex justify-between text-[11px] md:text-xs text-blue-300">
               <span>Nível Estimado Chegada:</span>
-              <span id="batteryPercentage" class="font-bold text-sm">--%</span>
+              <span id="batteryPercentage" class="font-bold text-xs md:text-sm">--%</span>
             </div>
             
-            <div class="w-full bg-[#031038] border-2 border-blue-800 rounded-xl h-6 p-1 relative flex items-center">
+            <div class="w-full bg-[#031038] border-2 border-blue-800 rounded-xl h-5 md:h-6 p-0.5 relative flex items-center">
               <div id="batteryBar" class="h-full rounded-lg transition-all duration-500 bg-emerald-500" style="width: 100%;"></div>
-              <div class="absolute -right-3 w-2 h-3.5 bg-blue-800 rounded-r-sm"></div>
+              <div class="absolute -right-3 w-2 h-3 bg-blue-800 rounded-r-sm"></div>
             </div>
           </div>
         </div>
 
-        <div class="text-[11px] text-blue-200 space-y-1 border-t border-blue-900 pt-1.5">
+        <div class="text-[10px] md:text-[11px] text-blue-200 space-y-1 border-t border-blue-900 pt-1.5">
           <div class="flex justify-between"><span class="text-blue-300">📏 Distância Total:</span><span id="totalDistance" class="font-bold text-emerald-400">0 km</span></div>
           <div class="flex justify-between items-center"><span class="text-blue-300">⚡ Parar para Carga em:</span><span id="rechargeDistanceAlert" class="font-bold text-amber-400 text-right">-- km</span></div>
           
-          <!-- Bloco do Plano de Carregamento na Estrada -->
-          <div id="stopPlanContainer" class="bg-[#020b29] p-2 rounded border border-blue-800/80 my-1 space-y-1">
-            <div class="text-[10px] font-bold text-emerald-400 border-b border-blue-900 pb-0.5 flex items-center gap-1">
-              <i class="fa-solid fa-plug"></i> Estimação de Parada no Eletroposto:
+          <div id="stopPlanContainer" class="bg-[#020b29] p-1.5 rounded border border-blue-800/80 my-1 space-y-0.5">
+            <div class="text-[9px] md:text-[10px] font-bold text-emerald-400 border-b border-blue-900 pb-0.5 flex items-center gap-1">
+              <i class="fa-solid fa-plug"></i> Estimação no Eletroposto:
             </div>
-            <div class="flex justify-between text-[10px]"><span class="text-blue-300">Chegada no Posto:</span><span id="stopArrivalSoc" class="font-bold text-amber-300">--%</span></div>
-            <div class="flex justify-between text-[10px]"><span class="text-blue-300">Carga Mín. p/ Saída:</span><span id="stopDepartureSoc" class="font-bold text-emerald-400">--%</span></div>
-            <div class="flex justify-between text-[10px]"><span class="text-blue-300">Tempo de Carga (DC):</span><span id="stopChargingTime" class="font-bold text-yellow-300">-- min</span></div>
-            <div class="flex justify-between text-[10px]"><span class="text-blue-300">Custo da Recarga:</span><span id="stopChargingCost" class="font-bold text-emerald-400">R$ 0,00</span></div>
+            <div class="flex justify-between text-[9px] md:text-[10px]"><span class="text-blue-300">Chegada no Posto:</span><span id="stopArrivalSoc" class="font-bold text-amber-300">--%</span></div>
+            <div class="flex justify-between text-[9px] md:text-[10px]"><span class="text-blue-300">Carga Mín. Saída:</span><span id="stopDepartureSoc" class="font-bold text-emerald-400">--%</span></div>
+            <div class="flex justify-between text-[9px] md:text-[10px]"><span class="text-blue-300">Tempo Carga (DC):</span><span id="stopChargingTime" class="font-bold text-yellow-300">-- min</span></div>
+            <div class="flex justify-between text-[9px] md:text-[10px]"><span class="text-blue-300">Custo Recarga:</span><span id="stopChargingCost" class="font-bold text-emerald-400">R$ 0,00</span></div>
           </div>
 
-          <div class="flex justify-between items-center"><span class="text-blue-300">⛽ Custo no Fóssil:</span><span id="fossilCost" class="font-bold text-red-400">R$ 0,00</span></div>
+          <div class="flex justify-between items-center"><span class="text-blue-300">⛽ Custo Fóssil:</span><span id="fossilCost" class="font-bold text-red-400">R$ 0,00</span></div>
           <div class="flex justify-between items-center bg-emerald-950/40 p-1 rounded border border-emerald-500/30">
             <span class="text-emerald-300 font-semibold">Economia EV:</span><span id="savingsEV" class="font-black text-emerald-400">R$ 0,00</span>
           </div>
@@ -240,12 +239,12 @@
     </div>
 
     <!-- Barra de Filtros e Mapa -->
-    <div class="bg-blue-950/80 p-3 rounded-xl border border-blue-900 space-y-3 shadow-lg">
-      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-blue-900 pb-2 text-xs">
+    <div class="bg-blue-950/80 p-2.5 rounded-xl border border-blue-900 space-y-2.5 shadow-lg">
+      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-1.5 border-b border-blue-900 pb-2 text-[11px] md:text-xs">
         <span class="font-semibold text-blue-100 flex items-center gap-1.5">
-          <i class="fa-solid fa-charging-station text-yellow-400"></i> Filtro de Eletropostos Mapeados:
+          <i class="fa-solid fa-charging-station text-yellow-400"></i> Filtro de Eletropostos:
         </span>
-        <div class="flex flex-wrap gap-3 text-blue-200">
+        <div class="flex flex-wrap gap-2.5 text-blue-200 text-[10px] md:text-xs">
           <label class="flex items-center gap-1 cursor-pointer"><input type="checkbox" id="filterCCS2" checked class="rounded text-emerald-500"> CCS2 / Ultra-Rápido DC</label>
           <label class="flex items-center gap-1 cursor-pointer"><input type="checkbox" id="filterAC" checked class="rounded text-emerald-500"> AC Wallbox (7-22kW)</label>
         </div>
@@ -254,24 +253,25 @@
       <div id="map"></div>
     </div>
 
-    <!-- Relação de Eletropostos Mapeados -->
-    <div class="bg-blue-950/80 p-4 rounded-xl border border-blue-900 space-y-3 shadow-lg">
-      <h3 class="text-sm font-bold text-white flex items-center justify-between border-b border-blue-900 pb-2">
-        <span class="flex items-center gap-2"><i class="fa-solid fa-list-check text-emerald-400"></i> Eletropostos Encontrados ao Longo da Rota</span>
-        <span id="stationsCount" class="text-xs bg-blue-900 text-emerald-300 px-2 py-0.5 rounded border border-blue-700">0 encontrados</span>
+    <!-- Relação de Eletropostos Mapeados Otimizada para Mobile -->
+    <div class="bg-blue-950/80 p-2.5 md:p-4 rounded-xl border border-blue-900 space-y-2 shadow-lg">
+      <h3 class="text-xs md:text-sm font-bold text-white flex items-center justify-between border-b border-blue-900 pb-1.5">
+        <span class="flex items-center gap-1.5"><i class="fa-solid fa-list-check text-emerald-400"></i> Eletropostos Encontrados</span>
+        <span id="stationsCount" class="text-[10px] md:text-xs bg-blue-900 text-emerald-300 px-2 py-0.5 rounded border border-blue-700">0 encontrados</span>
       </h3>
       <div class="overflow-x-auto">
-        <table class="w-full text-left text-xs text-blue-200">
-          <thead class="bg-[#020b29] text-emerald-400 uppercase text-[10px] font-bold border-b border-blue-900">
+        <table class="w-full text-left text-[9px] md:text-xs text-blue-200">
+          <thead class="bg-[#020b29] text-emerald-400 uppercase text-[9px] font-bold border-b border-blue-900">
             <tr>
-              <th class="p-2.5">Eletroposto / Ponto de Carga</th>
-              <th class="p-2.5">Especificação</th>
-              <th class="p-2.5">Tipo</th>
-              <th class="p-2.5 text-right">Ação</th>
+              <th class="p-1.5 whitespace-nowrap">Eletroposto / Ponto</th>
+              <th class="p-1.5 whitespace-nowrap">Cidade / UF</th>
+              <th class="p-1.5 whitespace-nowrap">Especificação</th>
+              <th class="p-1.5 whitespace-nowrap">Tipo</th>
+              <th class="p-1.5 text-right whitespace-nowrap">Ação</th>
             </tr>
           </thead>
           <tbody id="stationsTableBody" class="divide-y divide-blue-900/50">
-            <tr><td colspan="4" class="p-3 text-center text-slate-400">Clique em "Calcular Rota" para mapear os postos.</td></tr>
+            <tr><td colspan="5" class="p-2 text-center text-slate-400">Clique em "Calcular Rota" para mapear os postos.</td></tr>
           </tbody>
         </table>
       </div>
@@ -392,18 +392,18 @@
       ]
     };
 
-    // Base Reserva Ampla de Eletropostos para Garantia em Qualquer Rota
+    // Base Reserva de Eletropostos com Cidade e Estado
     const backupStations = [
-      { id: 101, name: "Shell Recharge - Shopping Recife (PE)", lat: -8.1182, lng: -34.9042, power: "CCS2 / 150kW DC Ultra-Rápido", type: "DC" },
-      { id: 102, name: "Tupinambá - Caruaru (PE)", lat: -8.2831, lng: -35.9761, power: "CCS2 / 50kW DC Rápido", type: "DC" },
-      { id: 103, name: "Volts Eletroposto - Lajedo (PE)", lat: -8.6621, lng: -36.3218, power: "CCS2 / 50kW DC Rápido", type: "DC" },
-      { id: 104, name: "Zletric Wallbox - Garanhuns (PE)", lat: -8.8824, lng: -36.4962, power: "AC Wallbox 22kW Semi-Rápido", type: "AC" },
-      { id: 105, name: "EZVolt - Maceió Shopping (AL)", lat: -9.6465, lng: -35.7089, power: "CCS2 / 60kW DC Rápido", type: "DC" },
-      { id: 106, name: "E Charge Station - Delmiro Gouveia (AL)", lat: -9.3871, lng: -37.9984, power: "DC 24kW / Posto Ipiranga", type: "DC" },
-      { id: 107, name: "Hotel Wallbox - Piranhas (AL)", lat: -9.6256, lng: -37.7569, power: "AC Wallbox 7kW Lento", type: "AC" },
-      { id: 108, name: "Shell Recharge - João Pessoa (PB)", lat: -7.1195, lng: -34.8450, power: "CCS2 / 100kW DC Ultra-Rápido", type: "DC" },
-      { id: 109, name: "Tupinambá - Natal (RN)", lat: -5.8115, lng: -35.2052, power: "CCS2 / 50kW DC Rápido", type: "DC" },
-      { id: 110, name: "EZVolt - Aracaju (SE)", lat: -10.9472, lng: -37.0731, power: "CCS2 / 60kW DC Rápido", type: "DC" }
+      { id: 101, name: "Shell Recharge - Shopping Recife", city: "Recife", state: "PE", lat: -8.1182, lng: -34.9042, power: "CCS2 / 150kW DC", type: "DC" },
+      { id: 102, name: "Tupinambá - Caruaru", city: "Caruaru", state: "PE", lat: -8.2831, lng: -35.9761, power: "CCS2 / 50kW DC", type: "DC" },
+      { id: 103, name: "Volts Eletroposto - Lajedo", city: "Lajedo", state: "PE", lat: -8.6621, lng: -36.3218, power: "CCS2 / 50kW DC", type: "DC" },
+      { id: 104, name: "Zletric Wallbox - Garanhuns", city: "Garanhuns", state: "PE", lat: -8.8824, lng: -36.4962, power: "AC Wallbox 22kW", type: "AC" },
+      { id: 105, name: "EZVolt - Maceió Shopping", city: "Maceió", state: "AL", lat: -9.6465, lng: -35.7089, power: "CCS2 / 60kW DC", type: "DC" },
+      { id: 106, name: "E Charge Station - Delmiro Gouveia", city: "Delmiro Gouveia", state: "AL", lat: -9.3871, lng: -37.9984, power: "DC 24kW", type: "DC" },
+      { id: 107, name: "Hotel Wallbox - Piranhas", city: "Piranhas", state: "AL", lat: -9.6256, lng: -37.7569, power: "AC Wallbox 7kW", type: "AC" },
+      { id: 108, name: "Shell Recharge - Manaíra", city: "João Pessoa", state: "PB", lat: -7.1195, lng: -34.8450, power: "CCS2 / 100kW DC", type: "DC" },
+      { id: 109, name: "Tupinambá - Natal Central", city: "Natal", state: "RN", lat: -5.8115, lng: -35.2052, power: "CCS2 / 50kW DC", type: "DC" },
+      { id: 110, name: "EZVolt - Aracaju Shopping", city: "Aracaju", state: "SE", lat: -10.9472, lng: -37.0731, power: "CCS2 / 60kW DC", type: "DC" }
     ];
 
     let map, routeLayer, originCoords = [-8.0476, -34.8770], destCoords = [-9.6658, -35.7350];
@@ -444,7 +444,6 @@
       }
     }
 
-    // Autocomplete aprimorado com dupla estratégia de busca (Estruturada e Aberta) para locais/ruas/números específicos
     function setupAutocomplete(inputId, resultsId, callback) {
       const input = document.getElementById(inputId);
       const results = document.getElementById(resultsId);
@@ -457,12 +456,10 @@
 
         timeout = setTimeout(async () => {
           try {
-            // Busca primária aberta com sanitização e bounding box do Brasil
             let url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&countrycodes=br&addressdetails=1&limit=6`;
             let res = await fetch(url);
             let data = await res.json();
 
-            // Se não encontrou resultado na busca estruturada por vírgula, faz fallback de query relaxada
             if (!data || data.length === 0) {
               const cleanedQuery = query.replace(/,/g, ' ');
               url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(cleanedQuery)}&countrycodes=br&limit=6`;
@@ -521,10 +518,15 @@
           const lng = item.lon || (item.center ? item.center.lon : null);
           const name = item.tags.name || item.tags.operator || `Eletroposto ${idx + 1}`;
           const isDC = item.tags['socket:ccs'] || (item.tags.description && item.tags.description.includes('DC'));
+          
+          const city = item.tags['addr:city'] || item.tags['addr:town'] || item.tags['addr:municipality'] || "Regional";
+          const state = item.tags['addr:state'] || "PE/AL";
 
           return {
             id: item.id || idx,
             name: name,
+            city: city,
+            state: state,
             lat: lat,
             lng: lng,
             power: isDC ? 'CCS2 / Carga Rápida DC' : 'AC Wallbox / Type 2',
@@ -566,38 +568,41 @@
         (s.type === 'DC' && showDC) || (s.type === 'AC' && showAC)
       );
 
-      document.getElementById('stationsCount').innerText = `${activeStations.length} encontrados na rota`;
+      document.getElementById('stationsCount').innerText = `${activeStations.length} encontrados`;
 
       if (activeStations.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="4" class="p-3 text-center text-slate-400">Nenhum eletroposto encontrado para os filtros selecionados.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="5" class="p-2 text-center text-slate-400">Nenhum eletroposto encontrado para os filtros selecionados.</td></tr>`;
         return;
       }
 
       activeStations.forEach(station => {
         const marker = L.circleMarker([station.lat, station.lng], {
-          radius: 8,
+          radius: 7,
           fillColor: station.type === 'DC' ? '#ef4444' : '#10b981',
           color: '#ffffff',
-          weight: 2,
+          weight: 1.5,
           opacity: 1,
           fillOpacity: 0.9
-        }).addTo(map).bindPopup(`<b>⚡ ${station.name}</b><br><span style="font-size:11px;">${station.power}</span>`);
+        }).addTo(map).bindPopup(`<b>⚡ ${station.name}</b><br><span style="font-size:10px;">${station.city} - ${station.state}</span><br><span style="font-size:10px;">${station.power}</span>`);
 
         stationMarkers.push(marker);
 
         const tr = document.createElement('tr');
-        tr.className = "hover:bg-blue-900/30 transition";
+        tr.className = "hover:bg-blue-900/30 transition text-[9px] md:text-xs";
         tr.innerHTML = `
-          <td class="p-2.5 font-semibold text-white flex items-center gap-1.5">
-            <i class="fa-solid fa-charging-station text-yellow-400"></i> ${station.name}
+          <td class="p-1.5 font-semibold text-white whitespace-nowrap">
+            <i class="fa-solid fa-charging-station text-yellow-400 mr-0.5"></i> ${station.name}
           </td>
-          <td class="p-2.5"><span class="bg-blue-900 text-blue-100 px-2 py-0.5 rounded border border-blue-700">${station.power}</span></td>
-          <td class="p-2.5 font-bold ${station.type === 'DC' ? 'text-red-400' : 'text-emerald-400'}">
-            ${station.type === 'DC' ? 'Carga Rápida DC' : 'Wallbox AC'}
+          <td class="p-1.5 text-blue-200 whitespace-nowrap font-medium">
+            ${station.city} / ${station.state}
           </td>
-          <td class="p-2.5 text-right">
-            <button onclick="focusStation(${station.lat}, ${station.lng})" class="bg-blue-600 hover:bg-blue-500 text-white font-bold px-2.5 py-1 rounded text-[10px] transition">
-              <i class="fa-solid fa-eye"></i> Ver no Mapa
+          <td class="p-1.5 whitespace-nowrap"><span class="bg-blue-900 text-blue-100 px-1.5 py-0.5 rounded border border-blue-700 text-[8px] md:text-[10px]">${station.power}</span></td>
+          <td class="p-1.5 font-bold whitespace-nowrap ${station.type === 'DC' ? 'text-red-400' : 'text-emerald-400'}">
+            ${station.type === 'DC' ? 'DC Rápido' : 'AC Wallbox'}
+          </td>
+          <td class="p-1.5 text-right whitespace-nowrap">
+            <button onclick="focusStation(${station.lat}, ${station.lng})" class="bg-blue-600 hover:bg-blue-500 text-white font-bold px-2 py-0.5 rounded text-[8px] md:text-[10px] transition">
+              <i class="fa-solid fa-eye"></i> Ver
             </button>
           </td>
         `;
@@ -688,7 +693,6 @@
           await fetchRouteStationsFromOSM(bbox);
           renderStationsOnMapAndTable();
 
-          // Cálculos de Telemetria e Fatores de Condução
           const driveFactor = parseFloat(document.getElementById('driveMode').value);
           const acFactor = parseFloat(document.getElementById('acMode').value);
           const adjustedRange = selectedCar.range / (driveFactor * acFactor);
@@ -696,12 +700,11 @@
           const startPercent = parseFloat(document.getElementById('startBattery').value) || 80;
           const currentAutonomyKm = Math.round((adjustedRange * startPercent) / 100);
 
-          const safeReserveKm = Math.round(adjustedRange * 0.15); // 15% de reserva
+          const safeReserveKm = Math.round(adjustedRange * 0.15);
           const rechargePointKm = Math.max(0, currentAutonomyKm - safeReserveKm);
           
           document.getElementById('rechargeDistanceAlert').innerText = (distKm > currentAutonomyKm - safeReserveKm) ? `em ${rechargePointKm} km` : "Não necessária";
 
-          // Custo base e porcentagens
           const kwhCost = parseFloat(document.getElementById('costPerKwh').value) || 0;
           const paxCount = parseInt(document.getElementById('passengerCount').value) || 1;
           const totalKwhNeeded = (distKm / 100) * selectedCar.consumption;
@@ -710,12 +713,8 @@
           document.getElementById('totalCost').innerText = `R$ ${totalCostEV.toFixed(2)}`;
           document.getElementById('costPax').innerText = `R$ ${(totalCostEV / paxCount).toFixed(2)}`;
 
-          // Cálculo do Plano de Parada e Carregamento no Eletroposto
           if (distKm > currentAutonomyKm - safeReserveKm) {
-            // Chegada estimada com 15% de margem de segurança no ponto de carga
             const arrivalSoc = 15;
-            
-            // Quanto de bateria precisa para chegar ao destino com +15% de reserva final
             const remainingDistFromStop = Math.max(0, distKm - rechargePointKm);
             const neededSocForRemaining = Math.ceil((remainingDistFromStop / adjustedRange) * 100) + 15;
             const departureSoc = Math.min(100, neededSocForRemaining);
@@ -723,7 +722,6 @@
             const socToCharge = Math.max(0, departureSoc - arrivalSoc);
             const kwhToCharge = (socToCharge / 100) * selectedCar.battery;
             
-            // Estimativa de tempo em carregador DC Rápido (potência média de carga: 45 kW)
             const chargingPowerKw = 45; 
             const timeInHours = kwhToCharge / chargingPowerKw;
             const timeInMinutes = Math.round(timeInHours * 60);
@@ -741,12 +739,10 @@
             document.getElementById('stopChargingCost').innerText = "R$ 0,00";
           }
 
-          // Nível na Chegada Final
           const usedPercent = (distKm / adjustedRange) * 100;
           const remainingPercent = startPercent - usedPercent;
           updateBatteryUI(remainingPercent);
 
-          // Fóssil e Economia
           const literCost = parseFloat(document.getElementById('costPerLiter').value) || 5.89;
           const fossilKmLiter = parseFloat(document.getElementById('fossilKmPerLiter').value) || 11.5;
           const totalLitersNeeded = distKm / fossilKmLiter;
