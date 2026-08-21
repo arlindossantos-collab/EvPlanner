@@ -168,7 +168,7 @@
 
             <!-- Container dinâmico de endereços da Rota -->
             <div id="routeWaypointsContainer" class="space-y-2 max-h-[220px] overflow-y-auto pr-1">
-              <!-- Renderizado via JS (Origem -> Paradas -> Destino Final) -->
+              <!-- Renderizado via JS -->
             </div>
 
             <button id="addWaypointBtn" class="w-full bg-blue-900/80 hover:bg-blue-800 text-emerald-300 font-semibold py-1.5 px-2 rounded border border-blue-700 text-xs flex items-center justify-center gap-1.5 transition">
@@ -389,9 +389,7 @@
       </h3>
       <p id="modalAddressText" class="text-xs md:text-sm text-blue-100 bg-[#031038] p-3 rounded border border-blue-900 break-words font-medium"></p>
       
-      <div class="space-y-2 pt-1" id="modalTargetOptionsContainer">
-        <!-- Gerado dinamicamente no JS conforme a quantidade de waypoints -->
-      </div>
+      <div class="space-y-2 pt-1" id="modalTargetOptionsContainer"></div>
       <button id="cancelModalBtn" class="w-full text-xs text-slate-400 hover:text-white pt-1">Cancelar</button>
     </div>
   </div>
@@ -464,6 +462,17 @@
   </div>
 
   <script>
+    // DICIONÁRIO DE SIGLAS DOS ESTADOS BRASILEIROS (UF)
+    const ufMap = {
+      "Acre": "AC", "Alagoas": "AL", "Amapá": "AP", "Amazonas": "AM", "Bahia": "BA",
+      "Ceará": "CE", "Distrito Federal": "DF", "Espírito Santo": "ES", "Goiás": "GO",
+      "Maranhão": "MA", "Mato Grosso": "MT", "Mato Grosso do Sul": "MS", "Minas Gerais": "MG",
+      "Pará": "PA", "Paraíba": "PB", "Paraná": "PR", "Pernambuco": "PE", "Piauí": "PI",
+      "Rio de Janeiro": "RJ", "Rio Grande do Norte": "RN", "Rio Grande do Sul": "RS",
+      "Rondônia": "RO", "Roraima": "RR", "Santa Catarina": "SC", "São Paulo": "SP",
+      "Sergipe": "SE", "Tocantins": "TO"
+    };
+
     // BASE INTEGRAL DE VEÍCULOS
     const evDatabase = {
       "BYD": [
@@ -848,6 +857,27 @@
       return null;
     }
 
+    // GEOCODIFICAÇÃO REVERSA COM EXTRAÇÃO PRECISA DE CIDADE / UF
+    async function reverseGeocodeFast(lat, lng) {
+      try {
+        const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=10`;
+        const res = await fetch(url);
+        const data = await res.json();
+
+        if (data && data.address) {
+          const addr = data.address;
+          const city = addr.city || addr.town || addr.municipality || addr.village || addr.county || "Cidade";
+          const stateName = addr.state || "";
+          
+          const uf = ufMap[stateName] || (stateName.length === 2 ? stateName.toUpperCase() : "UF");
+          return `${city} / ${uf}`;
+        }
+      } catch (e) {
+        console.warn("Falha ao identificar localidade exata:", e);
+      }
+      return "Cidade / UF";
+    }
+
     async function updateWaypointMarkers() {
       waypointMarkers.forEach(m => map.removeLayer(m));
       waypointMarkers = [];
@@ -956,10 +986,9 @@
         let city = tags['addr:city'] || tags['addr:town'] || tags['is_in:city'] || tags['addr:municipality'];
         let state = tags['addr:state'] || tags['is_in:state'];
 
-        const ufMap = { "Pernambuco":"PE", "Alagoas":"AL", "Paraíba":"PB", "Rio Grande do Norte":"RN", "Ceará":"CE", "Bahia":"BA", "Sergipe":"SE", "São Paulo":"SP", "Rio de Janeiro":"RJ", "Minas Gerais":"MG" };
         if (state && ufMap[state]) state = ufMap[state];
 
-        let cityState = (city && state) ? `${city} / ${state}` : "Localidade / UF";
+        let cityState = (city && state) ? `${city} / ${state}` : null;
         const routeMatch = getMinDistanceToRouteInKm(lat, lng, routeCoords);
 
         if (routeMatch.minDistance <= 22) {
@@ -979,6 +1008,13 @@
 
       const rawStations = Array.from(uniqueMap.values());
       rawStations.sort((a, b) => a.routeIndex - b.routeIndex);
+
+      // RESOLUÇÃO DE CIDADE/UF CASO NÃO DEFINIDA
+      for (let station of rawStations) {
+        if (!station.cityState || station.cityState === "Cidade / UF") {
+          station.cityState = await reverseGeocodeFast(station.lat, station.lng);
+        }
+      }
 
       fetchedStations = rawStations;
     }
