@@ -153,12 +153,12 @@
             </div>
 
             <div class="relative">
-              <label class="block text-xs md:text-sm text-blue-300 mb-1">Origem (Rua, Nº, Cidade, Estado)</label>
+              <label class="block text-xs md:text-sm text-blue-300 mb-1">Origem (Digite ou clique no mapa)</label>
               <input type="text" id="originInput" value="Recife, PE, Brasil" class="w-full bg-[#031038] border border-blue-800 rounded-md p-2 text-white text-xs md:text-sm outline-none focus:border-emerald-500" placeholder="Ex: Av. Boa Viagem, 500, Recife" autocomplete="off">
               <div id="originResults" class="autocomplete-results hidden"></div>
             </div>
             <div class="relative">
-              <label class="block text-xs md:text-sm text-blue-300 mb-1">Destino (Rua, Nº, Cidade, Estado)</label>
+              <label class="block text-xs md:text-sm text-blue-300 mb-1">Destino (Digite ou clique no mapa)</label>
               <input type="text" id="destInput" value="Maceió, AL, Brasil" class="w-full bg-[#031038] border border-blue-800 rounded-md p-2 text-white text-xs md:text-sm outline-none focus:border-emerald-500" placeholder="Ex: Av. Epitácio Pessoa, 4985, João Pessoa" autocomplete="off">
               <div id="destResults" class="autocomplete-results hidden"></div>
             </div>
@@ -259,11 +259,11 @@
         </div>
       </div>
 
-      <!-- Card 4: Telemetria & Comparativo -->
+      <!-- Card 4: Telemetria, Recarga & Comparativo -->
       <div class="bg-blue-950/80 p-4 rounded-xl border border-blue-900 space-y-2.5 shadow-md flex flex-col justify-between">
         <div>
           <h2 class="text-sm md:text-base font-semibold text-blue-100 border-b border-blue-900 pb-1.5 mb-2 flex items-center gap-2">
-            <i class="fa-solid fa-chart-line text-emerald-400"></i> 4. Telemetria & Comparativo
+            <i class="fa-solid fa-chart-line text-emerald-400"></i> 4. Telemetria & Recarga
           </h2>
           
           <div class="space-y-1.5">
@@ -278,9 +278,28 @@
           </div>
         </div>
 
+        <!-- Painel de Planejamento de Carga Recomendada -->
+        <div id="rechargeDetailsBox" class="bg-[#020b29] p-2.5 rounded-lg border border-amber-500/40 text-xs space-y-1.5 my-1">
+          <div class="font-bold text-amber-400 flex items-center gap-1.5">
+            <i class="fa-solid fa-bolt"></i> Necessidade de Recarga:
+          </div>
+          <div class="flex justify-between text-blue-200">
+            <span>Carga Segura Recomendada:</span>
+            <span id="targetBatteryNeeded" class="font-bold text-emerald-400">--%</span>
+          </div>
+          <div class="flex justify-between text-blue-200">
+            <span>Tempo Estimado Parada (DC 50kW):</span>
+            <span id="chargeTimeDC" class="font-bold text-amber-300">-- min</span>
+          </div>
+          <div class="flex justify-between text-blue-200">
+            <span>Tempo Estimado Parada (AC 7kW):</span>
+            <span id="chargeTimeAC" class="font-bold text-slate-300">-- min</span>
+          </div>
+        </div>
+
         <div class="text-xs md:text-sm text-blue-200 space-y-1.5 border-t border-blue-900 pt-2">
           <div class="flex justify-between"><span class="text-blue-300">📏 Distância Total:</span><span id="totalDistance" class="font-bold text-emerald-400">0 km</span></div>
-          <div class="flex justify-between items-center"><span class="text-blue-300">⚡ Parar em:</span><span id="rechargeDistanceAlert" class="font-bold text-amber-400">-- km</span></div>
+          <div class="flex justify-between items-center"><span class="text-blue-300">⚡ Parar em até:</span><span id="rechargeDistanceAlert" class="font-bold text-amber-400">-- km</span></div>
           
           <div class="bg-[#020b29] p-2 rounded border border-blue-800 my-1 space-y-1 text-xs">
             <div class="flex justify-between"><span class="text-amber-300">⛽ Gasolina:</span><span id="gasCost" class="font-bold text-red-300">R$ 0,00</span></div>
@@ -314,6 +333,10 @@
           <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" id="filterAC" checked class="rounded text-emerald-500"> AC Wallbox (7-22kW)</label>
         </div>
       </div>
+
+      <p class="text-[11px] text-emerald-300 flex items-center gap-1">
+        <i class="fa-solid fa-circle-info"></i> Dica: Clique em qualquer ponto do mapa para definir Origem ou Destino interativamente.
+      </p>
 
       <div id="map"></div>
     </div>
@@ -459,7 +482,7 @@
     };
 
     let map, originCoords = null, destCoords = null;
-    let originMarker, destMarker;
+    let originMarker, destMarker, clickPopup;
     let selectedCar = null;
     let stationMarkers = [];
     let fetchedStations = [];
@@ -504,7 +527,30 @@
         updateLocationMarkers();
       });
 
-      // Esconde o menu autocomplete ao clicar fora dele
+      // REGISTRO DE CLIQUE DIRETO NO MAPA PARA DEFINIR ORIGEM OU DESTINO
+      map.on('click', async (e) => {
+        const lat = e.latlng.lat;
+        const lng = e.latlng.lng;
+        const placeName = await reverseGeocodeCityState(lat, lng);
+
+        const content = `
+          <div class="text-slate-900 p-1 text-center font-sans">
+            <b class="text-xs text-blue-900 block mb-1.5">${placeName}</b>
+            <div class="flex gap-1.5 justify-center">
+              <button onclick="setMapLocation('origin', ${lat}, ${lng}, '${placeName.replace(/'/g, "\\'")}')" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-2 py-1 rounded text-xs">
+                Definir Origem
+              </button>
+              <button onclick="setMapLocation('dest', ${lat}, ${lng}, '${placeName.replace(/'/g, "\\'")}')" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-2 py-1 rounded text-xs">
+                Definir Destino
+              </button>
+            </div>
+          </div>
+        `;
+
+        if (clickPopup) map.closePopup(clickPopup);
+        clickPopup = L.popup().setLatLng(e.latlng).setContent(content).openOn(map);
+      });
+
       document.addEventListener('click', (e) => {
         if (!e.target.closest('.relative')) {
           document.getElementById('originResults').classList.add('hidden');
@@ -516,6 +562,19 @@
       destCoords = await geocodePhoton(document.getElementById('destInput').value);
       updateLocationMarkers();
     }
+
+    // Função global acionada ao escolher Origem/Destino via clique no Mapa
+    window.setMapLocation = function(type, lat, lng, name) {
+      if (type === 'origin') {
+        originCoords = [lat, lng];
+        document.getElementById('originInput').value = name;
+      } else {
+        destCoords = [lat, lng];
+        document.getElementById('destInput').value = name;
+      }
+      updateLocationMarkers();
+      if (clickPopup) map.closePopup(clickPopup);
+    };
 
     async function geocodePhoton(addressStr) {
       if (!addressStr) return null;
@@ -630,14 +689,12 @@
       } else wrapper.classList.add('hidden');
     }
 
-    // AUTOCOMPLETE PHOTON API AJUSTADO PARA MÚLTIPLAS REUTILIZAÇÕES
     function setupPhotonAutocomplete(inputId, resultsId, callback) {
       const input = document.getElementById(inputId);
       const results = document.getElementById(resultsId);
 
       let timeout = null;
 
-      // Reseta coordenadas ao editar manualmente o campo para forçar nova busca
       input.addEventListener('input', () => {
         if (inputId === 'originInput') originCoords = null;
         if (inputId === 'destInput') destCoords = null;
@@ -937,6 +994,7 @@
       await fetchRouteStationsFromOSM(bbox, route.geometry);
       renderStationsOnMapAndTable();
 
+      // CÁLCULO DE TELEMETRIA, RECARGA E TEMPOS ESTIMADOS
       const driveFactor = parseFloat(document.getElementById('driveMode').value);
       const acFactor = parseFloat(document.getElementById('acMode').value);
       const adjustedRange = selectedCar.range / (driveFactor * acFactor);
@@ -944,11 +1002,33 @@
       const startPercent = parseFloat(document.getElementById('startBattery').value) || 80;
       const currentAutonomyKm = Math.round((adjustedRange * startPercent) / 100);
 
-      const safeReserveKm = Math.round(adjustedRange * 0.15);
+      const safeReserveKm = Math.round(adjustedRange * 0.15); // Margem de segurança de 15%
       const rechargePointKm = Math.max(0, currentAutonomyKm - safeReserveKm);
       
       document.getElementById('rechargeDistanceAlert').innerText = (distKm > currentAutonomyKm - safeReserveKm) ? `em ${rechargePointKm} km` : "Não necessária";
 
+      // Cálculo de Porcentagem Segura Necessária
+      const totalPercentNeeded = (distKm / adjustedRange) * 100;
+      const safeTargetPercent = Math.min(100, Math.ceil(totalPercentNeeded + 15)); // Necessário + 15% reserva
+
+      if (distKm > currentAutonomyKm - safeReserveKm) {
+        const percentToCharge = Math.max(0, safeTargetPercent - startPercent);
+        const kwhToCharge = (percentToCharge / 100) * selectedCar.battery;
+
+        // Estima tempo em minutos: DC (50kW médio) e AC (7kW médio)
+        const minutesDC = Math.ceil((kwhToCharge / 50) * 60);
+        const minutesAC = Math.ceil((kwhToCharge / 7) * 60);
+
+        document.getElementById('targetBatteryNeeded').innerText = `${safeTargetPercent}% (carregar +${Math.ceil(percentToCharge)}%)`;
+        document.getElementById('chargeTimeDC').innerText = `~${minutesDC} min`;
+        document.getElementById('chargeTimeAC').innerText = `~${minutesAC} min`;
+      } else {
+        document.getElementById('targetBatteryNeeded').innerText = "Carga Atual Suficiente";
+        document.getElementById('chargeTimeDC').innerText = "0 min";
+        document.getElementById('chargeTimeAC').innerText = "0 min";
+      }
+
+      // Custos
       const kwhCost = parseFloat(document.getElementById('costPerKwh').value) || 0;
       const adultCount = parseInt(document.getElementById('adultCount').value) || 1;
       const totalKwhNeeded = (distKm / 100) * selectedCar.consumption;
@@ -980,9 +1060,7 @@
       updateBatteryUI(remainingPercent);
     }
 
-    // CÁLCULO E RE-CÁLCULO INFINITO
     async function calculateRoute() {
-      // Re-geocodifica de forma assíncrona caso as coordenadas não tenham sido capturadas pelo autocomplete
       if (!originCoords) originCoords = await geocodePhoton(document.getElementById('originInput').value);
       if (!destCoords) destCoords = await geocodePhoton(document.getElementById('destInput').value);
 
@@ -1000,14 +1078,12 @@
         if (data.routes && data.routes.length > 0) {
           availableRoutes = data.routes.slice(0, 3);
 
-          // Limpa rotas anteriores do mapa
           routePolylines.forEach(pl => map.removeLayer(pl));
           routePolylines = [];
 
           const container = document.getElementById('routeOptionsContainer');
           container.innerHTML = '';
 
-          // Atualiza os marcadores de origem e destino no mapa
           updateLocationMarkers();
 
           availableRoutes.forEach((route, idx) => {
