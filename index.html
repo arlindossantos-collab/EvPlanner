@@ -212,13 +212,20 @@
       <!-- Card 3: Bateria & Tarifas -->
       <div class="bg-blue-950/80 p-4 rounded-xl border border-blue-900 space-y-2.5 shadow-md flex flex-col justify-between">
         <div>
-          <h2 class="text-sm md:text-base font-semibold text-blue-100 border-b border-blue-900 pb-1.5 mb-2 flex items-center gap-2">
+          <h2 class="text-sm md:text-base font-semibold text-blue-100 border-b border-blue-900 pb-1.5 mb-2.5 flex items-center gap-2">
             <i class="fa-solid fa-gas-pump text-emerald-400"></i> 3. Tarifas Recife & Consumo
           </h2>
-          <div class="space-y-2">
-            <div class="flex items-center justify-between gap-2">
-              <label class="text-xs md:text-sm font-bold text-emerald-400">Bateria Inicial (%):</label>
-              <input type="number" id="startBattery" value="80" min="5" max="100" class="w-20 bg-[#031038] border border-emerald-500 rounded p-1 text-emerald-300 font-black text-center text-xs md:text-sm outline-none">
+          <div class="space-y-2.5">
+            
+            <!-- Campo Bateria Inicial (COM MAIOR DESTAQUE E MÁXIMO DE 100%) -->
+            <div class="bg-emerald-950/60 border-2 border-emerald-500/80 p-2.5 rounded-xl shadow-lg flex items-center justify-between gap-2">
+              <label class="text-xs md:text-sm font-black text-emerald-300 flex items-center gap-2 uppercase tracking-wide">
+                <i class="fa-solid fa-battery-three-quarters text-emerald-400 text-base md:text-lg"></i> Bateria Inicial (%):
+              </label>
+              <div class="relative flex items-center">
+                <input type="number" id="startBattery" value="80" min="0" max="100" step="1" 
+                       class="w-24 bg-[#031038] border-2 border-emerald-400 rounded-lg p-1.5 text-emerald-300 font-black text-center text-sm md:text-base outline-none focus:ring-2 focus:ring-emerald-400 shadow-inner">
+              </div>
             </div>
 
             <div class="grid grid-cols-3 gap-1.5">
@@ -604,6 +611,7 @@
 
       initVehicleSelectors();
       initUserFavorites();
+      initBatteryInputValidation();
 
       waypoints = [
         { address: "Recife, PE, Brasil", coords: null },
@@ -613,6 +621,20 @@
       ];
 
       renderWaypointsInputs();
+    }
+
+    // TRAVA E VALIDAÇÃO DA BATERIA INICIAL (LIMITADO A 100%)
+    function initBatteryInputValidation() {
+      const batteryInput = document.getElementById('startBattery');
+      
+      const enforceLimit = () => {
+        let val = parseFloat(batteryInput.value);
+        if (isNaN(val) || val < 0) batteryInput.value = 0;
+        else if (val > 100) batteryInput.value = 100;
+      };
+
+      batteryInput.addEventListener('input', enforceLimit);
+      batteryInput.addEventListener('blur', enforceLimit);
     }
 
     function initUserFavorites() {
@@ -857,7 +879,6 @@
       return null;
     }
 
-    // GEOCODIFICAÇÃO REVERSA DIRETA PARA CIDADE E ESTADO
     async function reverseGeocodeFast(lat, lng) {
       try {
         const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=10`;
@@ -1009,7 +1030,6 @@
       const rawStations = Array.from(uniqueMap.values());
       rawStations.sort((a, b) => a.routeIndex - b.routeIndex);
 
-      // RESOLUÇÃO PRECISA E EM PARALELO DE CIDADE / UF
       await Promise.all(rawStations.map(async (st) => {
         if (!st.cityState || st.cityState.includes("Localidade") || st.cityState.includes("Cidade")) {
           const loc = await reverseGeocodeFast(st.lat, st.lng);
@@ -1048,7 +1068,9 @@
       const driveFactor = parseFloat(document.getElementById('driveMode').value);
       const acFactor = parseFloat(document.getElementById('acMode').value);
       const fullRangeAdjusted = selectedCar.range / (driveFactor * acFactor);
-      let currentBattery = parseFloat(document.getElementById('startBattery').value) || 80;
+      
+      let rawStartBatt = parseFloat(document.getElementById('startBattery').value);
+      let currentBattery = isNaN(rawStartBatt) ? 80 : Math.min(100, Math.max(0, rawStartBatt));
 
       const totalRouteDist = activeRouteData ? Math.round(activeRouteData.distance / 1000) : 300;
       const totalPoints = activeRouteData ? activeRouteData.geometry.coordinates.length : 1;
@@ -1245,7 +1267,9 @@
           const acFactor = parseFloat(document.getElementById('acMode').value);
           const fullRangeAdjusted = selectedCar.range / (driveFactor * acFactor);
 
-          const startPercent = parseFloat(document.getElementById('startBattery').value) || 80;
+          let rawStart = parseFloat(document.getElementById('startBattery').value);
+          const startPercent = isNaN(rawStart) ? 80 : Math.min(100, Math.max(0, rawStart));
+          
           const currentAutonomyKm = Math.round(fullRangeAdjusted * (startPercent / 100));
 
           const safeReserveKm = Math.round(fullRangeAdjusted * 0.15);
