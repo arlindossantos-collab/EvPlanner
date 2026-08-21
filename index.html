@@ -20,7 +20,7 @@
       color: #f8fafc;
     }
     #map { 
-      height: 460px; 
+      height: 480px; 
       width: 100%; 
       border-radius: 0.75rem; 
       z-index: 1; 
@@ -56,6 +56,13 @@
       font-weight: bold;
       border: 2px solid white;
       box-shadow: 0 0 8px rgba(0,0,0,0.6);
+    }
+    /* Estilização dos controles do mapa */
+    .leaflet-control-layers {
+      background: #091a4a !important;
+      color: #f8fafc !important;
+      border: 1px solid #1e3a8a !important;
+      border-radius: 8px !important;
     }
   </style>
 </head>
@@ -128,7 +135,6 @@
             <i class="fa-solid fa-route text-emerald-400"></i> 2. Trajeto & Condições
           </h2>
           <div class="space-y-2.5">
-            <!-- Atalhos de Casa e Trabalho -->
             <div class="flex gap-1.5 text-xs mb-1 flex-wrap">
               <button id="setHomeBtn" class="bg-blue-900 hover:bg-blue-800 text-blue-100 px-2.5 py-1 rounded border border-blue-700 flex items-center gap-1.5">
                 <i class="fa-solid fa-house text-amber-400"></i> <span id="homeBtnLabel">Casa</span>
@@ -141,7 +147,6 @@
               </button>
             </div>
 
-            <!-- Seletor de Locais Favoritos -->
             <div id="favPlacesWrapper" class="hidden">
               <select id="favPlacesSelect" class="w-full bg-[#020b29] border border-blue-800 text-emerald-300 text-xs md:text-sm rounded p-1.5 outline-none">
                 <option value="">Selecione um local favorito...</option>
@@ -182,7 +187,6 @@
             Calcular Rota
           </button>
 
-          <!-- Notificação de Planejamento Concluído -->
           <div id="routeToast" class="hidden bg-emerald-950/90 border border-emerald-500 text-emerald-300 p-2 rounded-lg text-xs md:text-sm font-bold text-center flex items-center justify-center gap-2 shadow">
             <i class="fa-solid fa-circle-check text-emerald-400"></i> Planejamento concluído!
           </div>
@@ -293,11 +297,10 @@
 
     </div>
 
-    <!-- Barra de Seleção de Rotas Alternativas, Filtros e Mapa -->
+    <!-- Barra de Filtros e Mapa -->
     <div class="bg-blue-950/80 p-3 rounded-xl border border-blue-900 space-y-3 shadow-lg">
       <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-2 border-b border-blue-900 pb-2 text-xs md:text-sm">
         
-        <!-- Seleção de Rotas Alternativas -->
         <div class="flex items-center gap-2 flex-wrap">
           <span class="font-semibold text-blue-100 flex items-center gap-1.5">
             <i class="fa-solid fa-map-location-dot text-emerald-400"></i> Opções de Rota (Até 3):
@@ -462,65 +465,87 @@
     let stationMarkers = [];
     let fetchedStations = [];
     
-    // Suporte para Múltiplas Rotas
     let availableRoutes = [];
     let activeRouteIndex = 0;
     let routePolylines = [];
 
+    // INICIALIZAÇÃO DO NOVO MOTOR DE MAPA (Esri World Street + Opções)
     async function initMap() {
       map = L.map('map').setView([-8.0476, -34.8770], 8);
 
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap contributors'
-      }).addTo(map);
+      // Camadas de Mapa
+      const esriStreet = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
+        attribution: 'Tiles &copy; Esri &mdash; Source: Esri, DeLorme, NAVTEQ, USGS, Intermap, iPC, NRCAN, Esri Japan, METI, Esri China (Hong Kong), Esri (Thailand), TomTom'
+      });
+
+      const googleHybrid = L.tileLayer('https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
+        attribution: '© Google Maps'
+      });
+
+      const cartoPositron = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+        attribution: '© CARTO'
+      });
+
+      esriStreet.addTo(map);
+
+      // Seletor de Camadas no canto do mapa
+      const baseMaps = {
+        "Esri Street Map": esriStreet,
+        "Google Híbrido/Satélite": googleHybrid,
+        "Carto Claro": cartoPositron
+      };
+      L.control.layers(baseMaps).addTo(map);
 
       initVehicleSelectors();
       initUserFavorites();
 
-      setupAutocomplete('originInput', 'originResults', (coords) => {
+      // Autocomplete usando o novo motor Photon API
+      setupPhotonAutocomplete('originInput', 'originResults', (coords) => {
         originCoords = coords;
         updateLocationMarkers();
       });
-      setupAutocomplete('destInput', 'destResults', (coords) => {
+      setupPhotonAutocomplete('destInput', 'destResults', (coords) => {
         destCoords = coords;
         updateLocationMarkers();
       });
 
-      originCoords = await geocodeAddress(document.getElementById('originInput').value);
-      destCoords = await geocodeAddress(document.getElementById('destInput').value);
+      originCoords = await geocodePhoton(document.getElementById('originInput').value);
+      destCoords = await geocodePhoton(document.getElementById('destInput').value);
       updateLocationMarkers();
     }
 
-    async function geocodeAddress(addressStr) {
+    // Geocodificação Avançada com Photon API (Motor Difuso para o Brasil)
+    async function geocodePhoton(addressStr) {
       if (!addressStr) return null;
       try {
-        const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(addressStr)}&countrycodes=br&addressdetails=1&limit=1`;
+        const url = `https://photon.komoot.io/api/?q=${encodeURIComponent(addressStr)}&limit=1&bbox=-74,-34,-34,5`;
         const res = await fetch(url);
         const data = await res.json();
-        if (data && data.length > 0) {
-          return [parseFloat(data[0].lat), parseFloat(data[0].lon)];
+        if (data && data.features && data.features.length > 0) {
+          const coords = data.features[0].geometry.coordinates;
+          return [coords[1], coords[0]]; // [lat, lng]
         }
       } catch (err) {
-        console.warn("Erro no geocodificador:", err);
+        console.warn("Erro na geocodificação Photon:", err);
       }
       return null;
     }
 
-    // Geocodificação Reversa Precisa para Município/UF de cada Eletroposto
+    // Geocodificação Reversa para Município / UF
     async function reverseGeocodeCityState(lat, lng) {
       try {
-        const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=10&addressdetails=1`;
+        const url = `https://photon.komoot.io/reverse?lat=${lat}&lon=${lng}`;
         const res = await fetch(url);
         const data = await res.json();
-        if (data && data.address) {
-          const city = data.address.city || data.address.town || data.address.municipality || data.address.village || "Localidade";
-          const state = data.address.state_code || data.address.state || "";
+        if (data && data.features && data.features.length > 0) {
+          const props = data.features[0].properties;
+          const city = props.city || props.town || props.district || props.name || "Localidade";
+          const state = props.state || "";
+          
           let uf = state;
-          if (state.length > 2) {
-            // Mapeamento simples de nome de estado para sigla de UF
-            const ufMap = { "Pernambuco":"PE", "Alagoas":"AL", "Paraíba":"PB", "Rio Grande do Norte":"RN", "Ceará":"CE", "Bahia":"BA", "Sergipe":"SE" };
-            uf = ufMap[state] || state.substring(0,2).toUpperCase();
-          }
+          const ufMap = { "Pernambuco":"PE", "Alagoas":"AL", "Paraíba":"PB", "Rio Grande do Norte":"RN", "Ceará":"CE", "Bahia":"BA", "Sergipe":"SE", "São Paulo":"SP", "Rio de Janeiro":"RJ", "Minas Gerais":"MG" };
+          uf = ufMap[state] || (state.length >= 2 ? state.substring(0, 2).toUpperCase() : "UF");
+
           return `${city} / ${uf}`;
         }
       } catch (e) {
@@ -541,10 +566,10 @@
       const choice = prompt(`Onde deseja inserir o endereço?\nDigite '1' para ORIGEM ou '2' para DESTINO:\n\n${addressStr}`, "2");
       if (choice === "1") {
         document.getElementById('originInput').value = addressStr;
-        geocodeAddress(addressStr).then(c => { originCoords = c; updateLocationMarkers(); });
+        geocodePhoton(addressStr).then(c => { originCoords = c; updateLocationMarkers(); });
       } else if (choice === "2") {
         document.getElementById('destInput').value = addressStr;
-        geocodeAddress(addressStr).then(c => { destCoords = c; updateLocationMarkers(); });
+        geocodePhoton(addressStr).then(c => { destCoords = c; updateLocationMarkers(); });
       }
     }
 
@@ -604,7 +629,8 @@
       } else wrapper.classList.add('hidden');
     }
 
-    function setupAutocomplete(inputId, resultsId, callback) {
+    // NOVO MOTOR DE AUTOCOMPLETE COM PHOTON API
+    function setupPhotonAutocomplete(inputId, resultsId, callback) {
       const input = document.getElementById(inputId);
       const results = document.getElementById(resultsId);
 
@@ -616,29 +642,34 @@
 
         timeout = setTimeout(async () => {
           try {
-            const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&countrycodes=br&addressdetails=1&limit=6`;
+            const url = `https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=6&lang=default&bbox=-74,-34,-34,5`;
             const res = await fetch(url);
             const data = await res.json();
             
             results.innerHTML = '';
-            if (!data || data.length === 0) { results.classList.add('hidden'); return; }
+            if (!data || !data.features || data.features.length === 0) { results.classList.add('hidden'); return; }
 
-            data.forEach(place => {
+            data.features.forEach(feat => {
+              const props = feat.properties;
+              const coords = feat.geometry.coordinates;
+              const labelParts = [props.name, props.street, props.city || props.town, props.state, props.country].filter(Boolean);
+              const displayName = labelParts.join(', ');
+
               const div = document.createElement('div');
               div.className = 'autocomplete-item';
-              div.innerText = place.display_name;
+              div.innerText = displayName;
               div.onclick = () => {
-                input.value = place.display_name;
+                input.value = displayName;
                 results.classList.add('hidden');
-                callback([parseFloat(place.lat), parseFloat(place.lon)]);
+                callback([coords[1], coords[0]]);
               };
               results.appendChild(div);
             });
             results.classList.remove('hidden');
           } catch (err) {
-            console.error("Erro no autocomplete:", err);
+            console.error("Erro no autocomplete Photon:", err);
           }
-        }, 350);
+        }, 300);
       });
     }
 
@@ -653,7 +684,6 @@
       return minDistance;
     }
 
-    // Consulta Expandida de Eletropostos para Maior Fidelidade
     async function fetchRouteStationsFromOSM(bbox, routeGeometry) {
       const [south, west, north, east] = bbox;
       const query = `
@@ -694,17 +724,16 @@
         }).filter(s => {
           if (!s.lat || !s.lng) return false;
           const distToRoute = getMinDistanceToRouteInKm(s.lat, s.lng, routeCoords);
-          return distToRoute <= 10; // Raio estrito de 10 km da rota
+          return distToRoute <= 10;
         });
 
-        // Resolve geocodificação de Cidade/UF para os pontos filtrados
         fetchedStations = await Promise.all(rawStations.map(async (st) => {
           st.cityState = await reverseGeocodeCityState(st.lat, st.lng);
           return st;
         }));
 
       } catch (err) {
-        console.warn("Consulta OSM falhou ou sem resultados:", err);
+        console.warn("Consulta OSM falhou:", err);
         fetchedStations = [];
       }
     }
@@ -856,12 +885,10 @@
       }
     }
 
-    // Processamento de Cálculo para a Rota Selecionada
     async function selectActiveRoute(index) {
       if (!availableRoutes[index]) return;
       activeRouteIndex = index;
 
-      // Atualiza destaques das linhas no mapa
       routePolylines.forEach((pl, idx) => {
         if (idx === activeRouteIndex) {
           pl.setStyle({ color: '#10b981', weight: 6, opacity: 1 });
@@ -871,7 +898,6 @@
         }
       });
 
-      // Atualiza botões UI de seleção de rota
       const container = document.getElementById('routeOptionsContainer');
       container.querySelectorAll('button').forEach((btn, idx) => {
         if (idx === activeRouteIndex) {
@@ -898,7 +924,6 @@
       await fetchRouteStationsFromOSM(bbox, route.geometry);
       renderStationsOnMapAndTable();
 
-      // Recálculo da Telemetria e Custos
       const driveFactor = parseFloat(document.getElementById('driveMode').value);
       const acFactor = parseFloat(document.getElementById('acMode').value);
       const adjustedRange = selectedCar.range / (driveFactor * acFactor);
@@ -943,15 +968,14 @@
     }
 
     async function calculateRoute() {
-      if (!originCoords) originCoords = await geocodeAddress(document.getElementById('originInput').value);
-      if (!destCoords) destCoords = await geocodeAddress(document.getElementById('destInput').value);
+      if (!originCoords) originCoords = await geocodePhoton(document.getElementById('originInput').value);
+      if (!destCoords) destCoords = await geocodePhoton(document.getElementById('destInput').value);
 
       if (!selectedCar || !originCoords || !destCoords) {
         alert("Por favor, selecione veículo e insira endereços válidos.");
         return;
       }
 
-      // Consulta de até 3 rotas alternativas no OSRM
       const url = `https://router.project-osrm.org/route/v1/driving/${originCoords[1]},${originCoords[0]};${destCoords[1]},${destCoords[0]}?overview=full&geometries=geojson&alternatives=3`;
 
       try {
@@ -959,16 +983,14 @@
         const data = await res.json();
 
         if (data.routes && data.routes.length > 0) {
-          availableRoutes = data.routes.slice(0, 3); // Limita a no máximo 3 rotas
+          availableRoutes = data.routes.slice(0, 3);
 
-          // Limpa rotas antigas do mapa
           routePolylines.forEach(pl => map.removeLayer(pl));
           routePolylines = [];
 
           const container = document.getElementById('routeOptionsContainer');
           container.innerHTML = '';
 
-          // Renderiza todas as opções de rota no mapa
           availableRoutes.forEach((route, idx) => {
             const distKm = Math.round(route.distance / 1000);
             const polyline = L.geoJSON(route.geometry, {
@@ -985,7 +1007,6 @@
             container.appendChild(btn);
           });
 
-          // Ativa a primeira rota por padrão
           await selectActiveRoute(0);
           showRouteToast();
         }
