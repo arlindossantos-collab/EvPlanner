@@ -93,8 +93,8 @@
             <h2 class="text-xs md:text-sm font-semibold text-blue-100 flex items-center gap-1.5">
               <i class="fa-solid fa-car text-emerald-400"></i> 1. Veículo
             </h2>
-            <button id="favCarBtn" title="Favoritar este veículo" class="text-slate-400 hover:text-amber-400 transition text-xs">
-              <i class="fa-solid fa-star" id="favCarIcon"></i> <span class="text-[9px]">Favorito</span>
+            <button id="favCarBtn" type="button" title="Favoritar este veículo" class="text-slate-400 hover:text-amber-400 transition text-xs flex items-center gap-1 bg-blue-900/60 px-2 py-0.5 rounded border border-blue-800">
+              <i class="fa-solid fa-star" id="favCarIcon"></i> <span class="text-[9px]">Favoritar</span>
             </button>
           </div>
           <div class="space-y-2">
@@ -189,95 +189,108 @@
         </div>
       </div>
 
-      <!-- Card 3: Carga, Custos e Ocupantes -->
-      <div class="bg-blue-950/80 p-3.5 rounded-xl border border-blue-900 space-y-2.5 shadow-md flex flex-col justify-between">
+      <!-- Card 3: Bateria, Tarifas & Comparativo Fóssil (Gasolina x Álcool) -->
+      <div class="bg-blue-950/80 p-3 rounded-xl border border-blue-900 space-y-2 shadow-md flex flex-col justify-between">
         <div>
-          <h2 class="text-xs md:text-sm font-semibold text-blue-100 border-b border-blue-900 pb-1 mb-2 flex items-center gap-1.5">
-            <i class="fa-solid fa-battery-three-quarters text-emerald-400"></i> 3. Bateria & Ocupantes
+          <h2 class="text-xs md:text-sm font-semibold text-blue-100 border-b border-blue-900 pb-1 mb-1.5 flex items-center gap-1.5">
+            <i class="fa-solid fa-gas-pump text-emerald-400"></i> 3. Tarifas & Combustíveis
           </h2>
           <div class="space-y-1.5">
-            <div>
-              <label class="block text-[10px] font-bold text-emerald-400 mb-0.5">Bateria Inicial (%)</label>
-              <input type="number" id="startBattery" value="80" min="5" max="100" class="w-full bg-[#031038] border border-emerald-500 rounded p-1 text-emerald-300 font-black text-xs md:text-sm outline-none">
+            <div class="flex items-center justify-between gap-2">
+              <label class="text-[9px] md:text-[10px] font-bold text-emerald-400">Bateria Inicial (%):</label>
+              <input type="number" id="startBattery" value="80" min="5" max="100" class="w-16 bg-[#031038] border border-emerald-500 rounded p-0.5 text-emerald-300 font-black text-center text-xs outline-none">
             </div>
-            
+
+            <!-- Tarifas Elétrica vs Fóssil -->
+            <div class="grid grid-cols-3 gap-1">
+              <div>
+                <label class="block text-[8px] text-blue-300">EV (R$/kWh)</label>
+                <input type="number" id="costPerKwh" value="2.39" step="0.01" class="w-full bg-[#031038] border border-blue-800 rounded p-0.5 text-white text-[9px] text-center">
+              </div>
+              <div>
+                <label class="block text-[8px] text-amber-300">Gasolina (R$/L)</label>
+                <input type="number" id="costPerLiterGas" value="5.89" step="0.01" class="w-full bg-[#031038] border border-blue-800 rounded p-0.5 text-white text-[9px] text-center">
+              </div>
+              <div>
+                <label class="block text-[8px] text-emerald-300">Álcool (R$/L)</label>
+                <input type="number" id="costPerLiterEthanol" value="4.19" step="0.01" class="w-full bg-[#031038] border border-blue-800 rounded p-0.5 text-white text-[9px] text-center">
+              </div>
+            </div>
+
+            <!-- Consumos Médios (km/L) -->
+            <div class="grid grid-cols-2 gap-1 pt-1 border-t border-blue-900/60">
+              <div>
+                <label class="block text-[8px] text-blue-300">Gasolina (km/L)</label>
+                <input type="number" id="kmPerLiterGas" value="11.5" step="0.1" class="w-full bg-[#031038] border border-blue-800 rounded p-0.5 text-white text-[9px] text-center">
+              </div>
+              <div>
+                <label class="block text-[8px] text-blue-300">Álcool (km/L)</label>
+                <input type="number" id="kmPerLiterEthanol" value="8.1" step="0.1" class="w-full bg-[#031038] border border-blue-800 rounded p-0.5 text-white text-[9px] text-center">
+              </div>
+            </div>
+
+            <!-- Passageiros, Crianças, Pets -->
             <div class="grid grid-cols-3 gap-1 pt-1 border-t border-blue-900/60">
               <div>
-                <label class="block text-[8px] md:text-[9px] text-blue-300">Adultos</label>
-                <select id="adultCount" class="w-full bg-[#031038] border border-blue-800 text-[10px] text-white rounded p-1">
+                <label class="block text-[8px] text-blue-300">Adultos</label>
+                <select id="adultCount" class="w-full bg-[#031038] border border-blue-800 text-[9px] text-white rounded p-0.5 text-center">
                   <option value="1">1</option><option value="2" selected>2</option><option value="3">3</option><option value="4">4</option>
                 </select>
               </div>
               <div>
-                <label class="block text-[8px] md:text-[9px] text-blue-300">Crianças</label>
-                <select id="childCount" class="w-full bg-[#031038] border border-blue-800 text-[10px] text-white rounded p-1">
-                  <option value="0" selected>0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option>
+                <label class="block text-[8px] text-blue-300">Crianças</label>
+                <select id="childCount" class="w-full bg-[#031038] border border-blue-800 text-[9px] text-white rounded p-0.5 text-center">
+                  <option value="0" selected>0</option><option value="1">1</option><option value="2">2</option>
                 </select>
               </div>
               <div>
-                <label class="block text-[8px] md:text-[9px] text-blue-300">Pets 🐾</label>
-                <select id="petCount" class="w-full bg-[#031038] border border-blue-800 text-[10px] text-white rounded p-1">
+                <label class="block text-[8px] text-blue-300">Pets 🐾</label>
+                <select id="petCount" class="w-full bg-[#031038] border border-blue-800 text-[9px] text-white rounded p-0.5 text-center">
                   <option value="0" selected>0</option><option value="1">1</option><option value="2">2</option>
                 </select>
               </div>
             </div>
-
-            <div class="grid grid-cols-2 gap-1.5 pt-1">
-              <div>
-                <label class="block text-[9px] text-blue-300 mb-0.5">R$/kWh</label>
-                <input type="number" id="costPerKwh" value="2.39" step="0.01" class="w-full bg-[#031038] border border-blue-800 rounded p-1 text-white text-[10px]">
-              </div>
-              <div>
-                <label class="block text-[9px] text-blue-300 mb-0.5">Gasolina R$/L</label>
-                <input type="number" id="costPerLiter" value="5.89" step="0.01" class="w-full bg-[#031038] border border-blue-800 rounded p-1 text-white text-[10px]">
-              </div>
-            </div>
           </div>
         </div>
 
-        <div class="bg-[#020b29] p-2 rounded-lg text-[10px] space-y-0.5 border border-blue-900 mt-1">
-          <div class="flex justify-between"><span class="text-blue-300">Custo Total EV:</span><span id="totalCost" class="font-bold text-emerald-400">R$ 0,00</span></div>
+        <div class="bg-[#020b29] p-1.5 rounded-lg text-[9px] space-y-0.5 border border-blue-900 mt-1">
+          <div class="flex justify-between"><span class="text-blue-300">Custo EV:</span><span id="totalCost" class="font-bold text-emerald-400">R$ 0,00</span></div>
           <div class="flex justify-between"><span class="text-blue-300">Por Adulto:</span><span id="costPax" class="font-bold text-white">R$ 0,00</span></div>
         </div>
       </div>
 
-      <!-- Card 4: Telemetria & Parada -->
-      <div class="bg-blue-950/80 p-3.5 rounded-xl border border-blue-900 space-y-2.5 shadow-md flex flex-col justify-between">
+      <!-- Card 4: Telemetria & Comparativo Completo -->
+      <div class="bg-blue-950/80 p-3.5 rounded-xl border border-blue-900 space-y-2 shadow-md flex flex-col justify-between">
         <div>
-          <h2 class="text-xs md:text-sm font-semibold text-blue-100 border-b border-blue-900 pb-1 mb-2 flex items-center gap-1.5">
-            <i class="fa-solid fa-chart-line text-emerald-400"></i> 4. Telemetria & Parada
+          <h2 class="text-xs md:text-sm font-semibold text-blue-100 border-b border-blue-900 pb-1 mb-1.5 flex items-center gap-1.5">
+            <i class="fa-solid fa-chart-line text-emerald-400"></i> 4. Telemetria & Comparativo
           </h2>
           
-          <div class="space-y-1.5">
-            <div class="flex justify-between text-[11px] md:text-xs text-blue-300">
+          <div class="space-y-1">
+            <div class="flex justify-between text-[10px] text-blue-300">
               <span>Nível Estimado Chegada:</span>
-              <span id="batteryPercentage" class="font-bold text-xs md:text-sm">--%</span>
+              <span id="batteryPercentage" class="font-bold text-xs">--%</span>
             </div>
             
-            <div class="w-full bg-[#031038] border-2 border-blue-800 rounded-xl h-5 md:h-6 p-0.5 relative flex items-center">
+            <div class="w-full bg-[#031038] border-2 border-blue-800 rounded-xl h-4 p-0.5 relative flex items-center">
               <div id="batteryBar" class="h-full rounded-lg transition-all duration-500 bg-emerald-500" style="width: 100%;"></div>
-              <div class="absolute -right-3 w-2 h-3 bg-blue-800 rounded-r-sm"></div>
             </div>
           </div>
         </div>
 
-        <div class="text-[10px] md:text-[11px] text-blue-200 space-y-1 border-t border-blue-900 pt-1.5">
+        <div class="text-[9px] text-blue-200 space-y-1 border-t border-blue-900 pt-1">
           <div class="flex justify-between"><span class="text-blue-300">📏 Distância Total:</span><span id="totalDistance" class="font-bold text-emerald-400">0 km</span></div>
-          <div class="flex justify-between items-center"><span class="text-blue-300">⚡ Parar para Carga em:</span><span id="rechargeDistanceAlert" class="font-bold text-amber-400 text-right">-- km</span></div>
+          <div class="flex justify-between items-center"><span class="text-blue-300">⚡ Parar em:</span><span id="rechargeDistanceAlert" class="font-bold text-amber-400">-- km</span></div>
           
-          <div id="stopPlanContainer" class="bg-[#020b29] p-1.5 rounded border border-blue-800/80 my-1 space-y-0.5">
-            <div class="text-[9px] md:text-[10px] font-bold text-emerald-400 border-b border-blue-900 pb-0.5 flex items-center gap-1">
-              <i class="fa-solid fa-plug"></i> Estimação no Eletroposto:
-            </div>
-            <div class="flex justify-between text-[9px] md:text-[10px]"><span class="text-blue-300">Chegada no Posto:</span><span id="stopArrivalSoc" class="font-bold text-amber-300">--%</span></div>
-            <div class="flex justify-between text-[9px] md:text-[10px]"><span class="text-blue-300">Carga Mín. Saída:</span><span id="stopDepartureSoc" class="font-bold text-emerald-400">--%</span></div>
-            <div class="flex justify-between text-[9px] md:text-[10px]"><span class="text-blue-300">Tempo Carga (DC):</span><span id="stopChargingTime" class="font-bold text-yellow-300">-- min</span></div>
-            <div class="flex justify-between text-[9px] md:text-[10px]"><span class="text-blue-300">Custo Recarga:</span><span id="stopChargingCost" class="font-bold text-emerald-400">R$ 0,00</span></div>
+          <!-- Quadro Comparativo de Custos -->
+          <div class="bg-[#020b29] p-1.5 rounded border border-blue-800 my-1 space-y-0.5 text-[8px] md:text-[9px]">
+            <div class="flex justify-between"><span class="text-amber-300">⛽ Gasolina:</span><span id="gasCost" class="font-bold text-red-300">R$ 0,00</span></div>
+            <div class="flex justify-between"><span class="text-emerald-300">🌽 Álcool (Etanol):</span><span id="ethanolCost" class="font-bold text-amber-300">R$ 0,00</span></div>
+            <div class="flex justify-between border-t border-blue-900 pt-0.5"><span class="text-blue-300">Melhor Opção Fóssil:</span><span id="bestFossilOption" class="font-bold text-yellow-400">-</span></div>
           </div>
 
-          <div class="flex justify-between items-center"><span class="text-blue-300">⛽ Custo Fóssil:</span><span id="fossilCost" class="font-bold text-red-400">R$ 0,00</span></div>
-          <div class="flex justify-between items-center bg-emerald-950/40 p-1 rounded border border-emerald-500/30">
-            <span class="text-emerald-300 font-semibold">Economia EV:</span><span id="savingsEV" class="font-black text-emerald-400">R$ 0,00</span>
+          <div class="flex justify-between items-center bg-emerald-950/40 p-1 rounded border border-emerald-500/30 text-[9px]">
+            <span class="text-emerald-300 font-semibold">Economia EV vs Fóssil:</span><span id="savingsEV" class="font-black text-emerald-400">R$ 0,00</span>
           </div>
         </div>
       </div>
@@ -327,7 +340,7 @@
   </div>
 
   <script>
-    // BASE INTEGRAL COMPLETA DE VEÍCULOS DO ELETROCALC
+    // BASE COMPLETA E INTEGRAL DE VEÍCULOS
     const evDatabase = {
       "BYD": [
         { model: 'Dolphin Mini (4 Lugares)', type: 'BEV (100% Elétrico)', battery: 38.0, range: 280, consumption: 13.5 },
@@ -648,7 +661,8 @@
           const name = item.tags.name || item.tags.operator || `Eletroposto ${idx + 1}`;
           const isDC = item.tags['socket:ccs'] || (item.tags.description && item.tags.description.includes('DC'));
           
-          const city = item.tags['addr:city'] || item.tags['addr:town'] || "Rota Nacional";
+          // Tratamento para extração estrita da Cidade e UF
+          const city = item.tags['addr:city'] || item.tags['addr:town'] || item.tags['addr:municipality'] || item.tags['is_in:city'] || "Cidade da Rota";
           const state = item.tags['addr:state'] || (lat < -8.5 ? "AL" : (lat < -7.3 ? "PE" : "PB"));
 
           return {
@@ -741,6 +755,7 @@
     function initVehicleSelectors() {
       const brandSelect = document.getElementById('brandSelect');
       const modelSelect = document.getElementById('modelSelect');
+      const favCarBtn = document.getElementById('favCarBtn');
 
       brandSelect.innerHTML = '<option value="">Selecione a marca...</option>';
 
@@ -774,13 +789,51 @@
           document.getElementById('specBattery').innerText = `${selectedCar.battery} kWh`;
           document.getElementById('specRange').innerText = `${selectedCar.range} km`;
           document.getElementById('specConsumption').innerText = `${selectedCar.consumption} kWh/100km`;
+
+          updateFavCarUI();
         }
       });
 
-      brandSelect.value = "BYD";
-      brandSelect.dispatchEvent(new Event('change'));
-      modelSelect.value = "2"; // Dolphin GS
-      modelSelect.dispatchEvent(new Event('change'));
+      // CORREÇÃO DO BOTÃO FAVORITAR
+      favCarBtn.onclick = function() {
+        const brand = brandSelect.value;
+        const modelIdx = modelSelect.value;
+        if (brand && modelIdx !== "") {
+          const carObj = evDatabase[brand][modelIdx];
+          localStorage.setItem('hv_fav_car', JSON.stringify({ brand: brand, index: modelIdx }));
+          updateFavCarUI();
+          alert(`Veículo ${carObj.model} salvo como favorito com sucesso!`);
+        } else {
+          alert("Por favor, escolha a Marca e o Modelo antes de favoritar.");
+        }
+      };
+
+      // Carrega favorito salvo se existir
+      const savedFav = JSON.parse(localStorage.getItem('hv_fav_car'));
+      if (savedFav && evDatabase[savedFav.brand]) {
+        brandSelect.value = savedFav.brand;
+        brandSelect.dispatchEvent(new Event('change'));
+        modelSelect.value = savedFav.index;
+        modelSelect.dispatchEvent(new Event('change'));
+      } else {
+        brandSelect.value = "BYD";
+        brandSelect.dispatchEvent(new Event('change'));
+        modelSelect.value = "2"; // Dolphin GS
+        modelSelect.dispatchEvent(new Event('change'));
+      }
+    }
+
+    function updateFavCarUI() {
+      const brandSelect = document.getElementById('brandSelect');
+      const modelSelect = document.getElementById('modelSelect');
+      const favCarIcon = document.getElementById('favCarIcon');
+      
+      const savedFav = JSON.parse(localStorage.getItem('hv_fav_car'));
+      if (savedFav && savedFav.brand === brandSelect.value && String(savedFav.index) === String(modelSelect.value)) {
+        favCarIcon.className = "fa-solid fa-star text-amber-400";
+      } else {
+        favCarIcon.className = "fa-solid fa-star text-slate-500";
+      }
     }
 
     async function calculateRoute() {
@@ -837,6 +890,7 @@
           
           document.getElementById('rechargeDistanceAlert').innerText = (distKm > currentAutonomyKm - safeReserveKm) ? `em ${rechargePointKm} km` : "Não necessária";
 
+          // CÁLCULOS FINANCEIROS EV vs GASOLINA vs ÁLCOOL
           const kwhCost = parseFloat(document.getElementById('costPerKwh').value) || 0;
           const adultCount = parseInt(document.getElementById('adultCount').value) || 1;
           const totalKwhNeeded = (distKm / 100) * selectedCar.consumption;
@@ -845,41 +899,29 @@
           document.getElementById('totalCost').innerText = `R$ ${totalCostEV.toFixed(2)}`;
           document.getElementById('costPax').innerText = `R$ ${(totalCostEV / adultCount).toFixed(2)}`;
 
-          if (distKm > currentAutonomyKm - safeReserveKm) {
-            const arrivalSoc = 15;
-            const remainingDistFromStop = Math.max(0, distKm - rechargePointKm);
-            const neededSocForRemaining = Math.ceil((remainingDistFromStop / adjustedRange) * 100) + 15;
-            const departureSoc = Math.min(100, neededSocForRemaining);
-            
-            const socToCharge = Math.max(0, departureSoc - arrivalSoc);
-            const kwhToCharge = (socToCharge / 100) * selectedCar.battery;
-            
-            const timeInMinutes = Math.round((kwhToCharge / 45) * 60);
-            const stopCost = kwhToCharge * kwhCost;
+          // Gasolina
+          const gasPrice = parseFloat(document.getElementById('costPerLiterGas').value) || 5.89;
+          const gasKmPerLiter = parseFloat(document.getElementById('kmPerLiterGas').value) || 11.5;
+          const totalGasCost = (distKm / gasKmPerLiter) * gasPrice;
 
-            document.getElementById('stopArrivalSoc').innerText = `${arrivalSoc}%`;
-            document.getElementById('stopDepartureSoc').innerText = `${departureSoc}%`;
-            document.getElementById('stopChargingTime').innerText = `${timeInMinutes} min`;
-            document.getElementById('stopChargingCost').innerText = `R$ ${stopCost.toFixed(2)}`;
-          } else {
-            document.getElementById('stopArrivalSoc').innerText = "N/A";
-            document.getElementById('stopDepartureSoc').innerText = "N/A";
-            document.getElementById('stopChargingTime').innerText = "0 min";
-            document.getElementById('stopChargingCost').innerText = "R$ 0,00";
-          }
+          // Álcool (Etanol)
+          const ethanolPrice = parseFloat(document.getElementById('costPerLiterEthanol').value) || 4.19;
+          const ethanolKmPerLiter = parseFloat(document.getElementById('kmPerLiterEthanol').value) || 8.1;
+          const totalEthanolCost = (distKm / ethanolKmPerLiter) * ethanolPrice;
+
+          document.getElementById('gasCost').innerText = `R$ ${totalGasCost.toFixed(2)}`;
+          document.getElementById('ethanolCost').innerText = `R$ ${totalEthanolCost.toFixed(2)}`;
+
+          const bestFossilCost = Math.min(totalGasCost, totalEthanolCost);
+          const bestFossilName = totalEthanolCost < totalGasCost ? "Álcool (Etanol)" : "Gasolina";
+          document.getElementById('bestFossilOption').innerText = `${bestFossilName} (R$ ${bestFossilCost.toFixed(2)})`;
+
+          const savings = Math.max(0, bestFossilCost - totalCostEV);
+          document.getElementById('savingsEV').innerText = `R$ ${savings.toFixed(2)}`;
 
           const usedPercent = (distKm / adjustedRange) * 100;
           const remainingPercent = startPercent - usedPercent;
           updateBatteryUI(remainingPercent);
-
-          const literCost = parseFloat(document.getElementById('costPerLiter').value) || 5.89;
-          const fossilKmLiter = parseFloat(document.getElementById('fossilKmPerLiter').value) || 11.5;
-          const totalLitersNeeded = distKm / fossilKmLiter;
-          const totalCostFossil = totalLitersNeeded * literCost;
-          const savings = Math.max(0, totalCostFossil - totalCostEV);
-
-          document.getElementById('fossilCost').innerText = `R$ ${totalCostFossil.toFixed(2)}`;
-          document.getElementById('savingsEV').innerText = `R$ ${savings.toFixed(2)}`;
 
           showRouteToast();
         }
