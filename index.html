@@ -372,6 +372,26 @@
 
   </div>
 
+  <!-- MODAL DE SELEÇÃO DE LOCAL SALVO (Substitui o Prompt) -->
+  <div id="locationModal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-[#091a4a] border-2 border-blue-700 rounded-xl p-5 max-w-md w-full shadow-2xl space-y-4">
+      <h3 class="text-base md:text-lg font-bold text-emerald-400 flex items-center gap-2">
+        <i class="fa-solid fa-location-dot"></i> Onde aplicar o endereço?
+      </h3>
+      <p id="modalAddressText" class="text-xs md:text-sm text-blue-100 bg-[#031038] p-3 rounded border border-blue-900 break-words font-medium"></p>
+      
+      <div class="flex gap-2 pt-2">
+        <button id="applyAsOriginBtn" class="flex-1 bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-3 rounded-lg text-xs md:text-sm transition flex items-center justify-center gap-1.5 shadow">
+          <i class="fa-solid fa-play"></i> Definir ORIGEM
+        </button>
+        <button id="applyAsDestBtn" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 px-3 rounded-lg text-xs md:text-sm transition flex items-center justify-center gap-1.5 shadow">
+          <i class="fa-solid fa-flag-checkered"></i> Definir DESTINO
+        </button>
+      </div>
+      <button id="cancelModalBtn" class="w-full text-xs text-slate-400 hover:text-white pt-1">Cancelar</button>
+    </div>
+  </div>
+
   <!-- CONTAINER DE EXPORTAÇÃO PDF ESTRUTURADO EM 2 PÁGINAS -->
   <div id="pdfContainer" style="display: none; background-color: #031038; color: #f8fafc; font-family: sans-serif; width: 1000px; padding: 20px;">
     
@@ -564,6 +584,7 @@
     let availableRoutes = [];
     let activeRouteIndex = 0;
     let routePolylines = [];
+    let pendingAddress = "";
 
     async function initMap() {
       map = L.map('map').setView([-8.0476, -34.8770], 8);
@@ -674,15 +695,11 @@
       if (destCoords) destMarker = L.marker(destCoords).addTo(map).bindPopup("<b>Destino</b>");
     }
 
+    // ABRIR MODAL DE SELEÇÃO EM VEZ DO PROMPT
     function askTargetInputAndSet(addressStr) {
-      const choice = prompt(`Onde deseja inserir o endereço?\nDigite '1' para ORIGEM ou '2' para DESTINO:\n\n${addressStr}`, "2");
-      if (choice === "1") {
-        document.getElementById('originInput').value = addressStr;
-        geocodeFast(addressStr).then(c => { originCoords = c; updateLocationMarkers(); });
-      } else if (choice === "2") {
-        document.getElementById('destInput').value = addressStr;
-        geocodeFast(addressStr).then(c => { destCoords = c; updateLocationMarkers(); });
-      }
+      pendingAddress = addressStr;
+      document.getElementById('modalAddressText').innerText = addressStr;
+      document.getElementById('locationModal').classList.remove('hidden');
     }
 
     function initUserFavorites() {
@@ -719,6 +736,29 @@
         }
       });
 
+      // BOTÕES DO MODAL PERSONALIZADO
+      document.getElementById('applyAsOriginBtn').addEventListener('click', () => {
+        if (pendingAddress) {
+          document.getElementById('originInput').value = pendingAddress;
+          originCoords = null; // reseta a busca para refazer geocode limpo
+          geocodeFast(pendingAddress).then(c => { originCoords = c; updateLocationMarkers(); });
+        }
+        document.getElementById('locationModal').classList.add('hidden');
+      });
+
+      document.getElementById('applyAsDestBtn').addEventListener('click', () => {
+        if (pendingAddress) {
+          document.getElementById('destInput').value = pendingAddress;
+          destCoords = null; // reseta a busca para refazer geocode limpo
+          geocodeFast(pendingAddress).then(c => { destCoords = c; updateLocationMarkers(); });
+        }
+        document.getElementById('locationModal').classList.add('hidden');
+      });
+
+      document.getElementById('cancelModalBtn').addEventListener('click', () => {
+        document.getElementById('locationModal').classList.add('hidden');
+      });
+
       loadFavPlacesDropdown();
     }
 
@@ -737,7 +777,12 @@
           select.appendChild(opt);
         });
 
-        select.onchange = (e) => { if (e.target.value) askTargetInputAndSet(e.target.value); };
+        select.onchange = (e) => { 
+          if (e.target.value) {
+            askTargetInputAndSet(e.target.value);
+            select.value = ""; // Reseta o select
+          } 
+        };
       } else wrapper.classList.add('hidden');
     }
 
@@ -778,6 +823,11 @@
                 e.stopPropagation();
                 input.value = place.display_name;
                 results.classList.add('hidden');
+                
+                // Reseta variáveis anteriores antes de aplicar novas
+                if (inputId === 'originInput') originCoords = [parseFloat(place.lat), parseFloat(place.lon)];
+                if (inputId === 'destInput') destCoords = [parseFloat(place.lat), parseFloat(place.lon)];
+                
                 callback([parseFloat(place.lat), parseFloat(place.lon)]);
               };
               results.appendChild(div);
@@ -1219,8 +1269,9 @@
     }
 
     async function calculateRoute() {
-      if (!originCoords) originCoords = await geocodeFast(document.getElementById('originInput').value);
-      if (!destCoords) destCoords = await geocodeFast(document.getElementById('destInput').value);
+      // Garante geocodificação atualizada antes de calcular
+      originCoords = await geocodeFast(document.getElementById('originInput').value);
+      destCoords = await geocodeFast(document.getElementById('destInput').value);
 
       if (!selectedCar || !originCoords || !destCoords) {
         alert("Por favor, selecione o veículo e insira locais válidos para Origem e Destino.");
