@@ -57,7 +57,6 @@
       border: 2px solid white;
       box-shadow: 0 0 8px rgba(0,0,0,0.6);
     }
-    /* Estilização dos controles do mapa */
     .leaflet-control-layers {
       background: #091a4a !important;
       color: #f8fafc !important;
@@ -155,12 +154,12 @@
 
             <div class="relative">
               <label class="block text-xs md:text-sm text-blue-300 mb-1">Origem (Rua, Nº, Cidade, Estado)</label>
-              <input type="text" id="originInput" value="Recife, PE, Brasil" class="w-full bg-[#031038] border border-blue-800 rounded-md p-2 text-white text-xs md:text-sm outline-none focus:border-emerald-500" placeholder="Ex: Av. Boa Viagem, 500, Recife">
+              <input type="text" id="originInput" value="Recife, PE, Brasil" class="w-full bg-[#031038] border border-blue-800 rounded-md p-2 text-white text-xs md:text-sm outline-none focus:border-emerald-500" placeholder="Ex: Av. Boa Viagem, 500, Recife" autocomplete="off">
               <div id="originResults" class="autocomplete-results hidden"></div>
             </div>
             <div class="relative">
               <label class="block text-xs md:text-sm text-blue-300 mb-1">Destino (Rua, Nº, Cidade, Estado)</label>
-              <input type="text" id="destInput" value="Maceió, AL, Brasil" class="w-full bg-[#031038] border border-blue-800 rounded-md p-2 text-white text-xs md:text-sm outline-none focus:border-emerald-500" placeholder="Ex: Av. Epitácio Pessoa, 4985, João Pessoa">
+              <input type="text" id="destInput" value="Maceió, AL, Brasil" class="w-full bg-[#031038] border border-blue-800 rounded-md p-2 text-white text-xs md:text-sm outline-none focus:border-emerald-500" placeholder="Ex: Av. Epitácio Pessoa, 4985, João Pessoa" autocomplete="off">
               <div id="destResults" class="autocomplete-results hidden"></div>
             </div>
             <div class="grid grid-cols-2 gap-2">
@@ -469,13 +468,11 @@
     let activeRouteIndex = 0;
     let routePolylines = [];
 
-    // INICIALIZAÇÃO DO NOVO MOTOR DE MAPA (Esri World Street + Opções)
     async function initMap() {
       map = L.map('map').setView([-8.0476, -34.8770], 8);
 
-      // Camadas de Mapa
       const esriStreet = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
-        attribution: 'Tiles &copy; Esri &mdash; Source: Esri, DeLorme, NAVTEQ, USGS, Intermap, iPC, NRCAN, Esri Japan, METI, Esri China (Hong Kong), Esri (Thailand), TomTom'
+        attribution: 'Tiles &copy; Esri'
       });
 
       const googleHybrid = L.tileLayer('https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
@@ -488,7 +485,6 @@
 
       esriStreet.addTo(map);
 
-      // Seletor de Camadas no canto do mapa
       const baseMaps = {
         "Esri Street Map": esriStreet,
         "Google Híbrido/Satélite": googleHybrid,
@@ -499,7 +495,6 @@
       initVehicleSelectors();
       initUserFavorites();
 
-      // Autocomplete usando o novo motor Photon API
       setupPhotonAutocomplete('originInput', 'originResults', (coords) => {
         originCoords = coords;
         updateLocationMarkers();
@@ -509,12 +504,19 @@
         updateLocationMarkers();
       });
 
+      // Esconde o menu autocomplete ao clicar fora dele
+      document.addEventListener('click', (e) => {
+        if (!e.target.closest('.relative')) {
+          document.getElementById('originResults').classList.add('hidden');
+          document.getElementById('destResults').classList.add('hidden');
+        }
+      });
+
       originCoords = await geocodePhoton(document.getElementById('originInput').value);
       destCoords = await geocodePhoton(document.getElementById('destInput').value);
       updateLocationMarkers();
     }
 
-    // Geocodificação Avançada com Photon API (Motor Difuso para o Brasil)
     async function geocodePhoton(addressStr) {
       if (!addressStr) return null;
       try {
@@ -523,7 +525,7 @@
         const data = await res.json();
         if (data && data.features && data.features.length > 0) {
           const coords = data.features[0].geometry.coordinates;
-          return [coords[1], coords[0]]; // [lat, lng]
+          return [coords[1], coords[0]];
         }
       } catch (err) {
         console.warn("Erro na geocodificação Photon:", err);
@@ -531,7 +533,6 @@
       return null;
     }
 
-    // Geocodificação Reversa para Município / UF
     async function reverseGeocodeCityState(lat, lng) {
       try {
         const url = `https://photon.komoot.io/reverse?lat=${lat}&lon=${lng}`;
@@ -629,16 +630,24 @@
       } else wrapper.classList.add('hidden');
     }
 
-    // NOVO MOTOR DE AUTOCOMPLETE COM PHOTON API
+    // AUTOCOMPLETE PHOTON API AJUSTADO PARA MÚLTIPLAS REUTILIZAÇÕES
     function setupPhotonAutocomplete(inputId, resultsId, callback) {
       const input = document.getElementById(inputId);
       const results = document.getElementById(resultsId);
 
       let timeout = null;
+
+      // Reseta coordenadas ao editar manualmente o campo para forçar nova busca
       input.addEventListener('input', () => {
+        if (inputId === 'originInput') originCoords = null;
+        if (inputId === 'destInput') destCoords = null;
+
         clearTimeout(timeout);
         const query = input.value.trim();
-        if (query.length < 3) { results.classList.add('hidden'); return; }
+        if (query.length < 3) { 
+          results.classList.add('hidden'); 
+          return; 
+        }
 
         timeout = setTimeout(async () => {
           try {
@@ -647,7 +656,10 @@
             const data = await res.json();
             
             results.innerHTML = '';
-            if (!data || !data.features || data.features.length === 0) { results.classList.add('hidden'); return; }
+            if (!data || !data.features || data.features.length === 0) { 
+              results.classList.add('hidden'); 
+              return; 
+            }
 
             data.features.forEach(feat => {
               const props = feat.properties;
@@ -658,7 +670,8 @@
               const div = document.createElement('div');
               div.className = 'autocomplete-item';
               div.innerText = displayName;
-              div.onclick = () => {
+              div.onclick = (e) => {
+                e.stopPropagation();
                 input.value = displayName;
                 results.classList.add('hidden');
                 callback([coords[1], coords[0]]);
@@ -867,7 +880,7 @@
       } else {
         brandSelect.value = "BYD";
         brandSelect.dispatchEvent(new Event('change'));
-        modelSelect.value = "2"; // Dolphin GS
+        modelSelect.value = "2";
         modelSelect.dispatchEvent(new Event('change'));
       }
     }
@@ -967,12 +980,14 @@
       updateBatteryUI(remainingPercent);
     }
 
+    // CÁLCULO E RE-CÁLCULO INFINITO
     async function calculateRoute() {
+      // Re-geocodifica de forma assíncrona caso as coordenadas não tenham sido capturadas pelo autocomplete
       if (!originCoords) originCoords = await geocodePhoton(document.getElementById('originInput').value);
       if (!destCoords) destCoords = await geocodePhoton(document.getElementById('destInput').value);
 
       if (!selectedCar || !originCoords || !destCoords) {
-        alert("Por favor, selecione veículo e insira endereços válidos.");
+        alert("Por favor, selecione o veículo e insira locais válidos para Origem e Destino.");
         return;
       }
 
@@ -985,11 +1000,15 @@
         if (data.routes && data.routes.length > 0) {
           availableRoutes = data.routes.slice(0, 3);
 
+          // Limpa rotas anteriores do mapa
           routePolylines.forEach(pl => map.removeLayer(pl));
           routePolylines = [];
 
           const container = document.getElementById('routeOptionsContainer');
           container.innerHTML = '';
+
+          // Atualiza os marcadores de origem e destino no mapa
+          updateLocationMarkers();
 
           availableRoutes.forEach((route, idx) => {
             const distKm = Math.round(route.distance / 1000);
