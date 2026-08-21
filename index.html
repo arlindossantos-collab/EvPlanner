@@ -11,7 +11,8 @@
   <!-- Leaflet CSS & JS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <!-- html2pdf.js -->
+  <!-- html2pdf.js & html2canvas -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
   <style>
@@ -180,8 +181,8 @@
         </div>
 
         <div class="space-y-2 mt-2">
-          <button id="calcBtn" class="w-full bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold py-2 rounded-lg text-xs md:text-sm transition shadow">
-            Calcular Rota
+          <button id="calcBtn" class="w-full bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold py-2 rounded-lg text-xs md:text-sm transition shadow flex items-center justify-center gap-2">
+            <i class="fa-solid fa-calculator"></i> Calcular Rota
           </button>
 
           <div id="routeToast" class="hidden bg-emerald-950/90 border border-emerald-500 text-emerald-300 p-2 rounded-lg text-xs md:text-sm font-bold text-center flex items-center justify-center gap-2 shadow">
@@ -366,10 +367,10 @@
 
   </div>
 
-  <!-- CONTAINER DE EXPORTAÇÃO PDF ESTRUTURADO EM 2 PÁGINAS (OCULTO NA TELA) -->
+  <!-- CONTAINER DE EXPORTAÇÃO PDF ESTRUTURADO EM 2 PÁGINAS (GERADO EM MODO TEXTO COM PRINT DO MAPA) -->
   <div id="pdfContainer" style="display: none; background-color: #031038; color: #f8fafc; font-family: sans-serif; width: 1000px; padding: 20px;">
     
-    <!-- PÁGINA 1: DADOS DA VIAGEM + TELEMETRIA + MAPA -->
+    <!-- PÁGINA 1: DADOS DA VIAGEM + TELEMETRIA + PRINT DO MAPA -->
     <div id="pdfPage1" style="padding-bottom: 20px;">
       <div style="text-align: center; border-bottom: 2px solid #1e3a8a; padding-bottom: 10px; margin-bottom: 15px;">
         <h1 style="color: #34d399; font-size: 22px; font-weight: bold; margin: 0; text-transform: uppercase;">Relatório Executivo de Viagem - HV Planner</h1>
@@ -785,7 +786,8 @@
 
     function getMinDistanceToRouteInKm(lat, lng, routeCoords) {
       let minDistance = Infinity;
-      for (let i = 0; i < routeCoords.length - 1; i += 4) {
+      // Amostragem de pontos a cada 5 vértices para cálculo ultrarrápido
+      for (let i = 0; i < routeCoords.length - 1; i += 5) {
         const rLat = routeCoords[i][1];
         const rLng = routeCoords[i][0];
         const d = L.latLng(lat, lng).distanceTo(L.latLng(rLat, rLng)) / 1000;
@@ -794,16 +796,16 @@
       return minDistance;
     }
 
-    // BUSCA DE ELETROPOSTOS ROBUSTA COM ENDPOINTS DE FALLBACK
+    // BUSCA OTIMIZADA DE ELETROPOSTOS (MÚLTIPLOS SERVIDORES + TIMEOUT BAIXO)
     async function fetchRouteStationsFromOSM(bbox, routeGeometry) {
       document.getElementById('stationsCount').innerText = "Buscando eletropostos...";
       const [south, west, north, east] = bbox;
       
-      const query = `[out:json][timeout:25];(node["amenity"="charging_station"](${south},${west},${north},${east});way["amenity"="charging_station"](${south},${west},${north},${east}););out body center;`;
+      const query = `[out:json][timeout:10];(node["amenity"="charging_station"](${south},${west},${north},${east});way["amenity"="charging_station"](${south},${west},${north},${east}););out body center;`;
       
       const endpoints = [
+        'https://overpass.private.coffee/api/interpreter',
         'https://overpass-api.de/api/interpreter',
-        'https://overpass.kumi.systems/api/interpreter',
         'https://maps.mail.ru/osm/tools/overpass/api/interpreter'
       ];
 
@@ -811,13 +813,22 @@
 
       for (let url of endpoints) {
         try {
-          const res = await fetch(url, { method: 'POST', body: query });
+          const controller = new AbortController();
+          const timer = setTimeout(() => controller.abort(), 6000); // 6s max timeout por servidor
+
+          const res = await fetch(url, { 
+            method: 'POST', 
+            body: query,
+            signal: controller.signal
+          });
+          clearTimeout(timer);
+
           if (res.ok) {
             data = await res.json();
             if (data && data.elements) break;
           }
         } catch (e) {
-          console.warn(`Servidor Overpass (${url}) falhou, tentando fallback...`);
+          console.warn(`Servidor Overpass (${url}) não respondeu a tempo, tentando o próximo servidor...`);
         }
       }
 
@@ -835,7 +846,7 @@
         const name = item.tags.name || item.tags.operator || `Eletroposto Rota #${idx + 1}`;
         const isDC = item.tags['socket:ccs'] || (item.tags.description && item.tags.description.includes('DC'));
 
-        const city = item.tags['addr:city'] || item.tags['addr:town'] || item.tags['addr:municipality'] || "Ponto de Carga";
+        const city = item.tags['addr:city'] || item.tags['addr:town'] || item.tags['addr:municipality'] || "Ponto na Rota";
         const state = item.tags['addr:state'] || "UF";
 
         return {
@@ -850,7 +861,7 @@
       }).filter(s => {
         if (!s.lat || !s.lng) return false;
         const distToRoute = getMinDistanceToRouteInKm(s.lat, s.lng, routeCoords);
-        return distToRoute <= 12; // Raio máximo de 12km do trajeto
+        return distToRoute <= 10; // Raio de até 10km da rota
       });
     }
 
@@ -895,7 +906,7 @@
 
         stationMarkers.push(marker);
 
-        // Tabela Interativa na Tela
+        // Tabela na Tela
         const tr = document.createElement('tr');
         tr.className = "hover:bg-blue-900/30 transition text-xs md:text-sm";
         tr.innerHTML = `
@@ -918,7 +929,7 @@
         `;
         tbody.appendChild(tr);
 
-        // Tabela Formatada para PDF (Página 2)
+        // Tabela para PDF (Página 2)
         const pdfTr = document.createElement('tr');
         pdfTr.style.borderBottom = "1px solid #1e293b";
         pdfTr.style.backgroundColor = index % 2 === 0 ? "#031038" : "#091a4a";
@@ -1057,10 +1068,10 @@
       map.fitBounds(bounds, { padding: [30, 30] });
 
       const bbox = [
-        bounds.getSouth() - 0.10,
-        bounds.getWest() - 0.10,
-        bounds.getNorth() + 0.10,
-        bounds.getEast() + 0.10
+        bounds.getSouth() - 0.08,
+        bounds.getWest() - 0.08,
+        bounds.getNorth() + 0.08,
+        bounds.getEast() + 0.08
       ];
 
       await fetchRouteStationsFromOSM(bbox, route.geometry);
@@ -1234,7 +1245,6 @@
       const pdfMapContainer = document.getElementById('pdfMapImageContainer');
       pdfMapContainer.innerHTML = '';
 
-      // Captura o elemento do mapa na tela
       const mapElement = document.getElementById('map');
 
       try {
