@@ -19,14 +19,12 @@
       background-color: #031038;
       color: #f8fafc;
     }
-    
     #map { 
       height: 440px; 
       width: 100%; 
       border-radius: 0.75rem; 
       z-index: 1; 
     }
-    
     .autocomplete-results {
       position: absolute;
       width: 100%;
@@ -78,12 +76,17 @@
     <!-- Grid de Controle -->
     <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
       
-      <!-- Card 1: Veículo -->
+      <!-- Card 1: Veículo + Favorito -->
       <div class="bg-blue-950/80 p-3.5 rounded-xl border border-blue-900 space-y-2.5 shadow-md flex flex-col justify-between">
         <div>
-          <h2 class="text-xs md:text-sm font-semibold text-blue-100 border-b border-blue-900 pb-1 mb-2 flex items-center gap-1.5">
-            <i class="fa-solid fa-car text-emerald-400"></i> 1. Veículo
-          </h2>
+          <div class="flex justify-between items-center border-b border-blue-900 pb-1 mb-2">
+            <h2 class="text-xs md:text-sm font-semibold text-blue-100 flex items-center gap-1.5">
+              <i class="fa-solid fa-car text-emerald-400"></i> 1. Veículo
+            </h2>
+            <button id="favCarBtn" title="Favoritar este veículo" class="text-slate-400 hover:text-amber-400 transition text-xs">
+              <i class="fa-solid fa-star" id="favCarIcon"></i> <span class="text-[9px]">Favorito</span>
+            </button>
+          </div>
           <div class="space-y-2">
             <div>
               <label class="block text-[10px] md:text-[11px] font-medium text-blue-300 mb-0.5">Marca / Fabricante</label>
@@ -108,13 +111,33 @@
         </div>
       </div>
 
-      <!-- Card 2: Trajeto -->
+      <!-- Card 2: Trajeto + Atalhos Casa, Trabalho & Favoritos -->
       <div class="bg-blue-950/80 p-3.5 rounded-xl border border-blue-900 space-y-2.5 shadow-md flex flex-col justify-between">
         <div>
           <h2 class="text-xs md:text-sm font-semibold text-blue-100 border-b border-blue-900 pb-1 mb-2 flex items-center gap-1.5">
             <i class="fa-solid fa-route text-emerald-400"></i> 2. Trajeto & Condições
           </h2>
           <div class="space-y-2">
+            <!-- Atalhos de Atalhos de Casa e Trabalho -->
+            <div class="flex gap-1 text-[9px] mb-1">
+              <button id="setHomeBtn" class="bg-blue-900 hover:bg-blue-800 text-blue-100 px-2 py-0.5 rounded border border-blue-700 flex items-center gap-1">
+                <i class="fa-solid fa-house text-amber-400"></i> <span id="homeBtnLabel">Ir p/ Casa</span>
+              </button>
+              <button id="setWorkBtn" class="bg-blue-900 hover:bg-blue-800 text-blue-100 px-2 py-0.5 rounded border border-blue-700 flex items-center gap-1">
+                <i class="fa-solid fa-briefcase text-blue-400"></i> <span id="workBtnLabel">Ir p/ Trabalho</span>
+              </button>
+              <button id="addFavPlaceBtn" class="bg-blue-900 hover:bg-blue-800 text-emerald-300 px-2 py-0.5 rounded border border-blue-700 flex items-center gap-1 ml-auto">
+                <i class="fa-solid fa-bookmark"></i> + Salvar Destino
+              </button>
+            </div>
+
+            <!-- Seletor de Locais Favoritos -->
+            <div id="favPlacesWrapper" class="hidden">
+              <select id="favPlacesSelect" class="w-full bg-[#020b29] border border-blue-800 text-emerald-300 text-[10px] rounded p-1 outline-none">
+                <option value="">Selecione um local favorito...</option>
+              </select>
+            </div>
+
             <div class="relative">
               <label class="block text-[10px] md:text-[11px] text-blue-300 mb-0.5">Origem (Rua, Nº, Cidade, Estado)</label>
               <input type="text" id="originInput" value="Recife, PE, Brasil" class="w-full bg-[#031038] border border-blue-800 rounded-md p-1.5 text-white text-xs outline-none focus:border-emerald-500" placeholder="Ex: Av. Boa Viagem, 500, Recife">
@@ -253,10 +276,10 @@
       <div id="map"></div>
     </div>
 
-    <!-- Relação de Eletropostos Mapeados Otimizada para Mobile -->
+    <!-- Relação de Eletropostos Mapeados -->
     <div class="bg-blue-950/80 p-2.5 md:p-4 rounded-xl border border-blue-900 space-y-2 shadow-lg">
       <h3 class="text-xs md:text-sm font-bold text-white flex items-center justify-between border-b border-blue-900 pb-1.5">
-        <span class="flex items-center gap-1.5"><i class="fa-solid fa-list-check text-emerald-400"></i> Eletropostos Encontrados</span>
+        <span class="flex items-center gap-1.5"><i class="fa-solid fa-list-check text-emerald-400"></i> Eletropostos Encontrados ao Longo da Rota</span>
         <span id="stationsCount" class="text-[10px] md:text-xs bg-blue-900 text-emerald-300 px-2 py-0.5 rounded border border-blue-700">0 encontrados</span>
       </h3>
       <div class="overflow-x-auto">
@@ -406,13 +429,13 @@
       { id: 110, name: "EZVolt - Aracaju Shopping", city: "Aracaju", state: "SE", lat: -10.9472, lng: -37.0731, power: "CCS2 / 60kW DC", type: "DC" }
     ];
 
-    let map, routeLayer, originCoords = [-8.0476, -34.8770], destCoords = [-9.6658, -35.7350];
+    let map, routeLayer, originCoords = null, destCoords = null;
     let originMarker, destMarker;
     let selectedCar = null;
     let stationMarkers = [];
     let fetchedStations = [];
 
-    function initMap() {
+    async function initMap() {
       map = L.map('map').setView([-8.8, -35.5], 8);
 
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -420,6 +443,8 @@
       }).addTo(map);
 
       initVehicleSelectors();
+      initUserFavorites();
+
       setupAutocomplete('originInput', 'originResults', (coords) => {
         originCoords = coords;
         updateLocationMarkers();
@@ -429,7 +454,25 @@
         updateLocationMarkers();
       });
 
+      // Geocodificação inicial para o valor pré-preenchido
+      originCoords = await geocodeAddress(document.getElementById('originInput').value);
+      destCoords = await geocodeAddress(document.getElementById('destInput').value);
       updateLocationMarkers();
+    }
+
+    async function geocodeAddress(addressStr) {
+      if (!addressStr) return null;
+      try {
+        const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(addressStr)}&countrycodes=br&limit=1`;
+        const res = await fetch(url);
+        const data = await res.json();
+        if (data && data.length > 0) {
+          return [parseFloat(data[0].lat), parseFloat(data[0].lon)];
+        }
+      } catch (err) {
+        console.warn("Erro ao geocodificar endereço inicial:", err);
+      }
+      return null;
     }
 
     function updateLocationMarkers() {
@@ -442,6 +485,94 @@
       if (destCoords) {
         destMarker = L.marker(destCoords).addTo(map).bindPopup("<b>Destino</b>");
       }
+    }
+
+    // Funcionalidades de Locais Favoritos, Casa e Trabalho (LocalStorage)
+    function initUserFavorites() {
+      const homeAddress = localStorage.getItem('hv_home_address');
+      const workAddress = localStorage.getItem('hv_work_address');
+      
+      updateHomeWorkButtonsUI();
+
+      document.getElementById('setHomeBtn').addEventListener('click', () => {
+        const currHome = localStorage.getItem('hv_home_address');
+        if (!currHome) {
+          const newHome = prompt("Digite seu endereço de Casa (ex: Rua Exemplo, 100, Recife PE):");
+          if (newHome) {
+            localStorage.setItem('hv_home_address', newHome);
+            updateHomeWorkButtonsUI();
+            setDestInput(newHome);
+          }
+        } else {
+          setDestInput(currHome);
+        }
+      });
+
+      document.getElementById('setWorkBtn').addEventListener('click', () => {
+        const currWork = localStorage.getItem('hv_work_address');
+        if (!currWork) {
+          const newWork = prompt("Digite seu endereço de Trabalho (ex: Av. Agamenon Magalhães, 2000, Recife PE):");
+          if (newWork) {
+            localStorage.setItem('hv_work_address', newWork);
+            updateHomeWorkButtonsUI();
+            setDestInput(newWork);
+          }
+        } else {
+          setDestInput(currWork);
+        }
+      });
+
+      document.getElementById('addFavPlaceBtn').addEventListener('click', () => {
+        const currentDest = document.getElementById('destInput').value;
+        const name = prompt("Nome para este local favorito (ex: Casa da Praia, Escritório):", currentDest.split(',')[0]);
+        if (name && currentDest) {
+          let favs = JSON.parse(localStorage.getItem('hv_fav_places') || '[]');
+          favs.push({ name: name, address: currentDest });
+          localStorage.setItem('hv_fav_places', JSON.stringify(favs));
+          loadFavPlacesDropdown();
+          alert("Local salvo nos favoritos!");
+        }
+      });
+
+      loadFavPlacesDropdown();
+    }
+
+    function updateHomeWorkButtonsUI() {
+      const home = localStorage.getItem('hv_home_address');
+      const work = localStorage.getItem('hv_work_address');
+      document.getElementById('homeBtnLabel').innerText = home ? "Casa" : "+ Salvar Casa";
+      document.getElementById('workBtnLabel').innerText = work ? "Trabalho" : "+ Salvar Trabalho";
+    }
+
+    function loadFavPlacesDropdown() {
+      const favs = JSON.parse(localStorage.getItem('hv_fav_places') || '[]');
+      const wrapper = document.getElementById('favPlacesWrapper');
+      const select = document.getElementById('favPlacesSelect');
+
+      if (favs.length > 0) {
+        wrapper.classList.remove('hidden');
+        select.innerHTML = '<option value="">⭐ Selecione um local favorito...</option>';
+        favs.forEach((f, idx) => {
+          const opt = document.createElement('option');
+          opt.value = f.address;
+          opt.textContent = `${f.name} (${f.address.substring(0, 30)}...)`;
+          select.appendChild(opt);
+        });
+
+        select.onchange = (e) => {
+          if (e.target.value) {
+            setDestInput(e.target.value);
+          }
+        };
+      } else {
+        wrapper.classList.add('hidden');
+      }
+    }
+
+    async function setDestInput(addressStr) {
+      document.getElementById('destInput').value = addressStr;
+      destCoords = await geocodeAddress(addressStr);
+      updateLocationMarkers();
     }
 
     function setupAutocomplete(inputId, resultsId, callback) {
@@ -617,6 +748,8 @@
     function initVehicleSelectors() {
       const brandSelect = document.getElementById('brandSelect');
       const modelSelect = document.getElementById('modelSelect');
+      const favCarBtn = document.getElementById('favCarBtn');
+      const favCarIcon = document.getElementById('favCarIcon');
 
       brandSelect.innerHTML = '<option value="">Selecione a marca...</option>';
 
@@ -650,17 +783,61 @@
           document.getElementById('specBattery').innerText = `${selectedCar.battery} kWh`;
           document.getElementById('specRange').innerText = `${selectedCar.range} km`;
           document.getElementById('specConsumption').innerText = `${selectedCar.consumption} kWh/100km`;
+
+          updateFavCarIconUI();
         }
       });
 
-      brandSelect.value = "BYD";
-      brandSelect.dispatchEvent(new Event('change'));
-      modelSelect.value = "2"; // Dolphin GS por padrão
-      modelSelect.dispatchEvent(new Event('change'));
+      // Gerenciamento de Veículo Favorito no LocalStorage
+      favCarBtn.addEventListener('click', () => {
+        if (!brandSelect.value || modelSelect.value === "") return;
+        const favData = { brand: brandSelect.value, index: modelSelect.value };
+        localStorage.setItem('hv_fav_car', JSON.stringify(favData));
+        updateFavCarIconUI();
+        alert(`Veículo ${selectedCar.model} salvo como favorito!`);
+      });
+
+      // Carrega veículo favorito se existir, ou BYD Dolphin GS como padrão
+      const savedFavCar = JSON.parse(localStorage.getItem('hv_fav_car'));
+      if (savedFavCar && evDatabase[savedFavCar.brand]) {
+        brandSelect.value = savedFavCar.brand;
+        brandSelect.dispatchEvent(new Event('change'));
+        modelSelect.value = savedFavCar.index;
+        modelSelect.dispatchEvent(new Event('change'));
+      } else {
+        brandSelect.value = "BYD";
+        brandSelect.dispatchEvent(new Event('change'));
+        modelSelect.value = "2"; 
+        modelSelect.dispatchEvent(new Event('change'));
+      }
+    }
+
+    function updateFavCarIconUI() {
+      const brandSelect = document.getElementById('brandSelect');
+      const modelSelect = document.getElementById('modelSelect');
+      const favCarIcon = document.getElementById('favCarIcon');
+
+      const savedFavCar = JSON.parse(localStorage.getItem('hv_fav_car'));
+      if (savedFavCar && savedFavCar.brand === brandSelect.value && String(savedFavCar.index) === String(modelSelect.value)) {
+        favCarIcon.className = "fa-solid fa-star text-amber-400";
+      } else {
+        favCarIcon.className = "fa-solid fa-star text-slate-500";
+      }
     }
 
     async function calculateRoute() {
-      if (!selectedCar || !originCoords || !destCoords) return;
+      // Tenta resolver coordenadas de inputs caso não estejam prontas
+      if (!originCoords) {
+        originCoords = await geocodeAddress(document.getElementById('originInput').value);
+      }
+      if (!destCoords) {
+        destCoords = await geocodeAddress(document.getElementById('destInput').value);
+      }
+
+      if (!selectedCar || !originCoords || !destCoords) {
+        alert("Por favor, selecione um veículo e digite endereços válidos de origem e destino.");
+        return;
+      }
 
       const url = `https://router.project-osrm.org/route/v1/driving/${originCoords[1]},${originCoords[0]};${destCoords[1]},${destCoords[0]}?overview=full&geometries=geojson`;
 
