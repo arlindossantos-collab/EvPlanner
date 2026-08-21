@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>HV Planner - Carros Elétricos (ABRP Style)</title>
+  <title>EV Planner - Carros Elétricos</title>
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- FontAwesome Icons -->
@@ -48,7 +48,7 @@
       background-color: #1e3a8a;
       color: #34d399;
     }
-    .abrp-pin {
+    .ev-pin {
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -76,7 +76,7 @@
     <!-- Cabeçalho -->
     <header class="flex flex-col items-center justify-center border-b border-blue-900/60 pb-4 gap-2 text-center">
       <div class="flex flex-col items-center gap-1.5">
-        <img src="logo.png" alt="Logo HV Planner" class="h-24 md:h-36 rounded-xl shadow-2xl border-2 border-blue-800/80 object-contain" onerror="this.style.display='none'">
+        <img src="logo.png" alt="Logo EV Planner" class="h-24 md:h-36 rounded-xl shadow-2xl border-2 border-blue-800/80 object-contain" onerror="this.style.display='none'">
         <h1 class="text-lg md:text-2xl font-extrabold text-emerald-400 tracking-wide uppercase mt-1">
           Planeje sua viagem!
         </h1>
@@ -187,7 +187,7 @@
 
         <div class="space-y-2 mt-2">
           <button id="calcBtn" class="w-full bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold py-2 rounded-lg text-xs md:text-sm transition shadow flex items-center justify-center gap-2">
-            <i class="fa-solid fa-calculator"></i> Calcular Rota Estilo ABRP
+            <i class="fa-solid fa-calculator"></i> Calcular Rota
           </button>
 
           <div id="routeToast" class="hidden bg-emerald-950/90 border border-emerald-500 text-emerald-300 p-2 rounded-lg text-xs md:text-sm font-bold text-center flex items-center justify-center gap-2 shadow">
@@ -266,11 +266,11 @@
         </div>
       </div>
 
-      <!-- Card 4: Telemetria ABRP -->
+      <!-- Card 4: Telemetria -->
       <div class="bg-blue-950/80 p-4 rounded-xl border border-blue-900 space-y-2.5 shadow-md flex flex-col justify-between">
         <div>
           <h2 class="text-sm md:text-base font-semibold text-blue-100 border-b border-blue-900 pb-1.5 mb-2 flex items-center gap-2">
-            <i class="fa-solid fa-chart-line text-emerald-400"></i> 4. Telemetria ABRP
+            <i class="fa-solid fa-chart-line text-emerald-400"></i> 4. Telemetria
           </h2>
           
           <div class="space-y-1.5">
@@ -344,10 +344,10 @@
       <div id="map"></div>
     </div>
 
-    <!-- Relação de Eletropostos na Rota Estilo ABRP -->
+    <!-- Relação de Eletropostos na Rota -->
     <div class="bg-blue-950/80 p-3 md:p-4 rounded-xl border border-blue-900 space-y-2 shadow-lg">
       <h3 class="text-xs md:text-sm font-bold text-white flex items-center justify-between border-b border-blue-900 pb-2">
-        <span class="flex items-center gap-2"><i class="fa-solid fa-route text-emerald-400"></i> Plano de Viagem & Eletropostos (Estilo ABRP)</span>
+        <span class="flex items-center gap-2"><i class="fa-solid fa-route text-emerald-400"></i> Plano de Viagem & Eletropostos</span>
         <span id="stationsCount" class="text-xs bg-blue-900 text-emerald-300 px-2.5 py-0.5 rounded border border-blue-700">0 encontrados</span>
       </h3>
       <div class="overflow-x-auto">
@@ -378,7 +378,7 @@
     <!-- PÁGINA 1: DADOS DA VIAGEM + TELEMETRIA + PRINT DO MAPA -->
     <div id="pdfPage1" style="padding-bottom: 20px;">
       <div style="text-align: center; border-bottom: 2px solid #1e3a8a; padding-bottom: 10px; margin-bottom: 15px;">
-        <h1 style="color: #34d399; font-size: 22px; font-weight: bold; margin: 0; text-transform: uppercase;">Relatório Executivo de Viagem - HV Planner (ABRP)</h1>
+        <h1 style="color: #34d399; font-size: 22px; font-weight: bold; margin: 0; text-transform: uppercase;">Relatório Executivo de Viagem - EV Planner</h1>
         <p style="color: #93c5fd; font-size: 12px; margin: 5px 0 0 0;">Planejamento Inteligente de Rota e Paradas de Recarga</p>
       </div>
 
@@ -416,10 +416,10 @@
 
     <div class="pdf-page-break"></div>
 
-    <!-- PÁGINA 2: RELAÇÃO DOS ELETROPOSTOS NA ROTA (ABRP STYLE) -->
+    <!-- PÁGINA 2: RELAÇÃO DOS ELETROPOSTOS NA ROTA -->
     <div id="pdfPage2" style="padding-top: 10px;">
       <div style="border-bottom: 2px solid #1e3a8a; padding-bottom: 10px; margin-bottom: 15px;">
-        <h2 style="color: #34d399; font-size: 18px; font-weight: bold; margin: 0; text-transform: uppercase;">Itinerário das Paradas de Recarga (Estilo ABRP)</h2>
+        <h2 style="color: #34d399; font-size: 18px; font-weight: bold; margin: 0; text-transform: uppercase;">Itinerário das Paradas de Recarga</h2>
         <p style="color: #93c5fd; font-size: 12px; margin: 4px 0 0 0;">Detalhes do nível de bateria e tempo de parada segmento a segmento</p>
       </div>
 
@@ -873,7 +873,7 @@
         };
       }).filter(s => s.lat && s.lng && s.distToRoute <= 10);
 
-      // Ordenar os postos na sequência em que aparecem na rota (Estilo ABRP)
+      // Ordenar os postos na sequência em que aparecem na rota
       rawStations.sort((a, b) => a.routeIndex - b.routeIndex);
 
       for (let station of rawStations) {
@@ -885,7 +885,7 @@
       fetchedStations = rawStations;
     }
 
-    // TELEMETRIA E RENDERIZAÇÃO ESTILO ABRP
+    // TELEMETRIA E RENDERIZAÇÃO DA TABELA E MAPA
     function renderStationsOnMapAndTable() {
       stationMarkers.forEach(m => map.removeLayer(m));
       stationMarkers = [];
@@ -920,19 +920,17 @@
       const totalPoints = availableRoutes[activeRouteIndex] ? availableRoutes[activeRouteIndex].geometry.coordinates.length : 1;
 
       activeStations.forEach((station, index) => {
-        // Estima a distância acumulada até o posto
         const stationDistFromStart = Math.round((station.routeIndex / totalPoints) * totalRouteDist);
         const batteryUsed = Math.round((stationDistFromStart / fullRangeAdjusted) * 100);
         let arrivalBattery = Math.max(2, currentBattery - batteryUsed);
 
-        // ABRP: Parada necessária se chegar com menos de 15%
         const isRechargeRequired = arrivalBattery < 15 || (index === 0 && arrivalBattery < 25);
         const targetCharge = 80;
         const chargeTimeMinutes = isRechargeRequired ? Math.ceil(((targetCharge - arrivalBattery) / 100 * selectedCar.battery / 50) * 60) : 0;
 
         const customIcon = L.divIcon({
           className: 'custom-pin-wrapper',
-          html: `<div class="abrp-pin border-${arrivalBattery > 20 ? 'emerald' : 'amber'}-400">
+          html: `<div class="ev-pin border-${arrivalBattery > 20 ? 'emerald' : 'amber'}-400">
                   <span>⚡ #${index + 1}</span>
                   <span style="font-size:9px; color:#ffffff;">${arrivalBattery}% Chegada</span>
                  </div>`,
@@ -949,7 +947,7 @@
 
         stationMarkers.push(marker);
 
-        // Tabela Interativa na Tela (ABRP Style)
+        // Tabela Interativa na Tela
         const tr = document.createElement('tr');
         tr.className = "hover:bg-blue-900/30 transition text-xs md:text-sm";
         tr.innerHTML = `
@@ -975,7 +973,7 @@
         `;
         tbody.appendChild(tr);
 
-        // Tabela para PDF (Página 2 ABRP Style)
+        // Tabela para PDF (Página 2)
         const pdfTr = document.createElement('tr');
         pdfTr.style.borderBottom = "1px solid #1e293b";
         pdfTr.style.backgroundColor = index % 2 === 0 ? "#031038" : "#091a4a";
@@ -1132,7 +1130,7 @@
       await fetchRouteStationsFromOSM(bbox, route.geometry);
       renderStationsOnMapAndTable();
 
-      // CÁLCULO DE AUTONOMIA E RECARGA ABRP
+      // CÁLCULO DE AUTONOMIA E RECARGA
       const driveFactor = parseFloat(document.getElementById('driveMode').value);
       const acFactor = parseFloat(document.getElementById('acMode').value);
       const fullRangeAdjusted = selectedCar.range / (driveFactor * acFactor);
@@ -1319,7 +1317,7 @@
 
         const opt = {
           margin: 0.2,
-          filename: 'relatorio_viagem_eletrica_abrp.pdf',
+          filename: 'relatorio_viagem_eletrica_evplanner.pdf',
           image: { type: 'jpeg', quality: 0.98 },
           html2canvas: { scale: 2, useCORS: true },
           jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
