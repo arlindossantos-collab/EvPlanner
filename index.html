@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>EV Planner - Carros Elétricos</title>
+  <title>HV Planner - Carros Elétricos (ABRP Style)</title>
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- FontAwesome Icons -->
@@ -48,15 +48,20 @@
       background-color: #1e3a8a;
       color: #34d399;
     }
-    .custom-station-pin {
+    .abrp-pin {
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
-      border-radius: 50%;
-      color: white;
+      background-color: #0f172a;
+      border: 2px solid #34d399;
+      border-radius: 8px;
+      padding: 2px 5px;
+      color: #34d399;
       font-weight: bold;
-      border: 2px solid white;
-      box-shadow: 0 0 8px rgba(0,0,0,0.6);
+      font-size: 10px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.8);
+      white-space: nowrap;
     }
     .pdf-page-break {
       page-break-before: always;
@@ -75,7 +80,7 @@
         <h1 class="text-lg md:text-2xl font-extrabold text-emerald-400 tracking-wide uppercase mt-1">
           Planeje sua viagem!
         </h1>
-        <p class="text-xs md:text-sm text-blue-200">Chegue ao seu destino de forma segura</p>
+        <p class="text-xs md:text-sm text-blue-200">Planejamento Inteligente de Rota e Telemetria de Carga</p>
       </div>
       
       <div class="flex items-center gap-2 w-full justify-center mt-1">
@@ -122,7 +127,7 @@
           <div class="flex justify-between"><span class="text-blue-300">Propulsão:</span><span id="specType" class="font-bold text-emerald-400">-</span></div>
           <div class="flex justify-between"><span class="text-blue-300">Bateria Útil:</span><span id="specBattery" class="font-bold text-white">-</span></div>
           <div class="flex justify-between"><span class="text-blue-300">Autonomia Base:</span><span id="specRange" class="font-bold text-emerald-400">-</span></div>
-          <div class="flex justify-between"><span class="text-blue-300">Consumo Médio:</span><span id="specConsumption" class="font-bold text-white">-</span></div>
+          <div class="flex justify-between"><span class="text-blue-300">Consumo Elétrico:</span><span id="specConsumption" class="font-bold text-white">-</span></div>
         </div>
       </div>
 
@@ -152,13 +157,13 @@
             </div>
 
             <div class="relative">
-              <label class="block text-xs md:text-sm text-blue-300 mb-1">Origem (Digite ou clique no mapa)</label>
-              <input type="text" id="originInput" value="Recife, PE, Brasil" class="w-full bg-[#031038] border border-blue-800 rounded-md p-2 text-white text-xs md:text-sm outline-none focus:border-emerald-500" placeholder="Ex: Av. Boa Viagem, 500, Recife" autocomplete="off">
+              <label class="block text-xs md:text-sm text-blue-300 mb-1">Origem</label>
+              <input type="text" id="originInput" value="Recife, PE, Brasil" class="w-full bg-[#031038] border border-blue-800 rounded-md p-2 text-white text-xs md:text-sm outline-none focus:border-emerald-500" placeholder="Ex: Recife, PE" autocomplete="off">
               <div id="originResults" class="autocomplete-results hidden"></div>
             </div>
             <div class="relative">
-              <label class="block text-xs md:text-sm text-blue-300 mb-1">Destino (Digite ou clique no mapa)</label>
-              <input type="text" id="destInput" value="Maceió, AL, Brasil" class="w-full bg-[#031038] border border-blue-800 rounded-md p-2 text-white text-xs md:text-sm outline-none focus:border-emerald-500" placeholder="Ex: Av. Epitácio Pessoa, 4985, João Pessoa" autocomplete="off">
+              <label class="block text-xs md:text-sm text-blue-300 mb-1">Destino</label>
+              <input type="text" id="destInput" value="Maceió, AL, Brasil" class="w-full bg-[#031038] border border-blue-800 rounded-md p-2 text-white text-xs md:text-sm outline-none focus:border-emerald-500" placeholder="Ex: Maceió, AL" autocomplete="off">
               <div id="destResults" class="autocomplete-results hidden"></div>
             </div>
             <div class="grid grid-cols-2 gap-2">
@@ -182,20 +187,20 @@
 
         <div class="space-y-2 mt-2">
           <button id="calcBtn" class="w-full bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold py-2 rounded-lg text-xs md:text-sm transition shadow flex items-center justify-center gap-2">
-            <i class="fa-solid fa-calculator"></i> Calcular Rota
+            <i class="fa-solid fa-calculator"></i> Calcular Rota Estilo ABRP
           </button>
 
           <div id="routeToast" class="hidden bg-emerald-950/90 border border-emerald-500 text-emerald-300 p-2 rounded-lg text-xs md:text-sm font-bold text-center flex items-center justify-center gap-2 shadow">
-            <i class="fa-solid fa-circle-check text-emerald-400"></i> Planejamento concluído!
+            <i class="fa-solid fa-circle-check text-emerald-400"></i> Rota planejada com sucesso!
           </div>
         </div>
       </div>
 
-      <!-- Card 3: Bateria & Tarifas -->
+      <!-- Card 3: Bateria & Tarifas Recife -->
       <div class="bg-blue-950/80 p-4 rounded-xl border border-blue-900 space-y-2.5 shadow-md flex flex-col justify-between">
         <div>
           <h2 class="text-sm md:text-base font-semibold text-blue-100 border-b border-blue-900 pb-1.5 mb-2 flex items-center gap-2">
-            <i class="fa-solid fa-gas-pump text-emerald-400"></i> 3. Tarifas & Combustíveis
+            <i class="fa-solid fa-gas-pump text-emerald-400"></i> 3. Tarifas Recife & Consumo
           </h2>
           <div class="space-y-2">
             <div class="flex items-center justify-between gap-2">
@@ -209,23 +214,26 @@
                 <input type="number" id="costPerKwh" value="2.39" step="0.01" class="w-full bg-[#031038] border border-blue-800 rounded p-1 text-white text-xs text-center">
               </div>
               <div>
-                <label class="block text-[10px] md:text-xs text-amber-300 mb-0.5">Gasolina (R$/L)</label>
-                <input type="number" id="costPerLiterGas" value="5.89" step="0.01" class="w-full bg-[#031038] border border-blue-800 rounded p-1 text-white text-xs text-center">
+                <label class="block text-[10px] md:text-xs text-amber-300 mb-0.5">Gasolina Recife</label>
+                <input type="number" id="costPerLiterGas" value="6.88" step="0.01" class="w-full bg-[#031038] border border-blue-800 rounded p-1 text-white text-xs text-center">
               </div>
               <div>
-                <label class="block text-[10px] md:text-xs text-emerald-300 mb-0.5">Álcool (R$/L)</label>
-                <input type="number" id="costPerLiterEthanol" value="4.19" step="0.01" class="w-full bg-[#031038] border border-blue-800 rounded p-1 text-white text-xs text-center">
+                <label class="block text-[10px] md:text-xs text-emerald-300 mb-0.5">Etanol Recife</label>
+                <input type="number" id="costPerLiterEthanol" value="5.07" step="0.01" class="w-full bg-[#031038] border border-blue-800 rounded p-1 text-white text-xs text-center">
               </div>
             </div>
 
-            <div class="grid grid-cols-2 gap-1.5 pt-1.5 border-t border-blue-900/60">
-              <div>
-                <label class="block text-[10px] md:text-xs text-blue-300 mb-0.5">Gasolina (km/L)</label>
-                <input type="number" id="kmPerLiterGas" value="11.5" step="0.1" class="w-full bg-[#031038] border border-blue-800 rounded p-1 text-white text-xs text-center">
-              </div>
-              <div>
-                <label class="block text-[10px] md:text-xs text-blue-300 mb-0.5">Álcool (km/L)</label>
-                <input type="number" id="kmPerLiterEthanol" value="8.1" step="0.1" class="w-full bg-[#031038] border border-blue-800 rounded p-1 text-white text-xs text-center">
+            <div id="hybridConsumptionWrapper" class="hidden pt-1.5 border-t border-blue-900/60">
+              <span class="block text-[10px] text-amber-400 font-bold mb-1"> Consumo Híbrido Especificado:</span>
+              <div class="grid grid-cols-2 gap-1.5">
+                <div>
+                  <label class="block text-[10px] text-blue-300 mb-0.5">Gasolina (km/L)</label>
+                  <input type="number" id="kmPerLiterGas" value="15.0" step="0.1" class="w-full bg-[#031038] border border-blue-800 rounded p-1 text-white text-xs text-center">
+                </div>
+                <div>
+                  <label class="block text-[10px] text-blue-300 mb-0.5">Etanol (km/L)</label>
+                  <input type="number" id="kmPerLiterEthanol" value="10.5" step="0.1" class="w-full bg-[#031038] border border-blue-800 rounded p-1 text-white text-xs text-center">
+                </div>
               </div>
             </div>
 
@@ -258,16 +266,16 @@
         </div>
       </div>
 
-      <!-- Card 4: Telemetria, Recarga & Comparativo -->
+      <!-- Card 4: Telemetria ABRP -->
       <div class="bg-blue-950/80 p-4 rounded-xl border border-blue-900 space-y-2.5 shadow-md flex flex-col justify-between">
         <div>
           <h2 class="text-sm md:text-base font-semibold text-blue-100 border-b border-blue-900 pb-1.5 mb-2 flex items-center gap-2">
-            <i class="fa-solid fa-chart-line text-emerald-400"></i> 4. Telemetria & Recarga
+            <i class="fa-solid fa-chart-line text-emerald-400"></i> 4. Telemetria ABRP
           </h2>
           
           <div class="space-y-1.5">
             <div class="flex justify-between text-xs md:text-sm text-blue-300">
-              <span>Nível Estimado Chegada:</span>
+              <span>Bateria na Chegada (Destino):</span>
               <span id="batteryPercentage" class="font-bold text-xs md:text-sm">--%</span>
             </div>
             
@@ -279,30 +287,26 @@
 
         <div id="rechargeDetailsBox" class="bg-[#020b29] p-2.5 rounded-lg border border-amber-500/40 text-xs space-y-1.5 my-1">
           <div class="font-bold text-amber-400 flex items-center gap-1.5">
-            <i class="fa-solid fa-bolt"></i> Necessidade de Recarga:
+            <i class="fa-solid fa-bolt"></i> Plano de Carregamento Rota:
           </div>
           <div class="flex justify-between text-blue-200">
-            <span>Carga Segura Recomendada:</span>
-            <span id="targetBatteryNeeded" class="font-bold text-emerald-400">--%</span>
+            <span>Paradas Recomendadas:</span>
+            <span id="targetBatteryNeeded" class="font-bold text-emerald-400">--</span>
           </div>
           <div class="flex justify-between text-blue-200">
-            <span>Tempo Parada (DC 50kW):</span>
+            <span>Tempo Total em Recarga (DC):</span>
             <span id="chargeTimeDC" class="font-bold text-amber-300">-- min</span>
-          </div>
-          <div class="flex justify-between text-blue-200">
-            <span>Tempo Parada (AC 7kW):</span>
-            <span id="chargeTimeAC" class="font-bold text-slate-300">-- min</span>
           </div>
         </div>
 
         <div class="text-xs md:text-sm text-blue-200 space-y-1.5 border-t border-blue-900 pt-2">
           <div class="flex justify-between"><span class="text-blue-300">📏 Distância Total:</span><span id="totalDistance" class="font-bold text-emerald-400">0 km</span></div>
           <div class="flex justify-between"><span class="text-blue-300">⏱️ Tempo Condução:</span><span id="travelTime" class="font-bold text-white">-- h -- min</span></div>
-          <div class="flex justify-between items-center"><span class="text-blue-300">⚡ Parar em até:</span><span id="rechargeDistanceAlert" class="font-bold text-amber-400">-- km</span></div>
+          <div class="flex justify-between items-center"><span class="text-blue-300">⚡ Status de Recarga:</span><span id="rechargeDistanceAlert" class="font-bold text-amber-400">--</span></div>
           
-          <div class="bg-[#020b29] p-2 rounded border border-blue-800 my-1 space-y-1 text-xs">
-            <div class="flex justify-between"><span class="text-amber-300">⛽ Gasolina:</span><span id="gasCost" class="font-bold text-red-300">R$ 0,00</span></div>
-            <div class="flex justify-between"><span class="text-emerald-300">🌽 Álcool (Etanol):</span><span id="ethanolCost" class="font-bold text-amber-300">R$ 0,00</span></div>
+          <div id="fossilComparisonBox" class="bg-[#020b29] p-2 rounded border border-blue-800 my-1 space-y-1 text-xs">
+            <div class="flex justify-between"><span class="text-amber-300">⛽ Gasolina Recife:</span><span id="gasCost" class="font-bold text-red-300">R$ 0,00</span></div>
+            <div class="flex justify-between"><span class="text-emerald-300">🌽 Etanol Recife:</span><span id="ethanolCost" class="font-bold text-amber-300">R$ 0,00</span></div>
             <div class="flex justify-between border-t border-blue-900 pt-1"><span class="text-blue-300">Melhor Opção Fóssil:</span><span id="bestFossilOption" class="font-bold text-yellow-400">-</span></div>
           </div>
 
@@ -320,7 +324,7 @@
         
         <div class="flex items-center gap-2 flex-wrap">
           <span class="font-semibold text-blue-100 flex items-center gap-1.5">
-            <i class="fa-solid fa-map-location-dot text-emerald-400"></i> Opções de Rota (Até 3):
+            <i class="fa-solid fa-map-location-dot text-emerald-400"></i> Opções de Rota:
           </span>
           <div id="routeOptionsContainer" class="flex items-center gap-1.5">
             <span class="text-slate-400 text-xs">Calcule uma rota para visualizar as opções...</span>
@@ -340,26 +344,27 @@
       <div id="map"></div>
     </div>
 
-    <!-- Relação de Eletropostos na Rota -->
+    <!-- Relação de Eletropostos na Rota Estilo ABRP -->
     <div class="bg-blue-950/80 p-3 md:p-4 rounded-xl border border-blue-900 space-y-2 shadow-lg">
       <h3 class="text-xs md:text-sm font-bold text-white flex items-center justify-between border-b border-blue-900 pb-2">
-        <span class="flex items-center gap-2"><i class="fa-solid fa-list-check text-emerald-400"></i> Eletropostos Exclusivos na Rota Selecionada</span>
+        <span class="flex items-center gap-2"><i class="fa-solid fa-route text-emerald-400"></i> Plano de Viagem & Eletropostos (Estilo ABRP)</span>
         <span id="stationsCount" class="text-xs bg-blue-900 text-emerald-300 px-2.5 py-0.5 rounded border border-blue-700">0 encontrados</span>
       </h3>
       <div class="overflow-x-auto">
-        <table class="w-full text-left text-xs md:text-sm text-blue-200 min-w-[600px]">
+        <table class="w-full text-left text-xs md:text-sm text-blue-200 min-w-[700px]">
           <thead class="bg-[#020b29] text-emerald-400 uppercase text-xs font-bold border-b border-blue-900">
             <tr>
               <th class="p-2 whitespace-nowrap w-8">#</th>
-              <th class="p-2 whitespace-nowrap">Eletroposto / Ponto</th>
-              <th class="p-2 whitespace-nowrap min-w-[150px]">Cidade / UF</th>
+              <th class="p-2 whitespace-nowrap">Trecho / Ponto de Carga</th>
+              <th class="p-2 whitespace-nowrap min-w-[150px]">CIDADE / UF</th>
+              <th class="p-2 whitespace-nowrap text-center">Bateria Chegada</th>
+              <th class="p-2 whitespace-nowrap text-center">Tempo Carregamento</th>
               <th class="p-2 whitespace-nowrap">Especificação</th>
-              <th class="p-2 whitespace-nowrap">Tipo</th>
               <th class="p-2 text-right whitespace-nowrap">Ação</th>
             </tr>
           </thead>
           <tbody id="stationsTableBody" class="divide-y divide-blue-900/50">
-            <tr><td colspan="6" class="p-3 text-center text-slate-400">Clique em "Calcular Rota" para mapear os postos.</td></tr>
+            <tr><td colspan="7" class="p-3 text-center text-slate-400">Clique em "Calcular Rota" para mapear a viagem.</td></tr>
           </tbody>
         </table>
       </div>
@@ -367,14 +372,14 @@
 
   </div>
 
-  <!-- CONTAINER DE EXPORTAÇÃO PDF ESTRUTURADO EM 2 PÁGINAS (GERADO EM MODO TEXTO COM PRINT DO MAPA) -->
+  <!-- CONTAINER DE EXPORTAÇÃO PDF ESTRUTURADO EM 2 PÁGINAS -->
   <div id="pdfContainer" style="display: none; background-color: #031038; color: #f8fafc; font-family: sans-serif; width: 1000px; padding: 20px;">
     
     <!-- PÁGINA 1: DADOS DA VIAGEM + TELEMETRIA + PRINT DO MAPA -->
     <div id="pdfPage1" style="padding-bottom: 20px;">
       <div style="text-align: center; border-bottom: 2px solid #1e3a8a; padding-bottom: 10px; margin-bottom: 15px;">
-        <h1 style="color: #34d399; font-size: 22px; font-weight: bold; margin: 0; text-transform: uppercase;">Relatório Executivo de Viagem - HV Planner</h1>
-        <p style="color: #93c5fd; font-size: 12px; margin: 5px 0 0 0;">Planejamento Inteligente e Telemetria para Veículos Elétricos</p>
+        <h1 style="color: #34d399; font-size: 22px; font-weight: bold; margin: 0; text-transform: uppercase;">Relatório Executivo de Viagem - HV Planner (ABRP)</h1>
+        <p style="color: #93c5fd; font-size: 12px; margin: 5px 0 0 0;">Planejamento Inteligente de Rota e Paradas de Recarga</p>
       </div>
 
       <table style="width: 100%; border-collapse: collapse; margin-bottom: 15px; font-size: 12px;">
@@ -391,12 +396,12 @@
           </td>
           <td style="width: 50%; vertical-align: top; padding-left: 10px;">
             <div style="background-color: #091a4a; border: 1px solid #1e3a8a; border-radius: 8px; padding: 12px;">
-              <h3 style="color: #34d399; border-bottom: 1px solid #1e3a8a; padding-bottom: 5px; margin-top: 0; font-size: 14px;">⚡ Telemetria, Tempo & Custos</h3>
+              <h3 style="color: #34d399; border-bottom: 1px solid #1e3a8a; padding-bottom: 5px; margin-top: 0; font-size: 14px;">⚡ Telemetria & Custos</h3>
               <p style="margin: 4px 0;"><b>Distância Total:</b> <span id="pdfDistance" style="color: #34d399; font-weight: bold;">-</span></p>
               <p style="margin: 4px 0;"><b>Tempo de Condução Estimado:</b> <span id="pdfTime" style="color: #ffffff; font-weight: bold;">-</span></p>
               <p style="margin: 4px 0;"><b>Bateria Inicial / Estimada Chegada:</b> <span id="pdfBatteryState">-</span></p>
               <p style="margin: 4px 0;"><b>Necessidade de Parada:</b> <span id="pdfRechargeAlert" style="color: #fbbf24; font-weight: bold;">-</span></p>
-              <p style="margin: 4px 0;"><b>Tempo Estimado de Recarga (DC 50kW):</b> <span id="pdfChargeTimeDC">-</span></p>
+              <p style="margin: 4px 0;"><b>Tempo Estimado de Recarga (DC):</b> <span id="pdfChargeTimeDC">-</span></p>
               <p style="margin: 4px 0;"><b>Custo Estimado EV:</b> <span id="pdfCostEV" style="color: #34d399; font-weight: bold;">-</span> | <b>Economia vs Fóssil:</b> <span id="pdfSavings" style="color: #34d399; font-weight: bold;">-</span></p>
             </div>
           </td>
@@ -411,11 +416,11 @@
 
     <div class="pdf-page-break"></div>
 
-    <!-- PÁGINA 2: RELAÇÃO DOS ELETROPOSTOS NA ROTA -->
+    <!-- PÁGINA 2: RELAÇÃO DOS ELETROPOSTOS NA ROTA (ABRP STYLE) -->
     <div id="pdfPage2" style="padding-top: 10px;">
       <div style="border-bottom: 2px solid #1e3a8a; padding-bottom: 10px; margin-bottom: 15px;">
-        <h2 style="color: #34d399; font-size: 18px; font-weight: bold; margin: 0; text-transform: uppercase;">Mapeamento de Eletropostos na Rota</h2>
-        <p style="color: #93c5fd; font-size: 12px; margin: 4px 0 0 0;">Relação detalhada de pontos de carga até 10km ao longo do trajeto selecionado</p>
+        <h2 style="color: #34d399; font-size: 18px; font-weight: bold; margin: 0; text-transform: uppercase;">Itinerário das Paradas de Recarga (Estilo ABRP)</h2>
+        <p style="color: #93c5fd; font-size: 12px; margin: 4px 0 0 0;">Detalhes do nível de bateria e tempo de parada segmento a segmento</p>
       </div>
 
       <table style="width: 100%; border-collapse: collapse; font-size: 11px; text-align: left;">
@@ -423,13 +428,14 @@
           <tr style="background-color: #020b29; color: #34d399; border-bottom: 2px solid #1e3a8a;">
             <th style="padding: 8px;">#</th>
             <th style="padding: 8px;">Eletroposto / Ponto</th>
-            <th style="padding: 8px;">Cidade / UF</th>
-            <th style="padding: 8px;">Especificação Técnicas</th>
-            <th style="padding: 8px;">Tipo</th>
+            <th style="padding: 8px;">CIDADE / UF</th>
+            <th style="padding: 8px; text-align: center;">Bateria Chegada</th>
+            <th style="padding: 8px; text-align: center;">Tempo Parada</th>
+            <th style="padding: 8px;">Especificação Técnica</th>
           </tr>
         </thead>
         <tbody id="pdfStationsTableBody">
-          <tr><td colspan="5" style="padding: 12px; text-align: center; color: #94a3b8;">Nenhum eletroposto mapeado nesta rota.</td></tr>
+          <tr><td colspan="6" style="padding: 12px; text-align: center; color: #94a3b8;">Nenhum eletroposto mapeado nesta rota.</td></tr>
         </tbody>
       </table>
     </div>
@@ -440,112 +446,112 @@
     // BASE INTEGRAL DE VEÍCULOS
     const evDatabase = {
       "BYD": [
-        { model: 'Dolphin Mini (4 Lugares)', type: 'BEV (100% Elétrico)', battery: 38.0, range: 280, consumption: 13.5 },
-        { model: 'Dolphin Mini (5 Lugares)', type: 'BEV (100% Elétrico)', battery: 38.0, range: 280, consumption: 13.5 },
-        { model: 'Dolphin GS', type: 'BEV (100% Elétrico)', battery: 44.9, range: 291, consumption: 15.4 },
-        { model: 'Dolphin Plus', type: 'BEV (100% Elétrico)', battery: 60.4, range: 330, consumption: 18.3 },
-        { model: 'Atto 2 / Yuan Up', type: 'BEV (100% Elétrico)', battery: 45.1, range: 260, consumption: 17.3 },
-        { model: 'Yuan Pro', type: 'BEV (100% Elétrico)', battery: 45.1, range: 250, consumption: 18.0 },
-        { model: 'Yuan Plus EV500', type: 'BEV (100% Elétrico)', battery: 60.5, range: 294, consumption: 20.5 },
-        { model: 'Seal AWD Performance', type: 'BEV (100% Elétrico)', battery: 82.5, range: 372, consumption: 22.1 },
-        { model: 'Sealion 7 AWD', type: 'BEV (100% Elétrico)', battery: 82.5, range: 380, consumption: 21.7 },
-        { model: 'King DM-i GL', type: 'PHEV (Híbrido Plug-in)', battery: 8.3, range: 55, consumption: 15.1 },
-        { model: 'King DM-i GS', type: 'PHEV (Híbrido Plug-in)', battery: 18.3, range: 120, consumption: 15.2 },
-        { model: 'Song Pro DM-i GL', type: 'PHEV (Híbrido Plug-in)', battery: 12.9, range: 71, consumption: 18.1 },
-        { model: 'Song Pro DM-i GS', type: 'PHEV (Híbrido Plug-in)', battery: 18.3, range: 110, consumption: 16.6 },
-        { model: 'Song Plus DM-i', type: 'PHEV (Híbrido Plug-in)', battery: 18.3, range: 105, consumption: 17.4 },
-        { model: 'Han EV AWD', type: 'BEV (100% Elétrico)', battery: 85.4, range: 349, consumption: 24.4 },
-        { model: 'Tan EV AWD', type: 'BEV (100% Elétrico)', battery: 108.8, range: 430, consumption: 25.3 },
-        { model: 'Shark Pickup', type: 'PHEV (Híbrido Plug-in)', battery: 29.5, range: 100, consumption: 29.5 }
+        { model: 'Dolphin Mini (4 Lugares)', type: 'BEV (100% Elétrico)', battery: 38.0, range: 280, consumption: 13.5, isHybrid: false },
+        { model: 'Dolphin Mini (5 Lugares)', type: 'BEV (100% Elétrico)', battery: 38.0, range: 280, consumption: 13.5, isHybrid: false },
+        { model: 'Dolphin GS', type: 'BEV (100% Elétrico)', battery: 44.9, range: 291, consumption: 15.4, isHybrid: false },
+        { model: 'Dolphin Plus', type: 'BEV (100% Elétrico)', battery: 60.4, range: 330, consumption: 18.3, isHybrid: false },
+        { model: 'Atto 2 / Yuan Up', type: 'BEV (100% Elétrico)', battery: 45.1, range: 260, consumption: 17.3, isHybrid: false },
+        { model: 'Yuan Pro', type: 'BEV (100% Elétrico)', battery: 45.1, range: 250, consumption: 18.0, isHybrid: false },
+        { model: 'Yuan Plus EV500', type: 'BEV (100% Elétrico)', battery: 60.5, range: 294, consumption: 20.5, isHybrid: false },
+        { model: 'Seal AWD Performance', type: 'BEV (100% Elétrico)', battery: 82.5, range: 372, consumption: 22.1, isHybrid: false },
+        { model: 'Sealion 7 AWD', type: 'BEV (100% Elétrico)', battery: 82.5, range: 380, consumption: 21.7, isHybrid: false },
+        { model: 'King DM-i GL', type: 'PHEV (Híbrido Plug-in)', battery: 8.3, range: 55, consumption: 15.1, isHybrid: true, gasKm: 25.6, ethanolKm: 18.0 },
+        { model: 'King DM-i GS', type: 'PHEV (Híbrido Plug-in)', battery: 18.3, range: 120, consumption: 15.2, isHybrid: true, gasKm: 25.6, ethanolKm: 18.0 },
+        { model: 'Song Pro DM-i GL', type: 'PHEV (Híbrido Plug-in)', battery: 12.9, range: 71, consumption: 18.1, isHybrid: true, gasKm: 22.7, ethanolKm: 15.8 },
+        { model: 'Song Pro DM-i GS', type: 'PHEV (Híbrido Plug-in)', battery: 18.3, range: 110, consumption: 16.6, isHybrid: true, gasKm: 22.7, ethanolKm: 15.8 },
+        { model: 'Song Plus DM-i', type: 'PHEV (Híbrido Plug-in)', battery: 18.3, range: 105, consumption: 17.4, isHybrid: true, gasKm: 21.5, ethanolKm: 15.1 },
+        { model: 'Han EV AWD', type: 'BEV (100% Elétrico)', battery: 85.4, range: 349, consumption: 24.4, isHybrid: false },
+        { model: 'Tan EV AWD', type: 'BEV (100% Elétrico)', battery: 108.8, range: 430, consumption: 25.3, isHybrid: false },
+        { model: 'Shark Pickup', type: 'PHEV (Híbrido Plug-in)', battery: 29.5, range: 100, consumption: 29.5, isHybrid: true, gasKm: 14.2, ethanolKm: 9.8 }
       ],
       "Leapmotor": [
-        { model: 'T03 Hatch', type: 'BEV (100% Elétrico)', battery: 37.3, range: 265, consumption: 14.1 },
-        { model: 'B10 EV Pure', type: 'BEV (100% Elétrico)', battery: 56.2, range: 288, consumption: 16.3 },
-        { model: 'B10 REEV Extensor', type: 'REEV (Ultra-híbrido)', battery: 28.4, range: 140, consumption: 20.2 },
-        { model: 'C10 EV Pure', type: 'BEV (100% Elétrico)', battery: 69.9, range: 338, consumption: 16.8 },
-        { model: 'C10 REEV Ultra-híbrido', type: 'REEV (Ultra-híbrido)', battery: 28.4, range: 140, consumption: 20.2 }
+        { model: 'T03 Hatch', type: 'BEV (100% Elétrico)', battery: 37.3, range: 265, consumption: 14.1, isHybrid: false },
+        { model: 'B10 EV Pure', type: 'BEV (100% Elétrico)', battery: 56.2, range: 288, consumption: 16.3, isHybrid: false },
+        { model: 'B10 REEV Extensor', type: 'REEV (Ultra-híbrido)', battery: 28.4, range: 140, consumption: 20.2, isHybrid: true, gasKm: 18.5, ethanolKm: 13.0 },
+        { model: 'C10 EV Pure', type: 'BEV (100% Elétrico)', battery: 69.9, range: 338, consumption: 16.8, isHybrid: false },
+        { model: 'C10 REEV Ultra-híbrido', type: 'REEV (Ultra-híbrido)', battery: 28.4, range: 140, consumption: 20.2, isHybrid: true, gasKm: 18.5, ethanolKm: 13.0 }
       ],
       "GWM & Ora": [
-        { model: 'Ora 03 Skin', type: 'BEV (100% Elétrico)', battery: 48.0, range: 232, consumption: 20.6 },
-        { model: 'Ora 03 GT', type: 'BEV (100% Elétrico)', battery: 63.0, range: 319, consumption: 19.7 },
-        { model: 'Haval H6 HEV', type: 'HEV (Híbrido Convencional)', battery: 1.6, range: 25, consumption: 6.4 },
-        { model: 'Haval H6 PHEV19', type: 'PHEV (Híbrido Plug-in)', battery: 19.0, range: 115, consumption: 16.5 },
-        { model: 'Haval H6 PHEV34', type: 'PHEV (Híbrido Plug-in)', battery: 34.0, range: 170, consumption: 20.0 },
-        { model: 'Haval H6 GT PHEV', type: 'PHEV (Híbrido Plug-in)', battery: 34.0, range: 170, consumption: 20.0 },
-        { model: 'Tank 300 PHEV', type: 'PHEV (Híbrido Plug-in)', battery: 37.1, range: 105, consumption: 35.3 }
+        { model: 'Ora 03 Skin', type: 'BEV (100% Elétrico)', battery: 48.0, range: 232, consumption: 20.6, isHybrid: false },
+        { model: 'Ora 03 GT', type: 'BEV (100% Elétrico)', battery: 63.0, range: 319, consumption: 19.7, isHybrid: false },
+        { model: 'Haval H6 HEV', type: 'HEV (Híbrido Convencional)', battery: 1.6, range: 25, consumption: 6.4, isHybrid: true, gasKm: 13.8, ethanolKm: 9.8 },
+        { model: 'Haval H6 PHEV19', type: 'PHEV (Híbrido Plug-in)', battery: 19.0, range: 115, consumption: 16.5, isHybrid: true, gasKm: 28.7, ethanolKm: 20.1 },
+        { model: 'Haval H6 PHEV34', type: 'PHEV (Híbrido Plug-in)', battery: 34.0, range: 170, consumption: 20.0, isHybrid: true, gasKm: 28.7, ethanolKm: 20.1 },
+        { model: 'Haval H6 GT PHEV', type: 'PHEV (Híbrido Plug-in)', battery: 34.0, range: 170, consumption: 20.0, isHybrid: true, gasKm: 27.4, ethanolKm: 19.2 },
+        { model: 'Tank 300 PHEV', type: 'PHEV (Híbrido Plug-in)', battery: 37.1, range: 105, consumption: 35.3, isHybrid: true, gasKm: 11.2, ethanolKm: 7.8 }
       ],
       "Geely": [
-        { model: 'Geely EX2 Pro', type: 'BEV (100% Elétrico)', battery: 39.4, range: 260, consumption: 15.1 },
-        { model: 'Geely EX5 EM-i MAX', type: 'PHEV (Híbrido Plug-in)', battery: 18.4, range: 100, consumption: 18.4 }
+        { model: 'Geely EX2 Pro', type: 'BEV (100% Elétrico)', battery: 39.4, range: 260, consumption: 15.1, isHybrid: false },
+        { model: 'Geely EX5 EM-i MAX', type: 'PHEV (Híbrido Plug-in)', battery: 18.4, range: 100, consumption: 18.4, isHybrid: true, gasKm: 22.1, ethanolKm: 15.5 }
       ],
       "Omoda & Jaecoo": [
-        { model: 'Omoda 5 MHEV 48V', type: 'MHEV (Ultrahíbrido Leve)', battery: 0.9, range: 10, consumption: 8.0 },
-        { model: 'Omoda 5 HEV Luxury', type: 'HEV (Híbrido Convencional)', battery: 1.8, range: 20, consumption: 7.2 },
-        { model: 'Omoda E5 EV', type: 'BEV (100% Elétrico)', battery: 61.0, range: 310, consumption: 19.6 },
-        { model: 'Jaecoo 7 PHEV', type: 'PHEV (Híbrido Plug-in)', battery: 18.3, range: 88, consumption: 20.7 },
-        { model: 'Jaecoo 8 Ultra REEV', type: 'REEV (Ultra-híbrido)', battery: 34.4, range: 160, consumption: 21.5 }
+        { model: 'Omoda 5 MHEV 48V', type: 'MHEV (Ultrahíbrido Leve)', battery: 0.9, range: 10, consumption: 8.0, isHybrid: true, gasKm: 12.8, ethanolKm: 9.0 },
+        { model: 'Omoda 5 HEV Luxury', type: 'HEV (Híbrido Convencional)', battery: 1.8, range: 20, consumption: 7.2, isHybrid: true, gasKm: 16.5, ethanolKm: 11.5 },
+        { model: 'Omoda E5 EV', type: 'BEV (100% Elétrico)', battery: 61.0, range: 310, consumption: 19.6, isHybrid: false },
+        { model: 'Jaecoo 7 PHEV', type: 'PHEV (Híbrido Plug-in)', battery: 18.3, range: 88, consumption: 20.7, isHybrid: true, gasKm: 19.2, ethanolKm: 13.5 },
+        { model: 'Jaecoo 8 Ultra REEV', type: 'REEV (Ultra-híbrido)', battery: 34.4, range: 160, consumption: 21.5, isHybrid: true, gasKm: 17.5, ethanolKm: 12.2 }
       ],
       "Chevrolet": [
-        { model: 'Spark EUV', type: 'BEV (100% Elétrico)', battery: 41.9, range: 250, consumption: 16.7 },
-        { model: 'Bolt EV Premier', type: 'BEV (100% Elétrico)', battery: 66.0, range: 259, consumption: 25.4 },
-        { model: 'Equinox EV eAWD', type: 'BEV (100% Elétrico)', battery: 85.0, range: 443, consumption: 19.1 },
-        { model: 'Blazer EV RS eAWD', type: 'BEV (100% Elétrico)', battery: 102.0, range: 481, consumption: 21.2 }
+        { model: 'Spark EUV', type: 'BEV (100% Elétrico)', battery: 41.9, range: 250, consumption: 16.7, isHybrid: false },
+        { model: 'Bolt EV Premier', type: 'BEV (100% Elétrico)', battery: 66.0, range: 259, consumption: 25.4, isHybrid: false },
+        { model: 'Equinox EV eAWD', type: 'BEV (100% Elétrico)', battery: 85.0, range: 443, consumption: 19.1, isHybrid: false },
+        { model: 'Blazer EV RS eAWD', type: 'BEV (100% Elétrico)', battery: 102.0, range: 481, consumption: 21.2, isHybrid: false }
       ],
       "Volvo": [
-        { model: 'EX30 Core Single', type: 'BEV (100% Elétrico)', battery: 51.0, range: 250, consumption: 20.4 },
-        { model: 'EX30 Extended Range', type: 'BEV (100% Elétrico)', battery: 69.0, range: 340, consumption: 20.2 },
-        { model: 'EX30 Twin Performance', type: 'BEV (100% Elétrico)', battery: 69.0, range: 320, consumption: 21.5 },
-        { model: 'XC40 / EX40 Recharge', type: 'BEV (100% Elétrico)', battery: 78.0, range: 305, consumption: 25.5 },
-        { model: 'C40 / EC40 Recharge', type: 'BEV (100% Elétrico)', battery: 78.0, range: 385, consumption: 20.2 },
-        { model: 'EX90 Ultra 7L AWD', type: 'BEV (100% Elétrico)', battery: 111.0, range: 450, consumption: 24.6 },
-        { model: 'XC60 Recharge T8', type: 'PHEV (Híbrido Plug-in)', battery: 18.8, range: 78, consumption: 24.1 },
-        { model: 'XC90 Recharge T8', type: 'PHEV (Híbrido Plug-in)', battery: 18.8, range: 71, consumption: 26.4 }
+        { model: 'EX30 Core Single', type: 'BEV (100% Elétrico)', battery: 51.0, range: 250, consumption: 20.4, isHybrid: false },
+        { model: 'EX30 Extended Range', type: 'BEV (100% Elétrico)', battery: 69.0, range: 340, consumption: 20.2, isHybrid: false },
+        { model: 'EX30 Twin Performance', type: 'BEV (100% Elétrico)', battery: 69.0, range: 320, consumption: 21.5, isHybrid: false },
+        { model: 'XC40 / EX40 Recharge', type: 'BEV (100% Elétrico)', battery: 78.0, range: 305, consumption: 25.5, isHybrid: false },
+        { model: 'C40 / EC40 Recharge', type: 'BEV (100% Elétrico)', battery: 78.0, range: 385, consumption: 20.2, isHybrid: false },
+        { model: 'EX90 Ultra 7L AWD', type: 'BEV (100% Elétrico)', battery: 111.0, range: 450, consumption: 24.6, isHybrid: false },
+        { model: 'XC60 Recharge T8', type: 'PHEV (Híbrido Plug-in)', battery: 18.8, range: 78, consumption: 24.1, isHybrid: true, gasKm: 26.7, ethanolKm: 18.5 },
+        { model: 'XC90 Recharge T8', type: 'PHEV (Híbrido Plug-in)', battery: 18.8, range: 71, consumption: 26.4, isHybrid: true, gasKm: 23.5, ethanolKm: 16.2 }
       ],
       "BMW": [
-        { model: 'iX1 eDrive20', type: 'BEV (100% Elétrico)', battery: 64.7, range: 303, consumption: 21.3 },
-        { model: 'iX1 xDrive30', type: 'BEV (100% Elétrico)', battery: 64.7, range: 303, consumption: 21.3 },
-        { model: 'iX2 xDrive30', type: 'BEV (100% Elétrico)', battery: 64.7, range: 300, consumption: 21.5 },
-        { model: 'i4 eDrive40', type: 'BEV (100% Elétrico)', battery: 80.7, range: 420, consumption: 19.2 },
-        { model: 'iX xDrive50', type: 'BEV (100% Elétrico)', battery: 105.2, range: 520, consumption: 20.2 },
-        { model: '330e M Sport', type: 'PHEV (Híbrido Plug-in)', battery: 12.0, range: 37, consumption: 32.4 }
+        { model: 'iX1 eDrive20', type: 'BEV (100% Elétrico)', battery: 64.7, range: 303, consumption: 21.3, isHybrid: false },
+        { model: 'iX1 xDrive30', type: 'BEV (100% Elétrico)', battery: 64.7, range: 303, consumption: 21.3, isHybrid: false },
+        { model: 'iX2 xDrive30', type: 'BEV (100% Elétrico)', battery: 64.7, range: 300, consumption: 21.5, isHybrid: false },
+        { model: 'i4 eDrive40', type: 'BEV (100% Elétrico)', battery: 80.7, range: 420, consumption: 19.2, isHybrid: false },
+        { model: 'iX xDrive50', type: 'BEV (100% Elétrico)', battery: 105.2, range: 520, consumption: 20.2, isHybrid: false },
+        { model: '330e M Sport', type: 'PHEV (Híbrido Plug-in)', battery: 12.0, range: 37, consumption: 32.4, isHybrid: true, gasKm: 24.1, ethanolKm: 16.8 }
       ],
       "Porsche": [
-        { model: 'Taycan 4S', type: 'BEV (100% Elétrico)', battery: 89.0, range: 380, consumption: 23.4 },
-        { model: 'Taycan Turbo S', type: 'BEV (100% Elétrico)', battery: 105.0, range: 400, consumption: 26.2 },
-        { model: 'Macan EV 4 AWD', type: 'BEV (100% Elétrico)', battery: 100.0, range: 430, consumption: 23.2 },
-        { model: 'Cayenne E-Hybrid', type: 'PHEV (Híbrido Plug-in)', battery: 25.9, range: 75, consumption: 34.5 }
+        { model: 'Taycan 4S', type: 'BEV (100% Elétrico)', battery: 89.0, range: 380, consumption: 23.4, isHybrid: false },
+        { model: 'Taycan Turbo S', type: 'BEV (100% Elétrico)', battery: 105.0, range: 400, consumption: 26.2, isHybrid: false },
+        { model: 'Macan EV 4 AWD', type: 'BEV (100% Elétrico)', battery: 100.0, range: 430, consumption: 23.2, isHybrid: false },
+        { model: 'Cayenne E-Hybrid', type: 'PHEV (Híbrido Plug-in)', battery: 25.9, range: 75, consumption: 34.5, isHybrid: true, gasKm: 20.2, ethanolKm: 14.1 }
       ],
       "Stellantis (Fiat, Jeep, Ram)": [
-        { model: 'Fiat 500e Icon', type: 'BEV (100% Elétrico)', battery: 42.0, range: 227, consumption: 18.5 },
-        { model: 'Fiat Pulse Hybrid 12V', type: 'MHEV (Ultrahíbrido Leve)', battery: 0.2, range: 5, consumption: 7.5 },
-        { model: 'Fiat Fastback Hybrid', type: 'MHEV (Ultrahíbrido Leve)', battery: 0.2, range: 5, consumption: 7.5 },
-        { model: 'Jeep Compass 4xe', type: 'PHEV (Híbrido Plug-in)', battery: 11.4, range: 44, consumption: 25.9 },
-        { model: 'Jeep Grand Cherokee 4xe', type: 'PHEV (Híbrido Plug-in)', battery: 17.3, range: 29, consumption: 59.6 }
+        { model: 'Fiat 500e Icon', type: 'BEV (100% Elétrico)', battery: 42.0, range: 227, consumption: 18.5, isHybrid: false },
+        { model: 'Fiat Pulse Hybrid 12V', type: 'MHEV (Ultrahíbrido Leve)', battery: 0.2, range: 5, consumption: 7.5, isHybrid: true, gasKm: 13.4, ethanolKm: 9.3 },
+        { model: 'Fiat Fastback Hybrid', type: 'MHEV (Ultrahíbrido Leve)', battery: 0.2, range: 5, consumption: 7.5, isHybrid: true, gasKm: 13.1, ethanolKm: 9.1 },
+        { model: 'Jeep Compass 4xe', type: 'PHEV (Híbrido Plug-in)', battery: 11.4, range: 44, consumption: 25.9, isHybrid: true, gasKm: 25.4, ethanolKm: 17.8 },
+        { model: 'Jeep Grand Cherokee 4xe', type: 'PHEV (Híbrido Plug-in)', battery: 17.3, range: 29, consumption: 59.6, isHybrid: true, gasKm: 19.1, ethanolKm: 13.2 }
       ],
       "Toyota & Lexus": [
-        { model: 'Corolla Altis Hybrid Flex', type: 'HEV (Híbrido Convencional)', battery: 1.3, range: 15, consumption: 8.6 },
-        { model: 'Corolla Cross Hybrid Flex', type: 'HEV (Híbrido Convencional)', battery: 1.3, range: 15, consumption: 8.6 },
-        { model: 'RAV4 SX Hybrid AWD', type: 'HEV (Híbrido Convencional)', battery: 1.6, range: 20, consumption: 8.0 },
-        { model: 'RAV4 Plug-in Hybrid', type: 'PHEV (Híbrido Plug-in)', battery: 18.1, range: 75, consumption: 24.1 },
-        { model: 'Lexus UX 300h', type: 'HEV (Híbrido Convencional)', battery: 1.4, range: 15, consumption: 9.3 }
+        { model: 'Corolla Altis Hybrid Flex', type: 'HEV (Híbrido Convencional)', battery: 1.3, range: 15, consumption: 8.6, isHybrid: true, gasKm: 17.9, ethanolKm: 12.8 },
+        { model: 'Corolla Cross Hybrid Flex', type: 'HEV (Híbrido Convencional)', battery: 1.3, range: 15, consumption: 8.6, isHybrid: true, gasKm: 17.7, ethanolKm: 12.5 },
+        { model: 'RAV4 SX Hybrid AWD', type: 'HEV (Híbrido Convencional)', battery: 1.6, range: 20, consumption: 8.0, isHybrid: true, gasKm: 17.1, ethanolKm: 11.9 },
+        { model: 'RAV4 Plug-in Hybrid', type: 'PHEV (Híbrido Plug-in)', battery: 18.1, range: 75, consumption: 24.1, isHybrid: true, gasKm: 35.0, ethanolKm: 24.5 },
+        { model: 'Lexus UX 300h', type: 'HEV (Híbrido Convencional)', battery: 1.4, range: 15, consumption: 9.3, isHybrid: true, gasKm: 16.7, ethanolKm: 11.6 }
       ],
       "Renault & Nissan": [
-        { model: 'Kwid E-Tech', type: 'BEV (100% Elétrico)', battery: 26.8, range: 185, consumption: 14.4 },
-        { model: 'Megane E-Tech', type: 'BEV (100% Elétrico)', battery: 60.0, range: 337, consumption: 17.8 },
-        { model: 'Nissan Leaf Tekna', type: 'BEV (100% Elétrico)', battery: 40.0, range: 192, consumption: 20.8 },
-        { model: 'Nissan X-Trail e-POWER', type: 'HEV (Gerador Elétrico)', battery: 2.1, range: 10, consumption: 12.0 }
+        { model: 'Kwid E-Tech', type: 'BEV (100% Elétrico)', battery: 26.8, range: 185, consumption: 14.4, isHybrid: false },
+        { model: 'Megane E-Tech', type: 'BEV (100% Elétrico)', battery: 60.0, range: 337, consumption: 17.8, isHybrid: false },
+        { model: 'Nissan Leaf Tekna', type: 'BEV (100% Elétrico)', battery: 40.0, range: 192, consumption: 20.8, isHybrid: false },
+        { model: 'Nissan X-Trail e-POWER', type: 'HEV (Gerador Elétrico)', battery: 2.1, range: 10, consumption: 12.0, isHybrid: true, gasKm: 18.2, ethanolKm: 12.7 }
       ],
       "Caoa Chery & Jetour": [
-        { model: 'iCar', type: 'BEV (100% Elétrico)', battery: 30.8, range: 197, consumption: 15.6 },
-        { model: 'Tiggo 7 Pro PHEV', type: 'PHEV (Híbrido Plug-in)', battery: 19.3, range: 80, consumption: 24.1 },
-        { model: 'Tiggo 8 Pro PHEV', type: 'PHEV (Híbrido Plug-in)', battery: 19.2, range: 77, consumption: 24.9 },
-        { model: 'Jetour Dashing i-DM', type: 'PHEV (Híbrido Plug-in)', battery: 19.2, range: 80, consumption: 24.0 }
+        { model: 'iCar', type: 'BEV (100% Elétrico)', battery: 30.8, range: 197, consumption: 15.6, isHybrid: false },
+        { model: 'Tiggo 7 Pro PHEV', type: 'PHEV (Híbrido Plug-in)', battery: 19.3, range: 80, consumption: 24.1, isHybrid: true, gasKm: 23.8, ethanolKm: 16.5 },
+        { model: 'Tiggo 8 Pro PHEV', type: 'PHEV (Híbrido Plug-in)', battery: 19.2, range: 77, consumption: 24.9, isHybrid: true, gasKm: 22.9, ethanolKm: 15.8 },
+        { model: 'Jetour Dashing i-DM', type: 'PHEV (Híbrido Plug-in)', battery: 19.2, range: 80, consumption: 24.0, isHybrid: true, gasKm: 22.0, ethanolKm: 15.2 }
       ],
       "Hyundai & KIA": [
-        { model: 'Hyundai Ioniq 5', type: 'BEV (100% Elétrico)', battery: 72.6, range: 380, consumption: 19.1 },
-        { model: 'Hyundai Kona EV', type: 'BEV (100% Elétrico)', battery: 39.2, range: 252, consumption: 15.5 },
-        { model: 'KIA EV6 GT-Line', type: 'BEV (100% Elétrico)', battery: 77.4, range: 390, consumption: 19.8 },
-        { model: 'KIA Niro HEV', type: 'HEV (Híbrido Convencional)', battery: 1.3, range: 15, consumption: 8.2 }
+        { model: 'Hyundai Ioniq 5', type: 'BEV (100% Elétrico)', battery: 72.6, range: 380, consumption: 19.1, isHybrid: false },
+        { model: 'Hyundai Kona EV', type: 'BEV (100% Elétrico)', battery: 39.2, range: 252, consumption: 15.5, isHybrid: false },
+        { model: 'KIA EV6 GT-Line', type: 'BEV (100% Elétrico)', battery: 77.4, range: 390, consumption: 19.8, isHybrid: false },
+        { model: 'KIA Niro HEV', type: 'HEV (Híbrido Convencional)', battery: 1.3, range: 15, consumption: 8.2, isHybrid: true, gasKm: 19.8, ethanolKm: 13.8 }
       ]
     };
 
@@ -657,7 +663,7 @@
       } catch (e) {
         console.warn("Falha na geocodificação reversa:", e);
       }
-      return "Cidade da Rota";
+      return "Cidade / UF";
     }
 
     function updateLocationMarkers() {
@@ -786,17 +792,20 @@
 
     function getMinDistanceToRouteInKm(lat, lng, routeCoords) {
       let minDistance = Infinity;
-      // Amostragem de pontos a cada 5 vértices para cálculo ultrarrápido
+      let closestPointIndex = 0;
+
       for (let i = 0; i < routeCoords.length - 1; i += 5) {
         const rLat = routeCoords[i][1];
         const rLng = routeCoords[i][0];
         const d = L.latLng(lat, lng).distanceTo(L.latLng(rLat, rLng)) / 1000;
-        if (d < minDistance) minDistance = d;
+        if (d < minDistance) {
+          minDistance = d;
+          closestPointIndex = i;
+        }
       }
-      return minDistance;
+      return { minDistance, closestPointIndex };
     }
 
-    // BUSCA OTIMIZADA DE ELETROPOSTOS (MÚLTIPLOS SERVIDORES + TIMEOUT BAIXO)
     async function fetchRouteStationsFromOSM(bbox, routeGeometry) {
       document.getElementById('stationsCount').innerText = "Buscando eletropostos...";
       const [south, west, north, east] = bbox;
@@ -814,13 +823,9 @@
       for (let url of endpoints) {
         try {
           const controller = new AbortController();
-          const timer = setTimeout(() => controller.abort(), 6000); // 6s max timeout por servidor
+          const timer = setTimeout(() => controller.abort(), 6000);
 
-          const res = await fetch(url, { 
-            method: 'POST', 
-            body: query,
-            signal: controller.signal
-          });
+          const res = await fetch(url, { method: 'POST', body: query, signal: controller.signal });
           clearTimeout(timer);
 
           if (res.ok) {
@@ -828,7 +833,7 @@
             if (data && data.elements) break;
           }
         } catch (e) {
-          console.warn(`Servidor Overpass (${url}) não respondeu a tempo, tentando o próximo servidor...`);
+          console.warn(`Servidor Overpass (${url}) não respondeu, tentando o próximo...`);
         }
       }
 
@@ -840,31 +845,47 @@
 
       const routeCoords = routeGeometry.coordinates;
 
-      fetchedStations = data.elements.map((item, idx) => {
+      const rawStations = data.elements.map((item, idx) => {
         const lat = item.lat || (item.center ? item.center.lat : null);
         const lng = item.lon || (item.center ? item.center.lon : null);
         const name = item.tags.name || item.tags.operator || `Eletroposto Rota #${idx + 1}`;
         const isDC = item.tags['socket:ccs'] || (item.tags.description && item.tags.description.includes('DC'));
 
-        const city = item.tags['addr:city'] || item.tags['addr:town'] || item.tags['addr:municipality'] || "Ponto na Rota";
-        const state = item.tags['addr:state'] || "UF";
+        let city = item.tags['addr:city'] || item.tags['addr:town'] || item.tags['is_in:city'] || item.tags['addr:municipality'];
+        let state = item.tags['addr:state'] || item.tags['is_in:state'];
+
+        const ufMap = { "Pernambuco":"PE", "Alagoas":"AL", "Paraíba":"PB", "Rio Grande do Norte":"RN", "Ceará":"CE", "Bahia":"BA", "Sergipe":"SE", "São Paulo":"SP", "Rio de Janeiro":"RJ", "Minas Gerais":"MG" };
+        if (state && ufMap[state]) state = ufMap[state];
+
+        let cityState = (city && state) ? `${city} / ${state}` : null;
+        const routeMatch = getMinDistanceToRouteInKm(lat, lng, routeCoords);
 
         return {
           id: item.id || idx,
           name: name,
-          cityState: `${city} / ${state}`,
+          cityState: cityState,
           lat: lat,
           lng: lng,
           power: isDC ? 'CCS2 / Carga Rápida DC' : 'AC Wallbox / Type 2',
-          type: isDC ? 'DC' : 'AC'
+          type: isDC ? 'DC' : 'AC',
+          distToRoute: routeMatch.minDistance,
+          routeIndex: routeMatch.closestPointIndex
         };
-      }).filter(s => {
-        if (!s.lat || !s.lng) return false;
-        const distToRoute = getMinDistanceToRouteInKm(s.lat, s.lng, routeCoords);
-        return distToRoute <= 10; // Raio de até 10km da rota
-      });
+      }).filter(s => s.lat && s.lng && s.distToRoute <= 10);
+
+      // Ordenar os postos na sequência em que aparecem na rota (Estilo ABRP)
+      rawStations.sort((a, b) => a.routeIndex - b.routeIndex);
+
+      for (let station of rawStations) {
+        if (!station.cityState) {
+          station.cityState = await reverseGeocodeFast(station.lat, station.lng);
+        }
+      }
+
+      fetchedStations = rawStations;
     }
 
+    // TELEMETRIA E RENDERIZAÇÃO ESTILO ABRP
     function renderStationsOnMapAndTable() {
       stationMarkers.forEach(m => map.removeLayer(m));
       stationMarkers = [];
@@ -885,28 +906,50 @@
       document.getElementById('stationsCount').innerText = `${activeStations.length} encontrados na rota`;
 
       if (activeStations.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6" class="p-3 text-center text-slate-400">Nenhum eletroposto encontrado ao longo desta rota.</td></tr>`;
-        pdfTbody.innerHTML = `<tr><td colspan="5" style="padding: 12px; text-align: center; color: #94a3b8;">Nenhum eletroposto mapeado nesta rota.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="7" class="p-3 text-center text-slate-400">Nenhum eletroposto encontrado ao longo desta rota.</td></tr>`;
+        pdfTbody.innerHTML = `<tr><td colspan="6" style="padding: 12px; text-align: center; color: #94a3b8;">Nenhum eletroposto mapeado nesta rota.</td></tr>`;
         return;
       }
 
+      const driveFactor = parseFloat(document.getElementById('driveMode').value);
+      const acFactor = parseFloat(document.getElementById('acMode').value);
+      const fullRangeAdjusted = selectedCar.range / (driveFactor * acFactor);
+      let currentBattery = parseFloat(document.getElementById('startBattery').value) || 80;
+
+      const totalRouteDist = availableRoutes[activeRouteIndex] ? Math.round(availableRoutes[activeRouteIndex].distance / 1000) : 300;
+      const totalPoints = availableRoutes[activeRouteIndex] ? availableRoutes[activeRouteIndex].geometry.coordinates.length : 1;
+
       activeStations.forEach((station, index) => {
-        const pinColor = station.type === 'DC' ? '#ef4444' : '#10b981';
-        
+        // Estima a distância acumulada até o posto
+        const stationDistFromStart = Math.round((station.routeIndex / totalPoints) * totalRouteDist);
+        const batteryUsed = Math.round((stationDistFromStart / fullRangeAdjusted) * 100);
+        let arrivalBattery = Math.max(2, currentBattery - batteryUsed);
+
+        // ABRP: Parada necessária se chegar com menos de 15%
+        const isRechargeRequired = arrivalBattery < 15 || (index === 0 && arrivalBattery < 25);
+        const targetCharge = 80;
+        const chargeTimeMinutes = isRechargeRequired ? Math.ceil(((targetCharge - arrivalBattery) / 100 * selectedCar.battery / 50) * 60) : 0;
+
         const customIcon = L.divIcon({
           className: 'custom-pin-wrapper',
-          html: `<div class="custom-station-pin" style="background-color: ${pinColor}; width: 24px; height: 24px; font-size: 11px;">${index + 1}</div>`,
-          iconSize: [24, 24],
-          iconAnchor: [12, 12]
+          html: `<div class="abrp-pin border-${arrivalBattery > 20 ? 'emerald' : 'amber'}-400">
+                  <span>⚡ #${index + 1}</span>
+                  <span style="font-size:9px; color:#ffffff;">${arrivalBattery}% Chegada</span>
+                 </div>`,
+          iconSize: [60, 30],
+          iconAnchor: [30, 15]
         });
 
         const marker = L.marker([station.lat, station.lng], { icon: customIcon })
           .addTo(map)
-          .bindPopup(`<b>#${index + 1} ⚡ ${station.name}</b><br><span style="font-size:11px;">${station.cityState}</span><br><span style="font-size:11px;">${station.power}</span>`);
+          .bindPopup(`<b>#${index + 1} ⚡ ${station.name}</b><br>
+                      <b>Local:</b> ${station.cityState}<br>
+                      <b>Bateria Estimada:</b> <span style="color:#34d399; font-weight:bold;">${arrivalBattery}%</span><br>
+                      ${isRechargeRequired ? `<b style="color:#fbbf24;">Parada Sugerida: ${chargeTimeMinutes} min (até 80%)</b>` : 'Carga de Passagem'}`);
 
         stationMarkers.push(marker);
 
-        // Tabela na Tela
+        // Tabela Interativa na Tela (ABRP Style)
         const tr = document.createElement('tr');
         tr.className = "hover:bg-blue-900/30 transition text-xs md:text-sm";
         tr.innerHTML = `
@@ -914,13 +957,16 @@
           <td class="p-2 font-semibold text-white whitespace-nowrap">
             <i class="fa-solid fa-charging-station text-yellow-400 mr-1"></i> ${station.name}
           </td>
-          <td class="p-2 text-blue-200 whitespace-nowrap font-medium min-w-[150px]">
+          <td class="p-2 text-emerald-300 font-bold whitespace-nowrap min-w-[150px]">
             ${station.cityState}
           </td>
-          <td class="p-2 whitespace-nowrap"><span class="bg-blue-900 text-blue-100 px-2 py-0.5 rounded border border-blue-700 text-xs">${station.power}</span></td>
-          <td class="p-2 font-bold whitespace-nowrap ${station.type === 'DC' ? 'text-red-400' : 'text-emerald-400'}">
-            ${station.type === 'DC' ? 'DC Rápido' : 'AC Wallbox'}
+          <td class="p-2 text-center whitespace-nowrap">
+            <span class="font-bold ${arrivalBattery < 15 ? 'text-red-400' : 'text-emerald-400'}">${arrivalBattery}%</span>
           </td>
+          <td class="p-2 text-center whitespace-nowrap font-bold ${isRechargeRequired ? 'text-amber-300' : 'text-slate-400'}">
+            ${isRechargeRequired ? `⏱️ ~${chargeTimeMinutes} min (até 80%)` : 'Opcional / Passagem'}
+          </td>
+          <td class="p-2 whitespace-nowrap"><span class="bg-blue-900 text-blue-100 px-2 py-0.5 rounded border border-blue-700 text-xs">${station.power}</span></td>
           <td class="p-2 text-right whitespace-nowrap">
             <button onclick="focusStation(${station.lat}, ${station.lng})" class="bg-blue-600 hover:bg-blue-500 text-white font-bold px-2.5 py-1 rounded text-xs transition">
               <i class="fa-solid fa-eye"></i> Ver
@@ -929,16 +975,17 @@
         `;
         tbody.appendChild(tr);
 
-        // Tabela para PDF (Página 2)
+        // Tabela para PDF (Página 2 ABRP Style)
         const pdfTr = document.createElement('tr');
         pdfTr.style.borderBottom = "1px solid #1e293b";
         pdfTr.style.backgroundColor = index % 2 === 0 ? "#031038" : "#091a4a";
         pdfTr.innerHTML = `
           <td style="padding: 6px 8px; font-weight: bold; color: #fbbf24;">#${index + 1}</td>
           <td style="padding: 6px 8px; font-weight: bold; color: #ffffff;">${station.name}</td>
-          <td style="padding: 6px 8px; color: #cbd5e1;">${station.cityState}</td>
+          <td style="padding: 6px 8px; font-weight: bold; color: #34d399;">${station.cityState}</td>
+          <td style="padding: 6px 8px; text-align: center; font-weight: bold; color: ${arrivalBattery < 15 ? '#f87171' : '#34d399'};">${arrivalBattery}%</td>
+          <td style="padding: 6px 8px; text-align: center; font-weight: bold; color: #fbbf24;">${isRechargeRequired ? `~${chargeTimeMinutes} min` : 'Passagem'}</td>
           <td style="padding: 6px 8px; color: #93c5fd;">${station.power}</td>
-          <td style="padding: 6px 8px; font-weight: bold; color: ${station.type === 'DC' ? '#f87171' : '#34d399'};">${station.type === 'DC' ? 'DC Rápido' : 'AC Wallbox'}</td>
         `;
         pdfTbody.appendChild(pdfTr);
       });
@@ -985,6 +1032,15 @@
           document.getElementById('specBattery').innerText = `${selectedCar.battery} kWh`;
           document.getElementById('specRange').innerText = `${selectedCar.range} km`;
           document.getElementById('specConsumption').innerText = `${selectedCar.consumption} kWh/100km`;
+
+          const hybridWrapper = document.getElementById('hybridConsumptionWrapper');
+          if (selectedCar.isHybrid) {
+            hybridWrapper.classList.remove('hidden');
+            document.getElementById('kmPerLiterGas').value = selectedCar.gasKm || 15.0;
+            document.getElementById('kmPerLiterEthanol').value = selectedCar.ethanolKm || 10.5;
+          } else {
+            hybridWrapper.classList.add('hidden');
+          }
 
           updateFavCarUI();
         }
@@ -1055,7 +1111,6 @@
       const route = availableRoutes[activeRouteIndex];
       const distKm = Math.round(route.distance / 1000);
       
-      // Tempo Condução
       const durationSeconds = route.duration;
       const hours = Math.floor(durationSeconds / 3600);
       const minutes = Math.round((durationSeconds % 3600) / 60);
@@ -1077,7 +1132,7 @@
       await fetchRouteStationsFromOSM(bbox, route.geometry);
       renderStationsOnMapAndTable();
 
-      // CÁLCULO DE AUTONOMIA E NECESSIDADE DE RECARGA
+      // CÁLCULO DE AUTONOMIA E RECARGA ABRP
       const driveFactor = parseFloat(document.getElementById('driveMode').value);
       const acFactor = parseFloat(document.getElementById('acMode').value);
       const fullRangeAdjusted = selectedCar.range / (driveFactor * acFactor);
@@ -1095,29 +1150,26 @@
       let chargeTimeDCText = "0 min";
 
       if (needsRecharge) {
-        rechargeAlertText = `Parar em até ${safeDriveDistanceKm} km`;
-        document.getElementById('rechargeDistanceAlert').innerText = `em até ${safeDriveDistanceKm} km`;
+        rechargeAlertText = `Necessária Parada (autonomia < ${distKm}km)`;
+        document.getElementById('rechargeDistanceAlert').innerText = `Parar em até ${safeDriveDistanceKm} km`;
         
         const percentNeededTotal = Math.ceil(((distKm / fullRangeAdjusted) * 100) + 15);
         const percentToCharge = Math.max(0, percentNeededTotal - startPercent);
         const kwhToCharge = (percentToCharge / 100) * selectedCar.battery;
 
         const minutesDC = Math.ceil((kwhToCharge / 50) * 60);
-        const minutesAC = Math.ceil((kwhToCharge / 7) * 60);
 
-        targetBatteryText = `${percentNeededTotal}% (+${Math.ceil(percentToCharge)}%)`;
-        chargeTimeDCText = `~${minutesDC} min`;
+        targetBatteryText = `1 Parada Recomendada`;
+        chargeTimeDCText = `~${minutesDC} min total`;
 
         document.getElementById('targetBatteryNeeded').innerText = targetBatteryText;
         document.getElementById('chargeTimeDC').innerText = chargeTimeDCText;
-        document.getElementById('chargeTimeAC').innerText = `~${minutesAC} min`;
       } else {
-        rechargeAlertText = "Não necessária";
-        targetBatteryText = "Suficiente";
-        document.getElementById('rechargeDistanceAlert').innerText = "Não necessária";
-        document.getElementById('targetBatteryNeeded').innerText = "Carga Atual Suficiente";
+        rechargeAlertText = "Direto (Sem Paradas)";
+        targetBatteryText = "Direto sem paradas";
+        document.getElementById('rechargeDistanceAlert').innerText = "Direto sem paradas";
+        document.getElementById('targetBatteryNeeded').innerText = "Carga Inicial Suficiente";
         document.getElementById('chargeTimeDC').innerText = "0 min";
-        document.getElementById('chargeTimeAC').innerText = "0 min";
       }
 
       // Custos
@@ -1129,19 +1181,20 @@
       document.getElementById('totalCost').innerText = `R$ ${totalCostEV.toFixed(2)}`;
       document.getElementById('costPax').innerText = `R$ ${(totalCostEV / adultCount).toFixed(2)}`;
 
-      const gasPrice = parseFloat(document.getElementById('costPerLiterGas').value) || 5.89;
-      const gasKmPerLiter = parseFloat(document.getElementById('kmPerLiterGas').value) || 11.5;
-      const totalGasCost = (distKm / gasKmPerLiter) * gasPrice;
+      const gasPrice = parseFloat(document.getElementById('costPerLiterGas').value) || 6.88;
+      const ethanolPrice = parseFloat(document.getElementById('costPerLiterEthanol').value) || 5.07;
 
-      const ethanolPrice = parseFloat(document.getElementById('costPerLiterEthanol').value) || 4.19;
+      const gasKmPerLiter = parseFloat(document.getElementById('kmPerLiterGas').value) || 11.5;
       const ethanolKmPerLiter = parseFloat(document.getElementById('kmPerLiterEthanol').value) || 8.1;
+
+      const totalGasCost = (distKm / gasKmPerLiter) * gasPrice;
       const totalEthanolCost = (distKm / ethanolKmPerLiter) * ethanolPrice;
 
       document.getElementById('gasCost').innerText = `R$ ${totalGasCost.toFixed(2)}`;
       document.getElementById('ethanolCost').innerText = `R$ ${totalEthanolCost.toFixed(2)}`;
 
       const bestFossilCost = Math.min(totalGasCost, totalEthanolCost);
-      const bestFossilName = totalEthanolCost < totalGasCost ? "Álcool" : "Gasolina";
+      const bestFossilName = totalEthanolCost < totalGasCost ? "Etanol" : "Gasolina";
       document.getElementById('bestFossilOption').innerText = `${bestFossilName} (R$ ${bestFossilCost.toFixed(2)})`;
 
       const savings = Math.max(0, bestFossilCost - totalCostEV);
@@ -1151,7 +1204,7 @@
       const remainingPercent = Math.max(0, Math.round(startPercent - usedPercent));
       updateBatteryUI(remainingPercent);
 
-      // Preenchimento dos Dados Ocultos para o PDF (Página 1)
+      // Dados para o PDF (Página 1)
       document.getElementById('pdfOrigin').innerText = document.getElementById('originInput').value;
       document.getElementById('pdfDest').innerText = document.getElementById('destInput').value;
       document.getElementById('pdfCarModel').innerText = `${selectedCar.model} (${selectedCar.type})`;
@@ -1160,7 +1213,7 @@
       document.getElementById('pdfDriveConditions').innerText = `Modo: ${driveFactor > 1 ? 'Sport/Rodovia' : 'Eco'} | AC: ${acFactor > 1 ? 'Ligado' : 'Desligado'}`;
       document.getElementById('pdfDistance').innerText = `${distKm} km`;
       document.getElementById('pdfTime').innerText = travelTimeStr;
-      document.getElementById('pdfBatteryState').innerText = `${startPercent}% / Est. ${remainingPercent}%`;
+      document.getElementById('pdfBatteryState').innerText = `${startPercent}% / Est. Chegada ${remainingPercent}%`;
       document.getElementById('pdfRechargeAlert').innerText = rechargeAlertText;
       document.getElementById('pdfChargeTimeDC').innerText = chargeTimeDCText;
       document.getElementById('pdfCostEV').innerText = `R$ ${totalCostEV.toFixed(2)}`;
@@ -1236,7 +1289,7 @@
       else batteryBar.className = "h-full rounded-lg transition-all duration-500 bg-red-600";
     }
 
-    // EXPORTAÇÃO PDF ESTRUTURADA EM 2 PÁGINAS COM PRINT LIMPO DO MAPA
+    // EXPORTAÇÃO PDF ESTRUTURADA EM 2 PÁGINAS
     document.getElementById('exportPdfBtn').addEventListener('click', async () => {
       const btn = document.getElementById('exportPdfBtn');
       btn.innerText = "Gerando PDF...";
@@ -1266,7 +1319,7 @@
 
         const opt = {
           margin: 0.2,
-          filename: 'relatorio_viagem_eletrica.pdf',
+          filename: 'relatorio_viagem_eletrica_abrp.pdf',
           image: { type: 'jpeg', quality: 0.98 },
           html2canvas: { scale: 2, useCORS: true },
           jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
