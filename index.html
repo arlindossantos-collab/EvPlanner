@@ -462,7 +462,7 @@
   </div>
 
   <script>
-    // DICIONÁRIO DE SIGLAS DOS ESTADOS BRASILEIROS (UF)
+    // MAPA DE SIGLAS DOS ESTADOS BRASILEIROS
     const ufMap = {
       "Acre": "AC", "Alagoas": "AL", "Amapá": "AP", "Amazonas": "AM", "Bahia": "BA",
       "Ceará": "CE", "Distrito Federal": "DF", "Espírito Santo": "ES", "Goiás": "GO",
@@ -473,7 +473,7 @@
       "Sergipe": "SE", "Tocantins": "TO"
     };
 
-    // BASE INTEGRAL DE VEÍCULOS
+    // BASE DE VEÍCULOS
     const evDatabase = {
       "BYD": [
         { model: 'Dolphin Mini (4 Lugares)', type: 'BEV (100% Elétrico)', battery: 38.0, range: 280, consumption: 13.5, isHybrid: false },
@@ -857,7 +857,7 @@
       return null;
     }
 
-    // GEOCODIFICAÇÃO REVERSA COM EXTRAÇÃO PRECISA DE CIDADE / UF
+    // GEOCODIFICAÇÃO REVERSA DIRETA PARA CIDADE E ESTADO
     async function reverseGeocodeFast(lat, lng) {
       try {
         const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=10`;
@@ -866,16 +866,16 @@
 
         if (data && data.address) {
           const addr = data.address;
-          const city = addr.city || addr.town || addr.municipality || addr.village || addr.county || "Cidade";
+          const city = addr.city || addr.town || addr.municipality || addr.village || addr.county || "Desconhecida";
           const stateName = addr.state || "";
           
           const uf = ufMap[stateName] || (stateName.length === 2 ? stateName.toUpperCase() : "UF");
           return `${city} / ${uf}`;
         }
       } catch (e) {
-        console.warn("Falha ao identificar localidade exata:", e);
+        console.warn("Falha no geocodificador reverso:", e);
       }
-      return "Cidade / UF";
+      return null;
     }
 
     async function updateWaypointMarkers() {
@@ -1009,12 +1009,13 @@
       const rawStations = Array.from(uniqueMap.values());
       rawStations.sort((a, b) => a.routeIndex - b.routeIndex);
 
-      // RESOLUÇÃO DE CIDADE/UF CASO NÃO DEFINIDA
-      for (let station of rawStations) {
-        if (!station.cityState || station.cityState === "Cidade / UF") {
-          station.cityState = await reverseGeocodeFast(station.lat, station.lng);
+      // RESOLUÇÃO PRECISA E EM PARALELO DE CIDADE / UF
+      await Promise.all(rawStations.map(async (st) => {
+        if (!st.cityState || st.cityState.includes("Localidade") || st.cityState.includes("Cidade")) {
+          const loc = await reverseGeocodeFast(st.lat, st.lng);
+          if (loc) st.cityState = loc;
         }
-      }
+      }));
 
       fetchedStations = rawStations;
     }
