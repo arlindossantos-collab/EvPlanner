@@ -20,7 +20,7 @@
       color: #f8fafc;
     }
     #map { 
-      height: 440px; 
+      height: 460px; 
       width: 100%; 
       border-radius: 0.75rem; 
       z-index: 1; 
@@ -46,6 +46,16 @@
     .autocomplete-item:hover {
       background-color: #1e3a8a;
       color: #34d399;
+    }
+    .custom-station-pin {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      color: white;
+      font-weight: bold;
+      border: 2px solid white;
+      box-shadow: 0 0 8px rgba(0,0,0,0.6);
     }
   </style>
 </head>
@@ -76,7 +86,7 @@
     <!-- Grid de Controle -->
     <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
       
-      <!-- Card 1: Veículo + Favorito -->
+      <!-- Card 1: Veículo -->
       <div class="bg-blue-950/80 p-3.5 rounded-xl border border-blue-900 space-y-2.5 shadow-md flex flex-col justify-between">
         <div>
           <div class="flex justify-between items-center border-b border-blue-900 pb-1 mb-2">
@@ -111,20 +121,20 @@
         </div>
       </div>
 
-      <!-- Card 2: Trajeto + Atalhos Casa, Trabalho & Favoritos -->
+      <!-- Card 2: Trajeto e Atalhos (Casa / Trabalho na Origem ou Destino) -->
       <div class="bg-blue-950/80 p-3.5 rounded-xl border border-blue-900 space-y-2.5 shadow-md flex flex-col justify-between">
         <div>
           <h2 class="text-xs md:text-sm font-semibold text-blue-100 border-b border-blue-900 pb-1 mb-2 flex items-center gap-1.5">
             <i class="fa-solid fa-route text-emerald-400"></i> 2. Trajeto & Condições
           </h2>
           <div class="space-y-2">
-            <!-- Atalhos de Atalhos de Casa e Trabalho -->
+            <!-- Atalhos de Casa e Trabalho -->
             <div class="flex gap-1 text-[9px] mb-1">
               <button id="setHomeBtn" class="bg-blue-900 hover:bg-blue-800 text-blue-100 px-2 py-0.5 rounded border border-blue-700 flex items-center gap-1">
-                <i class="fa-solid fa-house text-amber-400"></i> <span id="homeBtnLabel">Ir p/ Casa</span>
+                <i class="fa-solid fa-house text-amber-400"></i> <span id="homeBtnLabel">Casa</span>
               </button>
               <button id="setWorkBtn" class="bg-blue-900 hover:bg-blue-800 text-blue-100 px-2 py-0.5 rounded border border-blue-700 flex items-center gap-1">
-                <i class="fa-solid fa-briefcase text-blue-400"></i> <span id="workBtnLabel">Ir p/ Trabalho</span>
+                <i class="fa-solid fa-briefcase text-blue-400"></i> <span id="workBtnLabel">Trabalho</span>
               </button>
               <button id="addFavPlaceBtn" class="bg-blue-900 hover:bg-blue-800 text-emerald-300 px-2 py-0.5 rounded border border-blue-700 flex items-center gap-1 ml-auto">
                 <i class="fa-solid fa-bookmark"></i> + Salvar Destino
@@ -179,42 +189,56 @@
         </div>
       </div>
 
-      <!-- Card 3: Carga Atual & Custos -->
+      <!-- Card 3: Carga, Custos e Ocupantes (Adultos, Crianças, Pets) -->
       <div class="bg-blue-950/80 p-3.5 rounded-xl border border-blue-900 space-y-2.5 shadow-md flex flex-col justify-between">
         <div>
           <h2 class="text-xs md:text-sm font-semibold text-blue-100 border-b border-blue-900 pb-1 mb-2 flex items-center gap-1.5">
-            <i class="fa-solid fa-battery-three-quarters text-emerald-400"></i> 3. Carga Atual & Custos
+            <i class="fa-solid fa-battery-three-quarters text-emerald-400"></i> 3. Bateria & Ocupantes
           </h2>
-          <div class="space-y-2">
+          <div class="space-y-1.5">
             <div>
-              <label class="block text-[10px] font-bold text-emerald-400 mb-0.5">Status Atual da Bateria (%)</label>
-              <input type="number" id="startBattery" value="80" min="5" max="100" class="w-full bg-[#031038] border border-emerald-500 rounded p-1.5 text-emerald-300 font-black text-xs md:text-sm outline-none">
+              <label class="block text-[10px] font-bold text-emerald-400 mb-0.5">Bateria Inicial (%)</label>
+              <input type="number" id="startBattery" value="80" min="5" max="100" class="w-full bg-[#031038] border border-emerald-500 rounded p-1 text-emerald-300 font-black text-xs md:text-sm outline-none">
             </div>
-            <div class="grid grid-cols-2 gap-1.5">
+            
+            <!-- Seleção de Passageiros, Crianças e Pets -->
+            <div class="grid grid-cols-3 gap-1 pt-1 border-t border-blue-900/60">
               <div>
-                <label class="block text-[9px] md:text-[10px] text-blue-300 mb-0.5">Tarifa R$/kWh</label>
-                <input type="number" id="costPerKwh" value="2.39" step="0.01" class="w-full bg-[#031038] border border-blue-800 rounded p-1 text-white text-[11px]">
+                <label class="block text-[8px] md:text-[9px] text-blue-300">Adultos</label>
+                <select id="adultCount" class="w-full bg-[#031038] border border-blue-800 text-[10px] text-white rounded p-1">
+                  <option value="1">1</option><option value="2" selected>2</option><option value="3">3</option><option value="4">4</option>
+                </select>
               </div>
               <div>
-                <label class="block text-[9px] md:text-[10px] text-blue-300 mb-0.5">Gasolina (R$/L)</label>
-                <input type="number" id="costPerLiter" value="5.89" step="0.01" class="w-full bg-[#031038] border border-blue-800 rounded p-1 text-white text-[11px]">
+                <label class="block text-[8px] md:text-[9px] text-blue-300">Crianças</label>
+                <select id="childCount" class="w-full bg-[#031038] border border-blue-800 text-[10px] text-white rounded p-1">
+                  <option value="0" selected>0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-[8px] md:text-[9px] text-blue-300">Pets 🐾</label>
+                <select id="petCount" class="w-full bg-[#031038] border border-blue-800 text-[10px] text-white rounded p-1">
+                  <option value="0" selected>0</option><option value="1">1</option><option value="2">2</option>
+                </select>
               </div>
             </div>
-            <div>
-              <label class="block text-[9px] md:text-[10px] text-blue-300 mb-0.5">Consumo Fóssil (km/L)</label>
-              <input type="number" id="fossilKmPerLiter" value="11.5" step="0.1" class="w-full bg-[#031038] border border-blue-800 rounded p-1 text-white text-[11px]">
+
+            <div class="grid grid-cols-2 gap-1.5 pt-1">
+              <div>
+                <label class="block text-[9px] text-blue-300 mb-0.5">R$/kWh</label>
+                <input type="number" id="costPerKwh" value="2.39" step="0.01" class="w-full bg-[#031038] border border-blue-800 rounded p-1 text-white text-[10px]">
+              </div>
+              <div>
+                <label class="block text-[9px] text-blue-300 mb-0.5">Gasolina R$/L</label>
+                <input type="number" id="costPerLiter" value="5.89" step="0.01" class="w-full bg-[#031038] border border-blue-800 rounded p-1 text-white text-[10px]">
+              </div>
             </div>
           </div>
         </div>
 
-        <div class="bg-[#020b29] p-2 rounded-lg text-[10px] md:text-[11px] space-y-1 border border-blue-900 mt-2">
+        <div class="bg-[#020b29] p-2 rounded-lg text-[10px] space-y-0.5 border border-blue-900 mt-1">
           <div class="flex justify-between"><span class="text-blue-300">Custo Total EV:</span><span id="totalCost" class="font-bold text-emerald-400">R$ 0,00</span></div>
-          <div class="flex justify-between"><span class="text-blue-300">Passageiros:</span>
-            <select id="passengerCount" class="bg-[#031038] border border-blue-800 text-[9px] text-white rounded px-1">
-              <option value="1">1</option><option value="2">2</option><option value="3" selected>3</option><option value="4">4</option>
-            </select>
-          </div>
-          <div class="flex justify-between"><span class="text-blue-300">Por Passageiro:</span><span id="costPax" class="font-bold text-white">R$ 0,00</span></div>
+          <div class="flex justify-between"><span class="text-blue-300">Por Adulto:</span><span id="costPax" class="font-bold text-white">R$ 0,00</span></div>
         </div>
       </div>
 
@@ -265,7 +289,7 @@
     <div class="bg-blue-950/80 p-2.5 rounded-xl border border-blue-900 space-y-2.5 shadow-lg">
       <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-1.5 border-b border-blue-900 pb-2 text-[11px] md:text-xs">
         <span class="font-semibold text-blue-100 flex items-center gap-1.5">
-          <i class="fa-solid fa-charging-station text-yellow-400"></i> Filtro de Eletropostos:
+          <i class="fa-solid fa-charging-station text-yellow-400"></i> Filtro de Eletropostos Mapeados:
         </span>
         <div class="flex flex-wrap gap-2.5 text-blue-200 text-[10px] md:text-xs">
           <label class="flex items-center gap-1 cursor-pointer"><input type="checkbox" id="filterCCS2" checked class="rounded text-emerald-500"> CCS2 / Ultra-Rápido DC</label>
@@ -276,16 +300,17 @@
       <div id="map"></div>
     </div>
 
-    <!-- Relação de Eletropostos Mapeados -->
+    <!-- Relação de Eletropostos na Rota -->
     <div class="bg-blue-950/80 p-2.5 md:p-4 rounded-xl border border-blue-900 space-y-2 shadow-lg">
       <h3 class="text-xs md:text-sm font-bold text-white flex items-center justify-between border-b border-blue-900 pb-1.5">
-        <span class="flex items-center gap-1.5"><i class="fa-solid fa-list-check text-emerald-400"></i> Eletropostos Encontrados ao Longo da Rota</span>
+        <span class="flex items-center gap-1.5"><i class="fa-solid fa-list-check text-emerald-400"></i> Eletropostos Exclusivos na Rota</span>
         <span id="stationsCount" class="text-[10px] md:text-xs bg-blue-900 text-emerald-300 px-2 py-0.5 rounded border border-blue-700">0 encontrados</span>
       </h3>
       <div class="overflow-x-auto">
         <table class="w-full text-left text-[9px] md:text-xs text-blue-200">
           <thead class="bg-[#020b29] text-emerald-400 uppercase text-[9px] font-bold border-b border-blue-900">
             <tr>
+              <th class="p-1.5 whitespace-nowrap">#</th>
               <th class="p-1.5 whitespace-nowrap">Eletroposto / Ponto</th>
               <th class="p-1.5 whitespace-nowrap">Cidade / UF</th>
               <th class="p-1.5 whitespace-nowrap">Especificação</th>
@@ -294,7 +319,7 @@
             </tr>
           </thead>
           <tbody id="stationsTableBody" class="divide-y divide-blue-900/50">
-            <tr><td colspan="5" class="p-2 text-center text-slate-400">Clique em "Calcular Rota" para mapear os postos.</td></tr>
+            <tr><td colspan="6" class="p-2 text-center text-slate-400">Clique em "Calcular Rota" para mapear os postos.</td></tr>
           </tbody>
         </table>
       </div>
@@ -303,140 +328,35 @@
   </div>
 
   <script>
-    // BASE COMPLETA DE VEÍCULOS DO ELETROCALC
+    // BASE DE VEÍCULOS
     const evDatabase = {
       "BYD": [
         { model: 'Dolphin Mini (4 Lugares)', type: 'BEV (100% Elétrico)', battery: 38.0, range: 280, consumption: 13.5 },
-        { model: 'Dolphin Mini (5 Lugares)', type: 'BEV (100% Elétrico)', battery: 38.0, range: 280, consumption: 13.5 },
         { model: 'Dolphin GS', type: 'BEV (100% Elétrico)', battery: 44.9, range: 291, consumption: 15.4 },
         { model: 'Dolphin Plus', type: 'BEV (100% Elétrico)', battery: 60.4, range: 330, consumption: 18.3 },
-        { model: 'Atto 2 / Yuan Up', type: 'BEV (100% Elétrico)', battery: 45.1, range: 260, consumption: 17.3 },
-        { model: 'Yuan Pro', type: 'BEV (100% Elétrico)', battery: 45.1, range: 250, consumption: 18.0 },
         { model: 'Yuan Plus EV500', type: 'BEV (100% Elétrico)', battery: 60.5, range: 294, consumption: 20.5 },
         { model: 'Seal AWD Performance', type: 'BEV (100% Elétrico)', battery: 82.5, range: 372, consumption: 22.1 },
-        { model: 'Sealion 7 AWD', type: 'BEV (100% Elétrico)', battery: 82.5, range: 380, consumption: 21.7 },
-        { model: 'King DM-i GL', type: 'PHEV (Híbrido Plug-in)', battery: 8.3, range: 55, consumption: 15.1 },
-        { model: 'King DM-i GS', type: 'PHEV (Híbrido Plug-in)', battery: 18.3, range: 120, consumption: 15.2 },
-        { model: 'Song Pro DM-i GL', type: 'PHEV (Híbrido Plug-in)', battery: 12.9, range: 71, consumption: 18.1 },
-        { model: 'Song Pro DM-i GS', type: 'PHEV (Híbrido Plug-in)', battery: 18.3, range: 110, consumption: 16.6 },
-        { model: 'Song Plus DM-i', type: 'PHEV (Híbrido Plug-in)', battery: 18.3, range: 105, consumption: 17.4 },
-        { model: 'Han EV AWD', type: 'BEV (100% Elétrico)', battery: 85.4, range: 349, consumption: 24.4 },
-        { model: 'Tan EV AWD', type: 'BEV (100% Elétrico)', battery: 108.8, range: 430, consumption: 25.3 },
-        { model: 'Shark Pickup', type: 'PHEV (Híbrido Plug-in)', battery: 29.5, range: 100, consumption: 29.5 }
-      ],
-      "Leapmotor": [
-        { model: 'T03 Hatch', type: 'BEV (100% Elétrico)', battery: 37.3, range: 265, consumption: 14.1 },
-        { model: 'B10 EV Pure', type: 'BEV (100% Elétrico)', battery: 56.2, range: 288, consumption: 16.3 },
-        { model: 'B10 REEV Extensor', type: 'REEV (Ultra-híbrido)', battery: 28.4, range: 140, consumption: 20.2 },
-        { model: 'C10 EV Pure', type: 'BEV (100% Elétrico)', battery: 69.9, range: 338, consumption: 16.8 },
-        { model: 'C10 REEV Ultra-híbrido', type: 'REEV (Ultra-híbrido)', battery: 28.4, range: 140, consumption: 20.2 }
+        { model: 'Song Plus DM-i', type: 'PHEV (Híbrido Plug-in)', battery: 18.3, range: 105, consumption: 17.4 }
       ],
       "GWM & Ora": [
         { model: 'Ora 03 Skin', type: 'BEV (100% Elétrico)', battery: 48.0, range: 232, consumption: 20.6 },
-        { model: 'Ora 03 GT', type: 'BEV (100% Elétrico)', battery: 63.0, range: 319, consumption: 19.7 },
-        { model: 'Haval H6 HEV', type: 'HEV (Híbrido Convencional)', battery: 1.6, range: 25, consumption: 6.4 },
-        { model: 'Haval H6 PHEV19', type: 'PHEV (Híbrido Plug-in)', battery: 19.0, range: 115, consumption: 16.5 },
-        { model: 'Haval H6 PHEV34', type: 'PHEV (Híbrido Plug-in)', battery: 34.0, range: 170, consumption: 20.0 },
-        { model: 'Haval H6 GT PHEV', type: 'PHEV (Híbrido Plug-in)', battery: 34.0, range: 170, consumption: 20.0 },
-        { model: 'Tank 300 PHEV', type: 'PHEV (Híbrido Plug-in)', battery: 37.1, range: 105, consumption: 35.3 }
-      ],
-      "Geely": [
-        { model: 'Geely EX2 Pro', type: 'BEV (100% Elétrico)', battery: 39.4, range: 260, consumption: 15.1 },
-        { model: 'Geely EX5 EM-i MAX', type: 'PHEV (Híbrido Plug-in)', battery: 18.4, range: 100, consumption: 18.4 }
-      ],
-      "Omoda & Jaecoo": [
-        { model: 'Omoda 5 MHEV 48V', type: 'MHEV (Ultrahíbrido Leve)', battery: 0.9, range: 10, consumption: 8.0 },
-        { model: 'Omoda 5 HEV Luxury', type: 'HEV (Híbrido Convencional)', battery: 1.8, range: 20, consumption: 7.2 },
-        { model: 'Omoda E5 EV', type: 'BEV (100% Elétrico)', battery: 61.0, range: 310, consumption: 19.6 },
-        { model: 'Jaecoo 7 PHEV', type: 'PHEV (Híbrido Plug-in)', battery: 18.3, range: 88, consumption: 20.7 },
-        { model: 'Jaecoo 8 Ultra REEV', type: 'REEV (Ultra-híbrido)', battery: 34.4, range: 160, consumption: 21.5 }
-      ],
-      "Chevrolet": [
-        { model: 'Spark EUV', type: 'BEV (100% Elétrico)', battery: 41.9, range: 250, consumption: 16.7 },
-        { model: 'Bolt EV Premier', type: 'BEV (100% Elétrico)', battery: 66.0, range: 259, consumption: 25.4 },
-        { model: 'Equinox EV eAWD', type: 'BEV (100% Elétrico)', battery: 85.0, range: 443, consumption: 19.1 },
-        { model: 'Blazer EV RS eAWD', type: 'BEV (100% Elétrico)', battery: 102.0, range: 481, consumption: 21.2 }
+        { model: 'Haval H6 PHEV34', type: 'PHEV (Híbrido Plug-in)', battery: 34.0, range: 170, consumption: 20.0 }
       ],
       "Volvo": [
         { model: 'EX30 Core Single', type: 'BEV (100% Elétrico)', battery: 51.0, range: 250, consumption: 20.4 },
-        { model: 'EX30 Extended Range', type: 'BEV (100% Elétrico)', battery: 69.0, range: 340, consumption: 20.2 },
-        { model: 'EX30 Twin Performance', type: 'BEV (100% Elétrico)', battery: 69.0, range: 320, consumption: 21.5 },
-        { model: 'XC40 / EX40 Recharge', type: 'BEV (100% Elétrico)', battery: 78.0, range: 305, consumption: 25.5 },
-        { model: 'C40 / EC40 Recharge', type: 'BEV (100% Elétrico)', battery: 78.0, range: 385, consumption: 20.2 },
-        { model: 'EX90 Ultra 7L AWD', type: 'BEV (100% Elétrico)', battery: 111.0, range: 450, consumption: 24.6 },
-        { model: 'XC60 Recharge T8', type: 'PHEV (Híbrido Plug-in)', battery: 18.8, range: 78, consumption: 24.1 },
-        { model: 'XC90 Recharge T8', type: 'PHEV (Híbrido Plug-in)', battery: 18.8, range: 71, consumption: 26.4 }
-      ],
-      "BMW": [
-        { model: 'iX1 eDrive20', type: 'BEV (100% Elétrico)', battery: 64.7, range: 303, consumption: 21.3 },
-        { model: 'iX1 xDrive30', type: 'BEV (100% Elétrico)', battery: 64.7, range: 303, consumption: 21.3 },
-        { model: 'iX2 xDrive30', type: 'BEV (100% Elétrico)', battery: 64.7, range: 300, consumption: 21.5 },
-        { model: 'i4 eDrive40', type: 'BEV (100% Elétrico)', battery: 80.7, range: 420, consumption: 19.2 },
-        { model: 'iX xDrive50', type: 'BEV (100% Elétrico)', battery: 105.2, range: 520, consumption: 20.2 },
-        { model: '330e M Sport', type: 'PHEV (Híbrido Plug-in)', battery: 12.0, range: 37, consumption: 32.4 }
-      ],
-      "Porsche": [
-        { model: 'Taycan 4S', type: 'BEV (100% Elétrico)', battery: 89.0, range: 380, consumption: 23.4 },
-        { model: 'Taycan Turbo S', type: 'BEV (100% Elétrico)', battery: 105.0, range: 400, consumption: 26.2 },
-        { model: 'Macan EV 4 AWD', type: 'BEV (100% Elétrico)', battery: 100.0, range: 430, consumption: 23.2 },
-        { model: 'Cayenne E-Hybrid', type: 'PHEV (Híbrido Plug-in)', battery: 25.9, range: 75, consumption: 34.5 }
-      ],
-      "Stellantis (Fiat, Jeep, Ram)": [
-        { model: 'Fiat 500e Icon', type: 'BEV (100% Elétrico)', battery: 42.0, range: 227, consumption: 18.5 },
-        { model: 'Fiat Pulse Hybrid 12V', type: 'MHEV (Ultrahíbrido Leve)', battery: 0.2, range: 5, consumption: 7.5 },
-        { model: 'Fiat Fastback Hybrid', type: 'MHEV (Ultrahíbrido Leve)', battery: 0.2, range: 5, consumption: 7.5 },
-        { model: 'Jeep Compass 4xe', type: 'PHEV (Híbrido Plug-in)', battery: 11.4, range: 44, consumption: 25.9 },
-        { model: 'Jeep Grand Cherokee 4xe', type: 'PHEV (Híbrido Plug-in)', battery: 17.3, range: 29, consumption: 59.6 }
-      ],
-      "Toyota & Lexus": [
-        { model: 'Corolla Altis Hybrid Flex', type: 'HEV (Híbrido Convencional)', battery: 1.3, range: 15, consumption: 8.6 },
-        { model: 'Corolla Cross Hybrid Flex', type: 'HEV (Híbrido Convencional)', battery: 1.3, range: 15, consumption: 8.6 },
-        { model: 'RAV4 SX Hybrid AWD', type: 'HEV (Híbrido Convencional)', battery: 1.6, range: 20, consumption: 8.0 },
-        { model: 'RAV4 Plug-in Hybrid', type: 'PHEV (Híbrido Plug-in)', battery: 18.1, range: 75, consumption: 24.1 },
-        { model: 'Lexus UX 300h', type: 'HEV (Híbrido Convencional)', battery: 1.4, range: 15, consumption: 9.3 }
-      ],
-      "Renault & Nissan": [
-        { model: 'Kwid E-Tech', type: 'BEV (100% Elétrico)', battery: 26.8, range: 185, consumption: 14.4 },
-        { model: 'Megane E-Tech', type: 'BEV (100% Elétrico)', battery: 60.0, range: 337, consumption: 17.8 },
-        { model: 'Nissan Leaf Tekna', type: 'BEV (100% Elétrico)', battery: 40.0, range: 192, consumption: 20.8 },
-        { model: 'Nissan X-Trail e-POWER', type: 'HEV (Gerador Elétrico)', battery: 2.1, range: 10, consumption: 12.0 }
-      ],
-      "Caoa Chery & Jetour": [
-        { model: 'iCar', type: 'BEV (100% Elétrico)', battery: 30.8, range: 197, consumption: 15.6 },
-        { model: 'Tiggo 7 Pro PHEV', type: 'PHEV (Híbrido Plug-in)', battery: 19.3, range: 80, consumption: 24.1 },
-        { model: 'Tiggo 8 Pro PHEV', type: 'PHEV (Híbrido Plug-in)', battery: 19.2, range: 77, consumption: 24.9 },
-        { model: 'Jetour Dashing i-DM', type: 'PHEV (Híbrido Plug-in)', battery: 19.2, range: 80, consumption: 24.0 }
-      ],
-      "Hyundai & KIA": [
-        { model: 'Hyundai Ioniq 5', type: 'BEV (100% Elétrico)', battery: 72.6, range: 380, consumption: 19.1 },
-        { model: 'Hyundai Kona EV', type: 'BEV (100% Elétrico)', battery: 39.2, range: 252, consumption: 15.5 },
-        { model: 'KIA EV6 GT-Line', type: 'BEV (100% Elétrico)', battery: 77.4, range: 390, consumption: 19.8 },
-        { model: 'KIA Niro HEV', type: 'HEV (Híbrido Convencional)', battery: 1.3, range: 15, consumption: 8.2 }
+        { model: 'XC40 Recharge', type: 'BEV (100% Elétrico)', battery: 78.0, range: 305, consumption: 25.5 }
       ]
     };
-
-    // Base Reserva de Eletropostos com Cidade e Estado
-    const backupStations = [
-      { id: 101, name: "Shell Recharge - Shopping Recife", city: "Recife", state: "PE", lat: -8.1182, lng: -34.9042, power: "CCS2 / 150kW DC", type: "DC" },
-      { id: 102, name: "Tupinambá - Caruaru", city: "Caruaru", state: "PE", lat: -8.2831, lng: -35.9761, power: "CCS2 / 50kW DC", type: "DC" },
-      { id: 103, name: "Volts Eletroposto - Lajedo", city: "Lajedo", state: "PE", lat: -8.6621, lng: -36.3218, power: "CCS2 / 50kW DC", type: "DC" },
-      { id: 104, name: "Zletric Wallbox - Garanhuns", city: "Garanhuns", state: "PE", lat: -8.8824, lng: -36.4962, power: "AC Wallbox 22kW", type: "AC" },
-      { id: 105, name: "EZVolt - Maceió Shopping", city: "Maceió", state: "AL", lat: -9.6465, lng: -35.7089, power: "CCS2 / 60kW DC", type: "DC" },
-      { id: 106, name: "E Charge Station - Delmiro Gouveia", city: "Delmiro Gouveia", state: "AL", lat: -9.3871, lng: -37.9984, power: "DC 24kW", type: "DC" },
-      { id: 107, name: "Hotel Wallbox - Piranhas", city: "Piranhas", state: "AL", lat: -9.6256, lng: -37.7569, power: "AC Wallbox 7kW", type: "AC" },
-      { id: 108, name: "Shell Recharge - Manaíra", city: "João Pessoa", state: "PB", lat: -7.1195, lng: -34.8450, power: "CCS2 / 100kW DC", type: "DC" },
-      { id: 109, name: "Tupinambá - Natal Central", city: "Natal", state: "RN", lat: -5.8115, lng: -35.2052, power: "CCS2 / 50kW DC", type: "DC" },
-      { id: 110, name: "EZVolt - Aracaju Shopping", city: "Aracaju", state: "SE", lat: -10.9472, lng: -37.0731, power: "CCS2 / 60kW DC", type: "DC" }
-    ];
 
     let map, routeLayer, originCoords = null, destCoords = null;
     let originMarker, destMarker;
     let selectedCar = null;
     let stationMarkers = [];
     let fetchedStations = [];
+    let currentRouteGeometry = null;
 
     async function initMap() {
-      map = L.map('map').setView([-8.8, -35.5], 8);
+      map = L.map('map').setView([-8.0476, -34.8770], 8);
 
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '© OpenStreetMap contributors'
@@ -454,7 +374,6 @@
         updateLocationMarkers();
       });
 
-      // Geocodificação inicial para o valor pré-preenchido
       originCoords = await geocodeAddress(document.getElementById('originInput').value);
       destCoords = await geocodeAddress(document.getElementById('destInput').value);
       updateLocationMarkers();
@@ -463,14 +382,14 @@
     async function geocodeAddress(addressStr) {
       if (!addressStr) return null;
       try {
-        const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(addressStr)}&countrycodes=br&limit=1`;
+        const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(addressStr)}&countrycodes=br&addressdetails=1&limit=1`;
         const res = await fetch(url);
         const data = await res.json();
         if (data && data.length > 0) {
           return [parseFloat(data[0].lat), parseFloat(data[0].lon)];
         }
       } catch (err) {
-        console.warn("Erro ao geocodificar endereço inicial:", err);
+        console.warn("Erro no geocodificador:", err);
       }
       return null;
     }
@@ -487,61 +406,57 @@
       }
     }
 
-    // Funcionalidades de Locais Favoritos, Casa e Trabalho (LocalStorage)
-    function initUserFavorites() {
-      const homeAddress = localStorage.getItem('hv_home_address');
-      const workAddress = localStorage.getItem('hv_work_address');
-      
-      updateHomeWorkButtonsUI();
+    // Modal / Prompt para escolha de inserção em Origem ou Destino
+    function askTargetInputAndSet(addressStr) {
+      const choice = prompt(`Onde deseja inserir o endereço?\nDigite '1' para ORIGEM ou '2' para DESTINO:\n\n${addressStr}`, "2");
+      if (choice === "1") {
+        document.getElementById('originInput').value = addressStr;
+        geocodeAddress(addressStr).then(c => { originCoords = c; updateLocationMarkers(); });
+      } else if (choice === "2") {
+        document.getElementById('destInput').value = addressStr;
+        geocodeAddress(addressStr).then(c => { destCoords = c; updateLocationMarkers(); });
+      }
+    }
 
+    function initUserFavorites() {
       document.getElementById('setHomeBtn').addEventListener('click', () => {
-        const currHome = localStorage.getItem('hv_home_address');
-        if (!currHome) {
-          const newHome = prompt("Digite seu endereço de Casa (ex: Rua Exemplo, 100, Recife PE):");
+        const home = localStorage.getItem('hv_home_address');
+        if (!home) {
+          const newHome = prompt("Digite seu endereço de Casa:");
           if (newHome) {
             localStorage.setItem('hv_home_address', newHome);
-            updateHomeWorkButtonsUI();
-            setDestInput(newHome);
+            askTargetInputAndSet(newHome);
           }
         } else {
-          setDestInput(currHome);
+          askTargetInputAndSet(home);
         }
       });
 
       document.getElementById('setWorkBtn').addEventListener('click', () => {
-        const currWork = localStorage.getItem('hv_work_address');
-        if (!currWork) {
-          const newWork = prompt("Digite seu endereço de Trabalho (ex: Av. Agamenon Magalhães, 2000, Recife PE):");
+        const work = localStorage.getItem('hv_work_address');
+        if (!work) {
+          const newWork = prompt("Digite seu endereço de Trabalho:");
           if (newWork) {
             localStorage.setItem('hv_work_address', newWork);
-            updateHomeWorkButtonsUI();
-            setDestInput(newWork);
+            askTargetInputAndSet(newWork);
           }
         } else {
-          setDestInput(currWork);
+          askTargetInputAndSet(work);
         }
       });
 
       document.getElementById('addFavPlaceBtn').addEventListener('click', () => {
         const currentDest = document.getElementById('destInput').value;
-        const name = prompt("Nome para este local favorito (ex: Casa da Praia, Escritório):", currentDest.split(',')[0]);
+        const name = prompt("Nome do local favorito:", currentDest.split(',')[0]);
         if (name && currentDest) {
           let favs = JSON.parse(localStorage.getItem('hv_fav_places') || '[]');
           favs.push({ name: name, address: currentDest });
           localStorage.setItem('hv_fav_places', JSON.stringify(favs));
           loadFavPlacesDropdown();
-          alert("Local salvo nos favoritos!");
         }
       });
 
       loadFavPlacesDropdown();
-    }
-
-    function updateHomeWorkButtonsUI() {
-      const home = localStorage.getItem('hv_home_address');
-      const work = localStorage.getItem('hv_work_address');
-      document.getElementById('homeBtnLabel').innerText = home ? "Casa" : "+ Salvar Casa";
-      document.getElementById('workBtnLabel').innerText = work ? "Trabalho" : "+ Salvar Trabalho";
     }
 
     function loadFavPlacesDropdown() {
@@ -552,7 +467,7 @@
       if (favs.length > 0) {
         wrapper.classList.remove('hidden');
         select.innerHTML = '<option value="">⭐ Selecione um local favorito...</option>';
-        favs.forEach((f, idx) => {
+        favs.forEach((f) => {
           const opt = document.createElement('option');
           opt.value = f.address;
           opt.textContent = `${f.name} (${f.address.substring(0, 30)}...)`;
@@ -561,18 +476,12 @@
 
         select.onchange = (e) => {
           if (e.target.value) {
-            setDestInput(e.target.value);
+            askTargetInputAndSet(e.target.value);
           }
         };
       } else {
         wrapper.classList.add('hidden');
       }
-    }
-
-    async function setDestInput(addressStr) {
-      document.getElementById('destInput').value = addressStr;
-      destCoords = await geocodeAddress(addressStr);
-      updateLocationMarkers();
     }
 
     function setupAutocomplete(inputId, resultsId, callback) {
@@ -587,16 +496,9 @@
 
         timeout = setTimeout(async () => {
           try {
-            let url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&countrycodes=br&addressdetails=1&limit=6`;
-            let res = await fetch(url);
-            let data = await res.json();
-
-            if (!data || data.length === 0) {
-              const cleanedQuery = query.replace(/,/g, ' ');
-              url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(cleanedQuery)}&countrycodes=br&limit=6`;
-              res = await fetch(url);
-              data = await res.json();
-            }
+            const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&countrycodes=br&addressdetails=1&limit=6`;
+            const res = await fetch(url);
+            const data = await res.json();
             
             results.innerHTML = '';
             if (!data || data.length === 0) { results.classList.add('hidden'); return; }
@@ -608,28 +510,35 @@
               div.onclick = () => {
                 input.value = place.display_name;
                 results.classList.add('hidden');
-                callback([parseFloat(place.lat), parseFloat(place.lon)], place.display_name);
+                callback([parseFloat(place.lat), parseFloat(place.lon)]);
               };
               results.appendChild(div);
             });
             results.classList.remove('hidden');
           } catch (err) {
-            console.error("Erro na busca de endereço:", err);
+            console.error("Erro no autocomplete:", err);
           }
         }, 350);
       });
-
-      document.addEventListener('click', (e) => {
-        if (!input.contains(e.target) && !results.contains(e.target)) {
-          results.classList.add('hidden');
-        }
-      });
     }
 
-    async function fetchRouteStationsFromOSM(bbox) {
+    // Cálculo da menor distância de um ponto (p) até a linha de coordenadas da Rota (linha poligonizada)
+    function getMinDistanceToRouteInKm(lat, lng, routeCoords) {
+      let minDistance = Infinity;
+      for (let i = 0; i < routeCoords.length - 1; i += 3) { // amostra para performance
+        const rLat = routeCoords[i][1];
+        const rLng = routeCoords[i][0];
+        const d = L.latLng(lat, lng).distanceTo(L.latLng(rLat, rLng)) / 1000; // km
+        if (d < minDistance) minDistance = d;
+      }
+      return minDistance;
+    }
+
+    // Mapeamento exclusivo de eletropostos na rota
+    async function fetchRouteStationsFromOSM(bbox, routeGeometry) {
       const [south, west, north, east] = bbox;
       const query = `
-        [out:json][timeout:12];
+        [out:json][timeout:15];
         (
           node["amenity"="charging_station"](${south},${west},${north},${east});
           way["amenity"="charging_station"](${south},${west},${north},${east});
@@ -644,14 +553,16 @@
         });
         const data = await response.json();
         
-        const osmStations = data.elements.map((item, idx) => {
+        const routeCoords = routeGeometry.coordinates;
+
+        fetchedStations = data.elements.map((item, idx) => {
           const lat = item.lat || (item.center ? item.center.lat : null);
           const lng = item.lon || (item.center ? item.center.lon : null);
           const name = item.tags.name || item.tags.operator || `Eletroposto ${idx + 1}`;
           const isDC = item.tags['socket:ccs'] || (item.tags.description && item.tags.description.includes('DC'));
           
-          const city = item.tags['addr:city'] || item.tags['addr:town'] || item.tags['addr:municipality'] || "Regional";
-          const state = item.tags['addr:state'] || "PE/AL";
+          const city = item.tags['addr:city'] || item.tags['addr:town'] || "Rota Nacional";
+          const state = item.tags['addr:state'] || (lat < -8.5 ? "AL" : (lat < -7.3 ? "PE" : "PB"));
 
           return {
             id: item.id || idx,
@@ -663,25 +574,16 @@
             power: isDC ? 'CCS2 / Carga Rápida DC' : 'AC Wallbox / Type 2',
             type: isDC ? 'DC' : 'AC'
           };
-        }).filter(s => s.lat && s.lng);
-
-        const combined = [...osmStations, ...backupStations];
-        const uniqueStations = [];
-        const mapKeys = new Set();
-
-        combined.forEach(st => {
-          const key = `${st.lat.toFixed(3)},${st.lng.toFixed(3)}`;
-          if (!mapKeys.has(key)) {
-            mapKeys.add(key);
-            uniqueStations.push(st);
-          }
+        }).filter(s => {
+          if (!s.lat || !s.lng) return false;
+          // FILTRO ESTRITO: Máximo 12 km de desvio da rota traçada
+          const distToRoute = getMinDistanceToRouteInKm(s.lat, s.lng, routeCoords);
+          return distToRoute <= 12;
         });
 
-        fetchedStations = uniqueStations;
-
       } catch (err) {
-        console.warn("Consulta OSM falhou ou demorou. Utilizando base reserva:", err);
-        fetchedStations = backupStations;
+        console.warn("Consulta OSM falhou ou sem resultados diretos:", err);
+        fetchedStations = [];
       }
     }
 
@@ -699,28 +601,34 @@
         (s.type === 'DC' && showDC) || (s.type === 'AC' && showAC)
       );
 
-      document.getElementById('stationsCount').innerText = `${activeStations.length} encontrados`;
+      document.getElementById('stationsCount').innerText = `${activeStations.length} encontrados na rota`;
 
       if (activeStations.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="5" class="p-2 text-center text-slate-400">Nenhum eletroposto encontrado para os filtros selecionados.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="6" class="p-3 text-center text-slate-400">Nenhum eletroposto encontrado exatamente ao longo desta rota.</td></tr>`;
         return;
       }
 
-      activeStations.forEach(station => {
-        const marker = L.circleMarker([station.lat, station.lng], {
-          radius: 7,
-          fillColor: station.type === 'DC' ? '#ef4444' : '#10b981',
-          color: '#ffffff',
-          weight: 1.5,
-          opacity: 1,
-          fillOpacity: 0.9
-        }).addTo(map).bindPopup(`<b>⚡ ${station.name}</b><br><span style="font-size:10px;">${station.city} - ${station.state}</span><br><span style="font-size:10px;">${station.power}</span>`);
+      activeStations.forEach((station, index) => {
+        const pinColor = station.type === 'DC' ? '#ef4444' : '#10b981';
+        
+        // Marcador destacado numerado
+        const customIcon = L.divIcon({
+          className: 'custom-pin-wrapper',
+          html: `<div class="custom-station-pin" style="background-color: ${pinColor}; width: 24px; height: 24px; font-size: 11px;">${index + 1}</div>`,
+          iconSize: [24, 24],
+          iconAnchor: [12, 12]
+        });
+
+        const marker = L.marker([station.lat, station.lng], { icon: customIcon })
+          .addTo(map)
+          .bindPopup(`<b>#${index + 1} ⚡ ${station.name}</b><br><span style="font-size:10px;">${station.city} - ${station.state}</span><br><span style="font-size:10px;">${station.power}</span>`);
 
         stationMarkers.push(marker);
 
         const tr = document.createElement('tr');
         tr.className = "hover:bg-blue-900/30 transition text-[9px] md:text-xs";
         tr.innerHTML = `
+          <td class="p-1.5 font-bold text-amber-400 whitespace-nowrap">#${index + 1}</td>
           <td class="p-1.5 font-semibold text-white whitespace-nowrap">
             <i class="fa-solid fa-charging-station text-yellow-400 mr-0.5"></i> ${station.name}
           </td>
@@ -748,8 +656,6 @@
     function initVehicleSelectors() {
       const brandSelect = document.getElementById('brandSelect');
       const modelSelect = document.getElementById('modelSelect');
-      const favCarBtn = document.getElementById('favCarBtn');
-      const favCarIcon = document.getElementById('favCarIcon');
 
       brandSelect.innerHTML = '<option value="">Selecione a marca...</option>';
 
@@ -769,7 +675,7 @@
         evDatabase[brand].forEach((car, index) => {
           const option = document.createElement('option');
           option.value = index; 
-          option.textContent = `${car.model} (${car.type.split(' ')[0]})`;
+          option.textContent = `${car.model}`;
           modelSelect.appendChild(option);
         });
       });
@@ -783,59 +689,21 @@
           document.getElementById('specBattery').innerText = `${selectedCar.battery} kWh`;
           document.getElementById('specRange').innerText = `${selectedCar.range} km`;
           document.getElementById('specConsumption').innerText = `${selectedCar.consumption} kWh/100km`;
-
-          updateFavCarIconUI();
         }
       });
 
-      // Gerenciamento de Veículo Favorito no LocalStorage
-      favCarBtn.addEventListener('click', () => {
-        if (!brandSelect.value || modelSelect.value === "") return;
-        const favData = { brand: brandSelect.value, index: modelSelect.value };
-        localStorage.setItem('hv_fav_car', JSON.stringify(favData));
-        updateFavCarIconUI();
-        alert(`Veículo ${selectedCar.model} salvo como favorito!`);
-      });
-
-      // Carrega veículo favorito se existir, ou BYD Dolphin GS como padrão
-      const savedFavCar = JSON.parse(localStorage.getItem('hv_fav_car'));
-      if (savedFavCar && evDatabase[savedFavCar.brand]) {
-        brandSelect.value = savedFavCar.brand;
-        brandSelect.dispatchEvent(new Event('change'));
-        modelSelect.value = savedFavCar.index;
-        modelSelect.dispatchEvent(new Event('change'));
-      } else {
-        brandSelect.value = "BYD";
-        brandSelect.dispatchEvent(new Event('change'));
-        modelSelect.value = "2"; 
-        modelSelect.dispatchEvent(new Event('change'));
-      }
-    }
-
-    function updateFavCarIconUI() {
-      const brandSelect = document.getElementById('brandSelect');
-      const modelSelect = document.getElementById('modelSelect');
-      const favCarIcon = document.getElementById('favCarIcon');
-
-      const savedFavCar = JSON.parse(localStorage.getItem('hv_fav_car'));
-      if (savedFavCar && savedFavCar.brand === brandSelect.value && String(savedFavCar.index) === String(modelSelect.value)) {
-        favCarIcon.className = "fa-solid fa-star text-amber-400";
-      } else {
-        favCarIcon.className = "fa-solid fa-star text-slate-500";
-      }
+      brandSelect.value = "BYD";
+      brandSelect.dispatchEvent(new Event('change'));
+      modelSelect.value = "1"; // Dolphin GS
+      modelSelect.dispatchEvent(new Event('change'));
     }
 
     async function calculateRoute() {
-      // Tenta resolver coordenadas de inputs caso não estejam prontas
-      if (!originCoords) {
-        originCoords = await geocodeAddress(document.getElementById('originInput').value);
-      }
-      if (!destCoords) {
-        destCoords = await geocodeAddress(document.getElementById('destInput').value);
-      }
+      if (!originCoords) originCoords = await geocodeAddress(document.getElementById('originInput').value);
+      if (!destCoords) destCoords = await geocodeAddress(document.getElementById('destInput').value);
 
       if (!selectedCar || !originCoords || !destCoords) {
-        alert("Por favor, selecione um veículo e digite endereços válidos de origem e destino.");
+        alert("Por favor, selecione veículo e insira endereços válidos.");
         return;
       }
 
@@ -847,6 +715,8 @@
 
         if (data.routes && data.routes.length > 0) {
           const route = data.routes[0];
+          currentRouteGeometry = route.geometry;
+
           const distKm = Math.round(route.distance / 1000);
           document.getElementById('totalDistance').innerText = `${distKm} km`;
 
@@ -861,13 +731,13 @@
           map.fitBounds(bounds, { padding: [30, 30] });
 
           const bbox = [
-            bounds.getSouth() - 0.20,
-            bounds.getWest() - 0.20,
-            bounds.getNorth() + 0.20,
-            bounds.getEast() + 0.20
+            bounds.getSouth() - 0.10,
+            bounds.getWest() - 0.10,
+            bounds.getNorth() + 0.10,
+            bounds.getEast() + 0.10
           ];
 
-          await fetchRouteStationsFromOSM(bbox);
+          await fetchRouteStationsFromOSM(bbox, currentRouteGeometry);
           renderStationsOnMapAndTable();
 
           const driveFactor = parseFloat(document.getElementById('driveMode').value);
@@ -883,12 +753,12 @@
           document.getElementById('rechargeDistanceAlert').innerText = (distKm > currentAutonomyKm - safeReserveKm) ? `em ${rechargePointKm} km` : "Não necessária";
 
           const kwhCost = parseFloat(document.getElementById('costPerKwh').value) || 0;
-          const paxCount = parseInt(document.getElementById('passengerCount').value) || 1;
+          const adultCount = parseInt(document.getElementById('adultCount').value) || 1;
           const totalKwhNeeded = (distKm / 100) * selectedCar.consumption;
           const totalCostEV = totalKwhNeeded * kwhCost;
 
           document.getElementById('totalCost').innerText = `R$ ${totalCostEV.toFixed(2)}`;
-          document.getElementById('costPax').innerText = `R$ ${(totalCostEV / paxCount).toFixed(2)}`;
+          document.getElementById('costPax').innerText = `R$ ${(totalCostEV / adultCount).toFixed(2)}`;
 
           if (distKm > currentAutonomyKm - safeReserveKm) {
             const arrivalSoc = 15;
@@ -899,15 +769,12 @@
             const socToCharge = Math.max(0, departureSoc - arrivalSoc);
             const kwhToCharge = (socToCharge / 100) * selectedCar.battery;
             
-            const chargingPowerKw = 45; 
-            const timeInHours = kwhToCharge / chargingPowerKw;
-            const timeInMinutes = Math.round(timeInHours * 60);
-
+            const timeInMinutes = Math.round((kwhToCharge / 45) * 60);
             const stopCost = kwhToCharge * kwhCost;
 
             document.getElementById('stopArrivalSoc').innerText = `${arrivalSoc}%`;
             document.getElementById('stopDepartureSoc').innerText = `${departureSoc}%`;
-            document.getElementById('stopChargingTime').innerText = `${timeInMinutes} min (~${(timeInHours).toFixed(1)}h)`;
+            document.getElementById('stopChargingTime').innerText = `${timeInMinutes} min`;
             document.getElementById('stopChargingCost').innerText = `R$ ${stopCost.toFixed(2)}`;
           } else {
             document.getElementById('stopArrivalSoc').innerText = "N/A";
@@ -929,10 +796,11 @@
           document.getElementById('fossilCost').innerText = `R$ ${totalCostFossil.toFixed(2)}`;
           document.getElementById('savingsEV').innerText = `R$ ${savings.toFixed(2)}`;
 
+          // MENSAGEM DE SUCESSO EXIBIDA APENAS AO APERTAR O BOTÃO "CALCULAR ROTA"
           showRouteToast();
         }
       } catch (err) {
-        console.error("Erro ao calcular rota:", err);
+        console.error("Erro no cálculo da rota:", err);
       }
     }
 
@@ -974,9 +842,6 @@
     });
 
     document.getElementById('calcBtn').addEventListener('click', calculateRoute);
-    document.getElementById('startBattery').addEventListener('input', calculateRoute);
-    document.getElementById('costPerLiter').addEventListener('input', calculateRoute);
-    document.getElementById('fossilKmPerLiter').addEventListener('input', calculateRoute);
     document.getElementById('filterCCS2').addEventListener('change', renderStationsOnMapAndTable);
     document.getElementById('filterAC').addEventListener('change', renderStationsOnMapAndTable);
 
