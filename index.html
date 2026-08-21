@@ -57,12 +57,6 @@
       border: 2px solid white;
       box-shadow: 0 0 8px rgba(0,0,0,0.6);
     }
-    .leaflet-control-layers {
-      background: #091a4a !important;
-      color: #f8fafc !important;
-      border: 1px solid #1e3a8a !important;
-      border-radius: 8px !important;
-    }
   </style>
 </head>
 <body class="min-h-screen p-2 md:p-6 font-sans">
@@ -278,7 +272,6 @@
           </div>
         </div>
 
-        <!-- Painel de Planejamento de Carga Recomendada -->
         <div id="rechargeDetailsBox" class="bg-[#020b29] p-2.5 rounded-lg border border-amber-500/40 text-xs space-y-1.5 my-1">
           <div class="font-bold text-amber-400 flex items-center gap-1.5">
             <i class="fa-solid fa-bolt"></i> Necessidade de Recarga:
@@ -288,11 +281,11 @@
             <span id="targetBatteryNeeded" class="font-bold text-emerald-400">--%</span>
           </div>
           <div class="flex justify-between text-blue-200">
-            <span>Tempo Estimado Parada (DC 50kW):</span>
+            <span>Tempo Parada (DC 50kW):</span>
             <span id="chargeTimeDC" class="font-bold text-amber-300">-- min</span>
           </div>
           <div class="flex justify-between text-blue-200">
-            <span>Tempo Estimado Parada (AC 7kW):</span>
+            <span>Tempo Parada (AC 7kW):</span>
             <span id="chargeTimeAC" class="font-bold text-slate-300">-- min</span>
           </div>
         </div>
@@ -335,7 +328,7 @@
       </div>
 
       <p class="text-[11px] text-emerald-300 flex items-center gap-1">
-        <i class="fa-solid fa-circle-info"></i> Dica: Clique em qualquer ponto do mapa para definir Origem ou Destino interativamente.
+        <i class="fa-solid fa-circle-info"></i> Clique em qualquer ponto do mapa para definir Origem ou Destino interativamente.
       </p>
 
       <div id="map"></div>
@@ -491,47 +484,31 @@
     let activeRouteIndex = 0;
     let routePolylines = [];
 
+    // INICIALIZAÇÃO LEVE COM OPENSTREETMAP MAPNIK NATIVO
     async function initMap() {
       map = L.map('map').setView([-8.0476, -34.8770], 8);
 
-      const esriStreet = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
-        attribution: 'Tiles &copy; Esri'
-      });
-
-      const googleHybrid = L.tileLayer('https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
-        attribution: '© Google Maps'
-      });
-
-      const cartoPositron = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-        attribution: '© CARTO'
-      });
-
-      esriStreet.addTo(map);
-
-      const baseMaps = {
-        "Esri Street Map": esriStreet,
-        "Google Híbrido/Satélite": googleHybrid,
-        "Carto Claro": cartoPositron
-      };
-      L.control.layers(baseMaps).addTo(map);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '© OpenStreetMap contributors'
+      }).addTo(map);
 
       initVehicleSelectors();
       initUserFavorites();
 
-      setupPhotonAutocomplete('originInput', 'originResults', (coords) => {
+      setupFastAutocomplete('originInput', 'originResults', (coords) => {
         originCoords = coords;
         updateLocationMarkers();
       });
-      setupPhotonAutocomplete('destInput', 'destResults', (coords) => {
+      setupFastAutocomplete('destInput', 'destResults', (coords) => {
         destCoords = coords;
         updateLocationMarkers();
       });
 
-      // REGISTRO DE CLIQUE DIRETO NO MAPA PARA DEFINIR ORIGEM OU DESTINO
       map.on('click', async (e) => {
         const lat = e.latlng.lat;
         const lng = e.latlng.lng;
-        const placeName = await reverseGeocodeCityState(lat, lng);
+        const placeName = await reverseGeocodeFast(lat, lng);
 
         const content = `
           <div class="text-slate-900 p-1 text-center font-sans">
@@ -558,12 +535,11 @@
         }
       });
 
-      originCoords = await geocodePhoton(document.getElementById('originInput').value);
-      destCoords = await geocodePhoton(document.getElementById('destInput').value);
+      originCoords = await geocodeFast(document.getElementById('originInput').value);
+      destCoords = await geocodeFast(document.getElementById('destInput').value);
       updateLocationMarkers();
     }
 
-    // Função global acionada ao escolher Origem/Destino via clique no Mapa
     window.setMapLocation = function(type, lat, lng, name) {
       if (type === 'origin') {
         originCoords = [lat, lng];
@@ -576,40 +552,37 @@
       if (clickPopup) map.closePopup(clickPopup);
     };
 
-    async function geocodePhoton(addressStr) {
+    // GEOCODIFICAÇÃO DIRETA E RÁPIDA (NOMINATIM DIRECT ENDPOINT)
+    async function geocodeFast(addressStr) {
       if (!addressStr) return null;
       try {
-        const url = `https://photon.komoot.io/api/?q=${encodeURIComponent(addressStr)}&limit=1&bbox=-74,-34,-34,5`;
+        const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(addressStr)}&countrycodes=br&limit=1`;
         const res = await fetch(url);
         const data = await res.json();
-        if (data && data.features && data.features.length > 0) {
-          const coords = data.features[0].geometry.coordinates;
-          return [coords[1], coords[0]];
+        if (data && data.length > 0) {
+          return [parseFloat(data[0].lat), parseFloat(data[0].lon)];
         }
       } catch (err) {
-        console.warn("Erro na geocodificação Photon:", err);
+        console.warn("Erro no geocodificador rápido:", err);
       }
       return null;
     }
 
-    async function reverseGeocodeCityState(lat, lng) {
+    async function reverseGeocodeFast(lat, lng) {
       try {
-        const url = `https://photon.komoot.io/reverse?lat=${lat}&lon=${lng}`;
+        const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=10`;
         const res = await fetch(url);
         const data = await res.json();
-        if (data && data.features && data.features.length > 0) {
-          const props = data.features[0].properties;
-          const city = props.city || props.town || props.district || props.name || "Localidade";
-          const state = props.state || "";
-          
-          let uf = state;
+        if (data && data.address) {
+          const city = data.address.city || data.address.town || data.address.municipality || data.address.village || "Localidade";
+          const state = data.address.state || "";
           const ufMap = { "Pernambuco":"PE", "Alagoas":"AL", "Paraíba":"PB", "Rio Grande do Norte":"RN", "Ceará":"CE", "Bahia":"BA", "Sergipe":"SE", "São Paulo":"SP", "Rio de Janeiro":"RJ", "Minas Gerais":"MG" };
-          uf = ufMap[state] || (state.length >= 2 ? state.substring(0, 2).toUpperCase() : "UF");
+          const uf = ufMap[state] || (state.length >= 2 ? state.substring(0, 2).toUpperCase() : "UF");
 
           return `${city} / ${uf}`;
         }
       } catch (e) {
-        console.warn("Falha no reverse geocoding:", e);
+        console.warn("Falha na geocodificação reversa:", e);
       }
       return "Cidade da Rota";
     }
@@ -626,10 +599,10 @@
       const choice = prompt(`Onde deseja inserir o endereço?\nDigite '1' para ORIGEM ou '2' para DESTINO:\n\n${addressStr}`, "2");
       if (choice === "1") {
         document.getElementById('originInput').value = addressStr;
-        geocodePhoton(addressStr).then(c => { originCoords = c; updateLocationMarkers(); });
+        geocodeFast(addressStr).then(c => { originCoords = c; updateLocationMarkers(); });
       } else if (choice === "2") {
         document.getElementById('destInput').value = addressStr;
-        geocodePhoton(addressStr).then(c => { destCoords = c; updateLocationMarkers(); });
+        geocodeFast(addressStr).then(c => { destCoords = c; updateLocationMarkers(); });
       }
     }
 
@@ -689,7 +662,8 @@
       } else wrapper.classList.add('hidden');
     }
 
-    function setupPhotonAutocomplete(inputId, resultsId, callback) {
+    // AUTOCOMPLETE OTIMIZADO E ULTRA-RÁPIDO (250ms DEBOUNCE)
+    function setupFastAutocomplete(inputId, resultsId, callback) {
       const input = document.getElementById(inputId);
       const results = document.getElementById(resultsId);
 
@@ -708,44 +682,39 @@
 
         timeout = setTimeout(async () => {
           try {
-            const url = `https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=6&lang=default&bbox=-74,-34,-34,5`;
+            const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&countrycodes=br&addressdetails=1&limit=5`;
             const res = await fetch(url);
             const data = await res.json();
             
             results.innerHTML = '';
-            if (!data || !data.features || data.features.length === 0) { 
+            if (!data || data.length === 0) { 
               results.classList.add('hidden'); 
               return; 
             }
 
-            data.features.forEach(feat => {
-              const props = feat.properties;
-              const coords = feat.geometry.coordinates;
-              const labelParts = [props.name, props.street, props.city || props.town, props.state, props.country].filter(Boolean);
-              const displayName = labelParts.join(', ');
-
+            data.forEach(place => {
               const div = document.createElement('div');
               div.className = 'autocomplete-item';
-              div.innerText = displayName;
+              div.innerText = place.display_name;
               div.onclick = (e) => {
                 e.stopPropagation();
-                input.value = displayName;
+                input.value = place.display_name;
                 results.classList.add('hidden');
-                callback([coords[1], coords[0]]);
+                callback([parseFloat(place.lat), parseFloat(place.lon)]);
               };
               results.appendChild(div);
             });
             results.classList.remove('hidden');
           } catch (err) {
-            console.error("Erro no autocomplete Photon:", err);
+            console.error("Erro no autocomplete rápido:", err);
           }
-        }, 300);
+        }, 250);
       });
     }
 
     function getMinDistanceToRouteInKm(lat, lng, routeCoords) {
       let minDistance = Infinity;
-      for (let i = 0; i < routeCoords.length - 1; i += 2) {
+      for (let i = 0; i < routeCoords.length - 1; i += 3) {
         const rLat = routeCoords[i][1];
         const rLng = routeCoords[i][0];
         const d = L.latLng(lat, lng).distanceTo(L.latLng(rLat, rLng)) / 1000;
@@ -757,13 +726,10 @@
     async function fetchRouteStationsFromOSM(bbox, routeGeometry) {
       const [south, west, north, east] = bbox;
       const query = `
-        [out:json][timeout:20];
+        [out:json][timeout:15];
         (
           node["amenity"="charging_station"](${south},${west},${north},${east});
           way["amenity"="charging_station"](${south},${west},${north},${east});
-          node["capacity:charging_station"](${south},${west},${north},${east});
-          node["socket:ccs"](${south},${west},${north},${east});
-          node["socket:type2"](${south},${west},${north},${east});
         );
         out body center;
       `;
@@ -776,16 +742,19 @@
         const data = await response.json();
         const routeCoords = routeGeometry.coordinates;
 
-        const rawStations = data.elements.map((item, idx) => {
+        fetchedStations = data.elements.map((item, idx) => {
           const lat = item.lat || (item.center ? item.center.lat : null);
           const lng = item.lon || (item.center ? item.center.lon : null);
-          const name = item.tags.name || item.tags.operator || item.tags.brand || `Eletroposto Rota #${idx + 1}`;
-          const isDC = item.tags['socket:ccs'] || item.tags['socket:type2_combo'] || (item.tags.description && item.tags.description.includes('DC'));
+          const name = item.tags.name || item.tags.operator || `Eletroposto Rota #${idx + 1}`;
+          const isDC = item.tags['socket:ccs'] || (item.tags.description && item.tags.description.includes('DC'));
+
+          const city = item.tags['addr:city'] || item.tags['addr:town'] || item.tags['addr:municipality'] || "Ponto de Carga";
+          const state = item.tags['addr:state'] || "UF";
 
           return {
             id: item.id || idx,
             name: name,
-            cityState: "Buscando localização...",
+            cityState: `${city} / ${state}`,
             lat: lat,
             lng: lng,
             power: isDC ? 'CCS2 / Carga Rápida DC' : 'AC Wallbox / Type 2',
@@ -796,11 +765,6 @@
           const distToRoute = getMinDistanceToRouteInKm(s.lat, s.lng, routeCoords);
           return distToRoute <= 10;
         });
-
-        fetchedStations = await Promise.all(rawStations.map(async (st) => {
-          st.cityState = await reverseGeocodeCityState(st.lat, st.lng);
-          return st;
-        }));
 
       } catch (err) {
         console.warn("Consulta OSM falhou:", err);
@@ -994,7 +958,6 @@
       await fetchRouteStationsFromOSM(bbox, route.geometry);
       renderStationsOnMapAndTable();
 
-      // CÁLCULO DE TELEMETRIA, RECARGA E TEMPOS ESTIMADOS
       const driveFactor = parseFloat(document.getElementById('driveMode').value);
       const acFactor = parseFloat(document.getElementById('acMode').value);
       const adjustedRange = selectedCar.range / (driveFactor * acFactor);
@@ -1002,20 +965,18 @@
       const startPercent = parseFloat(document.getElementById('startBattery').value) || 80;
       const currentAutonomyKm = Math.round((adjustedRange * startPercent) / 100);
 
-      const safeReserveKm = Math.round(adjustedRange * 0.15); // Margem de segurança de 15%
+      const safeReserveKm = Math.round(adjustedRange * 0.15);
       const rechargePointKm = Math.max(0, currentAutonomyKm - safeReserveKm);
       
       document.getElementById('rechargeDistanceAlert').innerText = (distKm > currentAutonomyKm - safeReserveKm) ? `em ${rechargePointKm} km` : "Não necessária";
 
-      // Cálculo de Porcentagem Segura Necessária
       const totalPercentNeeded = (distKm / adjustedRange) * 100;
-      const safeTargetPercent = Math.min(100, Math.ceil(totalPercentNeeded + 15)); // Necessário + 15% reserva
+      const safeTargetPercent = Math.min(100, Math.ceil(totalPercentNeeded + 15));
 
       if (distKm > currentAutonomyKm - safeReserveKm) {
         const percentToCharge = Math.max(0, safeTargetPercent - startPercent);
         const kwhToCharge = (percentToCharge / 100) * selectedCar.battery;
 
-        // Estima tempo em minutos: DC (50kW médio) e AC (7kW médio)
         const minutesDC = Math.ceil((kwhToCharge / 50) * 60);
         const minutesAC = Math.ceil((kwhToCharge / 7) * 60);
 
@@ -1028,7 +989,6 @@
         document.getElementById('chargeTimeAC').innerText = "0 min";
       }
 
-      // Custos
       const kwhCost = parseFloat(document.getElementById('costPerKwh').value) || 0;
       const adultCount = parseInt(document.getElementById('adultCount').value) || 1;
       const totalKwhNeeded = (distKm / 100) * selectedCar.consumption;
@@ -1061,8 +1021,8 @@
     }
 
     async function calculateRoute() {
-      if (!originCoords) originCoords = await geocodePhoton(document.getElementById('originInput').value);
-      if (!destCoords) destCoords = await geocodePhoton(document.getElementById('destInput').value);
+      if (!originCoords) originCoords = await geocodeFast(document.getElementById('originInput').value);
+      if (!destCoords) destCoords = await geocodeFast(document.getElementById('destInput').value);
 
       if (!selectedCar || !originCoords || !destCoords) {
         alert("Por favor, selecione o veículo e insira locais válidos para Origem e Destino.");
