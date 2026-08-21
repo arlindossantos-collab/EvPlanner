@@ -279,7 +279,6 @@
           <div class="flex justify-between"><span class="text-blue-300">📏 Distância Total:</span><span id="totalDistance" class="font-bold text-emerald-400">0 km</span></div>
           <div class="flex justify-between items-center"><span class="text-blue-300">⚡ Parar em:</span><span id="rechargeDistanceAlert" class="font-bold text-amber-400">-- km</span></div>
           
-          <!-- Quadro Comparativo de Custos -->
           <div class="bg-[#020b29] p-2 rounded border border-blue-800 my-1 space-y-1 text-xs">
             <div class="flex justify-between"><span class="text-amber-300">⛽ Gasolina:</span><span id="gasCost" class="font-bold text-red-300">R$ 0,00</span></div>
             <div class="flex justify-between"><span class="text-emerald-300">🌽 Álcool (Etanol):</span><span id="ethanolCost" class="font-bold text-amber-300">R$ 0,00</span></div>
@@ -294,12 +293,20 @@
 
     </div>
 
-    <!-- Barra de Filtros e Mapa -->
+    <!-- Barra de Seleção de Rotas Alternativas, Filtros e Mapa -->
     <div class="bg-blue-950/80 p-3 rounded-xl border border-blue-900 space-y-3 shadow-lg">
-      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-blue-900 pb-2 text-xs md:text-sm">
-        <span class="font-semibold text-blue-100 flex items-center gap-2">
-          <i class="fa-solid fa-charging-station text-yellow-400"></i> Filtro de Eletropostos Mapeados:
-        </span>
+      <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-2 border-b border-blue-900 pb-2 text-xs md:text-sm">
+        
+        <!-- Seleção de Rotas Alternativas -->
+        <div class="flex items-center gap-2 flex-wrap">
+          <span class="font-semibold text-blue-100 flex items-center gap-1.5">
+            <i class="fa-solid fa-map-location-dot text-emerald-400"></i> Opções de Rota (Até 3):
+          </span>
+          <div id="routeOptionsContainer" class="flex items-center gap-1.5">
+            <span class="text-slate-400 text-xs">Calcule uma rota para visualizar as opções...</span>
+          </div>
+        </div>
+
         <div class="flex flex-wrap gap-3 text-blue-200 text-xs md:text-sm">
           <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" id="filterCCS2" checked class="rounded text-emerald-500"> CCS2 / Ultra-Rápido DC</label>
           <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" id="filterAC" checked class="rounded text-emerald-500"> AC Wallbox (7-22kW)</label>
@@ -312,7 +319,7 @@
     <!-- Relação de Eletropostos na Rota -->
     <div class="bg-blue-950/80 p-3 md:p-4 rounded-xl border border-blue-900 space-y-2 shadow-lg">
       <h3 class="text-xs md:text-sm font-bold text-white flex items-center justify-between border-b border-blue-900 pb-2">
-        <span class="flex items-center gap-2"><i class="fa-solid fa-list-check text-emerald-400"></i> Eletropostos Exclusivos na Rota</span>
+        <span class="flex items-center gap-2"><i class="fa-solid fa-list-check text-emerald-400"></i> Eletropostos Exclusivos na Rota Selecionada</span>
         <span id="stationsCount" class="text-xs bg-blue-900 text-emerald-300 px-2.5 py-0.5 rounded border border-blue-700">0 encontrados</span>
       </h3>
       <div class="overflow-x-auto">
@@ -321,7 +328,7 @@
             <tr>
               <th class="p-2 whitespace-nowrap w-8">#</th>
               <th class="p-2 whitespace-nowrap">Eletroposto / Ponto</th>
-              <th class="p-2 whitespace-nowrap min-w-[140px]">Cidade / UF</th>
+              <th class="p-2 whitespace-nowrap min-w-[150px]">Cidade / UF</th>
               <th class="p-2 whitespace-nowrap">Especificação</th>
               <th class="p-2 whitespace-nowrap">Tipo</th>
               <th class="p-2 text-right whitespace-nowrap">Ação</th>
@@ -337,7 +344,7 @@
   </div>
 
   <script>
-    // BASE COMPLETA E INTEGRAL DE VEÍCULOS
+    // BASE INTEGRAL DE VEÍCULOS
     const evDatabase = {
       "BYD": [
         { model: 'Dolphin Mini (4 Lugares)', type: 'BEV (100% Elétrico)', battery: 38.0, range: 280, consumption: 13.5 },
@@ -449,12 +456,16 @@
       ]
     };
 
-    let map, routeLayer, originCoords = null, destCoords = null;
+    let map, originCoords = null, destCoords = null;
     let originMarker, destMarker;
     let selectedCar = null;
     let stationMarkers = [];
     let fetchedStations = [];
-    let currentRouteGeometry = null;
+    
+    // Suporte para Múltiplas Rotas
+    let availableRoutes = [];
+    let activeRouteIndex = 0;
+    let routePolylines = [];
 
     async function initMap() {
       map = L.map('map').setView([-8.0476, -34.8770], 8);
@@ -495,16 +506,35 @@
       return null;
     }
 
+    // Geocodificação Reversa Precisa para Município/UF de cada Eletroposto
+    async function reverseGeocodeCityState(lat, lng) {
+      try {
+        const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=10&addressdetails=1`;
+        const res = await fetch(url);
+        const data = await res.json();
+        if (data && data.address) {
+          const city = data.address.city || data.address.town || data.address.municipality || data.address.village || "Localidade";
+          const state = data.address.state_code || data.address.state || "";
+          let uf = state;
+          if (state.length > 2) {
+            // Mapeamento simples de nome de estado para sigla de UF
+            const ufMap = { "Pernambuco":"PE", "Alagoas":"AL", "Paraíba":"PB", "Rio Grande do Norte":"RN", "Ceará":"CE", "Bahia":"BA", "Sergipe":"SE" };
+            uf = ufMap[state] || state.substring(0,2).toUpperCase();
+          }
+          return `${city} / ${uf}`;
+        }
+      } catch (e) {
+        console.warn("Falha no reverse geocoding:", e);
+      }
+      return "Cidade da Rota";
+    }
+
     function updateLocationMarkers() {
       if (originMarker) map.removeLayer(originMarker);
       if (destMarker) map.removeLayer(destMarker);
 
-      if (originCoords) {
-        originMarker = L.marker(originCoords).addTo(map).bindPopup("<b>Origem</b>");
-      }
-      if (destCoords) {
-        destMarker = L.marker(destCoords).addTo(map).bindPopup("<b>Destino</b>");
-      }
+      if (originCoords) originMarker = L.marker(originCoords).addTo(map).bindPopup("<b>Origem</b>");
+      if (destCoords) destMarker = L.marker(destCoords).addTo(map).bindPopup("<b>Destino</b>");
     }
 
     function askTargetInputAndSet(addressStr) {
@@ -527,9 +557,7 @@
             localStorage.setItem('hv_home_address', newHome);
             askTargetInputAndSet(newHome);
           }
-        } else {
-          askTargetInputAndSet(home);
-        }
+        } else askTargetInputAndSet(home);
       });
 
       document.getElementById('setWorkBtn').addEventListener('click', () => {
@@ -540,9 +568,7 @@
             localStorage.setItem('hv_work_address', newWork);
             askTargetInputAndSet(newWork);
           }
-        } else {
-          askTargetInputAndSet(work);
-        }
+        } else askTargetInputAndSet(work);
       });
 
       document.getElementById('addFavPlaceBtn').addEventListener('click', () => {
@@ -574,14 +600,8 @@
           select.appendChild(opt);
         });
 
-        select.onchange = (e) => {
-          if (e.target.value) {
-            askTargetInputAndSet(e.target.value);
-          }
-        };
-      } else {
-        wrapper.classList.add('hidden');
-      }
+        select.onchange = (e) => { if (e.target.value) askTargetInputAndSet(e.target.value); };
+      } else wrapper.classList.add('hidden');
     }
 
     function setupAutocomplete(inputId, resultsId, callback) {
@@ -624,7 +644,7 @@
 
     function getMinDistanceToRouteInKm(lat, lng, routeCoords) {
       let minDistance = Infinity;
-      for (let i = 0; i < routeCoords.length - 1; i += 3) {
+      for (let i = 0; i < routeCoords.length - 1; i += 2) {
         const rLat = routeCoords[i][1];
         const rLng = routeCoords[i][0];
         const d = L.latLng(lat, lng).distanceTo(L.latLng(rLat, rLng)) / 1000;
@@ -633,13 +653,17 @@
       return minDistance;
     }
 
+    // Consulta Expandida de Eletropostos para Maior Fidelidade
     async function fetchRouteStationsFromOSM(bbox, routeGeometry) {
       const [south, west, north, east] = bbox;
       const query = `
-        [out:json][timeout:15];
+        [out:json][timeout:20];
         (
           node["amenity"="charging_station"](${south},${west},${north},${east});
           way["amenity"="charging_station"](${south},${west},${north},${east});
+          node["capacity:charging_station"](${south},${west},${north},${east});
+          node["socket:ccs"](${south},${west},${north},${east});
+          node["socket:type2"](${south},${west},${north},${east});
         );
         out body center;
       `;
@@ -652,20 +676,16 @@
         const data = await response.json();
         const routeCoords = routeGeometry.coordinates;
 
-        fetchedStations = data.elements.map((item, idx) => {
+        const rawStations = data.elements.map((item, idx) => {
           const lat = item.lat || (item.center ? item.center.lat : null);
           const lng = item.lon || (item.center ? item.center.lon : null);
-          const name = item.tags.name || item.tags.operator || `Eletroposto ${idx + 1}`;
-          const isDC = item.tags['socket:ccs'] || (item.tags.description && item.tags.description.includes('DC'));
-          
-          const city = item.tags['addr:city'] || item.tags['addr:town'] || item.tags['addr:municipality'] || item.tags['is_in:city'] || "Cidade da Rota";
-          const state = item.tags['addr:state'] || (lat < -8.5 ? "AL" : (lat < -7.3 ? "PE" : "PB"));
+          const name = item.tags.name || item.tags.operator || item.tags.brand || `Eletroposto Rota #${idx + 1}`;
+          const isDC = item.tags['socket:ccs'] || item.tags['socket:type2_combo'] || (item.tags.description && item.tags.description.includes('DC'));
 
           return {
             id: item.id || idx,
             name: name,
-            city: city,
-            state: state,
+            cityState: "Buscando localização...",
             lat: lat,
             lng: lng,
             power: isDC ? 'CCS2 / Carga Rápida DC' : 'AC Wallbox / Type 2',
@@ -674,11 +694,17 @@
         }).filter(s => {
           if (!s.lat || !s.lng) return false;
           const distToRoute = getMinDistanceToRouteInKm(s.lat, s.lng, routeCoords);
-          return distToRoute <= 12;
+          return distToRoute <= 10; // Raio estrito de 10 km da rota
         });
 
+        // Resolve geocodificação de Cidade/UF para os pontos filtrados
+        fetchedStations = await Promise.all(rawStations.map(async (st) => {
+          st.cityState = await reverseGeocodeCityState(st.lat, st.lng);
+          return st;
+        }));
+
       } catch (err) {
-        console.warn("Consulta OSM falhou ou sem resultados diretos:", err);
+        console.warn("Consulta OSM falhou ou sem resultados:", err);
         fetchedStations = [];
       }
     }
@@ -700,7 +726,7 @@
       document.getElementById('stationsCount').innerText = `${activeStations.length} encontrados na rota`;
 
       if (activeStations.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6" class="p-3 text-center text-slate-400">Nenhum eletroposto encontrado exatamente ao longo desta rota.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="6" class="p-3 text-center text-slate-400">Nenhum eletroposto encontrado ao longo desta rota.</td></tr>`;
         return;
       }
 
@@ -716,7 +742,7 @@
 
         const marker = L.marker([station.lat, station.lng], { icon: customIcon })
           .addTo(map)
-          .bindPopup(`<b>#${index + 1} ⚡ ${station.name}</b><br><span style="font-size:11px;">${station.city} - ${station.state}</span><br><span style="font-size:11px;">${station.power}</span>`);
+          .bindPopup(`<b>#${index + 1} ⚡ ${station.name}</b><br><span style="font-size:11px;">${station.cityState}</span><br><span style="font-size:11px;">${station.power}</span>`);
 
         stationMarkers.push(marker);
 
@@ -727,8 +753,8 @@
           <td class="p-2 font-semibold text-white whitespace-nowrap">
             <i class="fa-solid fa-charging-station text-yellow-400 mr-1"></i> ${station.name}
           </td>
-          <td class="p-2 text-blue-200 whitespace-nowrap font-medium min-w-[140px]">
-            ${station.city} / ${station.state}
+          <td class="p-2 text-blue-200 whitespace-nowrap font-medium min-w-[150px]">
+            ${station.cityState}
           </td>
           <td class="p-2 whitespace-nowrap"><span class="bg-blue-900 text-blue-100 px-2 py-0.5 rounded border border-blue-700 text-xs">${station.power}</span></td>
           <td class="p-2 font-bold whitespace-nowrap ${station.type === 'DC' ? 'text-red-400' : 'text-emerald-400'}">
@@ -830,6 +856,92 @@
       }
     }
 
+    // Processamento de Cálculo para a Rota Selecionada
+    async function selectActiveRoute(index) {
+      if (!availableRoutes[index]) return;
+      activeRouteIndex = index;
+
+      // Atualiza destaques das linhas no mapa
+      routePolylines.forEach((pl, idx) => {
+        if (idx === activeRouteIndex) {
+          pl.setStyle({ color: '#10b981', weight: 6, opacity: 1 });
+          pl.bringToFront();
+        } else {
+          pl.setStyle({ color: '#64748b', weight: 4, opacity: 0.5 });
+        }
+      });
+
+      // Atualiza botões UI de seleção de rota
+      const container = document.getElementById('routeOptionsContainer');
+      container.querySelectorAll('button').forEach((btn, idx) => {
+        if (idx === activeRouteIndex) {
+          btn.className = "bg-emerald-500 text-slate-950 font-bold px-3 py-1 rounded text-xs transition border border-emerald-400 shadow";
+        } else {
+          btn.className = "bg-blue-900 hover:bg-blue-800 text-blue-200 font-semibold px-3 py-1 rounded text-xs transition border border-blue-700";
+        }
+      });
+
+      const route = availableRoutes[activeRouteIndex];
+      const distKm = Math.round(route.distance / 1000);
+      document.getElementById('totalDistance').innerText = `${distKm} km`;
+
+      const bounds = L.geoJSON(route.geometry).getBounds();
+      map.fitBounds(bounds, { padding: [30, 30] });
+
+      const bbox = [
+        bounds.getSouth() - 0.10,
+        bounds.getWest() - 0.10,
+        bounds.getNorth() + 0.10,
+        bounds.getEast() + 0.10
+      ];
+
+      await fetchRouteStationsFromOSM(bbox, route.geometry);
+      renderStationsOnMapAndTable();
+
+      // Recálculo da Telemetria e Custos
+      const driveFactor = parseFloat(document.getElementById('driveMode').value);
+      const acFactor = parseFloat(document.getElementById('acMode').value);
+      const adjustedRange = selectedCar.range / (driveFactor * acFactor);
+
+      const startPercent = parseFloat(document.getElementById('startBattery').value) || 80;
+      const currentAutonomyKm = Math.round((adjustedRange * startPercent) / 100);
+
+      const safeReserveKm = Math.round(adjustedRange * 0.15);
+      const rechargePointKm = Math.max(0, currentAutonomyKm - safeReserveKm);
+      
+      document.getElementById('rechargeDistanceAlert').innerText = (distKm > currentAutonomyKm - safeReserveKm) ? `em ${rechargePointKm} km` : "Não necessária";
+
+      const kwhCost = parseFloat(document.getElementById('costPerKwh').value) || 0;
+      const adultCount = parseInt(document.getElementById('adultCount').value) || 1;
+      const totalKwhNeeded = (distKm / 100) * selectedCar.consumption;
+      const totalCostEV = totalKwhNeeded * kwhCost;
+
+      document.getElementById('totalCost').innerText = `R$ ${totalCostEV.toFixed(2)}`;
+      document.getElementById('costPax').innerText = `R$ ${(totalCostEV / adultCount).toFixed(2)}`;
+
+      const gasPrice = parseFloat(document.getElementById('costPerLiterGas').value) || 5.89;
+      const gasKmPerLiter = parseFloat(document.getElementById('kmPerLiterGas').value) || 11.5;
+      const totalGasCost = (distKm / gasKmPerLiter) * gasPrice;
+
+      const ethanolPrice = parseFloat(document.getElementById('costPerLiterEthanol').value) || 4.19;
+      const ethanolKmPerLiter = parseFloat(document.getElementById('kmPerLiterEthanol').value) || 8.1;
+      const totalEthanolCost = (distKm / ethanolKmPerLiter) * ethanolPrice;
+
+      document.getElementById('gasCost').innerText = `R$ ${totalGasCost.toFixed(2)}`;
+      document.getElementById('ethanolCost').innerText = `R$ ${totalEthanolCost.toFixed(2)}`;
+
+      const bestFossilCost = Math.min(totalGasCost, totalEthanolCost);
+      const bestFossilName = totalEthanolCost < totalGasCost ? "Álcool (Etanol)" : "Gasolina";
+      document.getElementById('bestFossilOption').innerText = `${bestFossilName} (R$ ${bestFossilCost.toFixed(2)})`;
+
+      const savings = Math.max(0, bestFossilCost - totalCostEV);
+      document.getElementById('savingsEV').innerText = `R$ ${savings.toFixed(2)}`;
+
+      const usedPercent = (distKm / adjustedRange) * 100;
+      const remainingPercent = startPercent - usedPercent;
+      updateBatteryUI(remainingPercent);
+    }
+
     async function calculateRoute() {
       if (!originCoords) originCoords = await geocodeAddress(document.getElementById('originInput').value);
       if (!destCoords) destCoords = await geocodeAddress(document.getElementById('destInput').value);
@@ -839,81 +951,42 @@
         return;
       }
 
-      const url = `https://router.project-osrm.org/route/v1/driving/${originCoords[1]},${originCoords[0]};${destCoords[1]},${destCoords[0]}?overview=full&geometries=geojson`;
+      // Consulta de até 3 rotas alternativas no OSRM
+      const url = `https://router.project-osrm.org/route/v1/driving/${originCoords[1]},${originCoords[0]};${destCoords[1]},${destCoords[0]}?overview=full&geometries=geojson&alternatives=3`;
 
       try {
         const res = await fetch(url);
         const data = await res.json();
 
         if (data.routes && data.routes.length > 0) {
-          const route = data.routes[0];
-          currentRouteGeometry = route.geometry;
+          availableRoutes = data.routes.slice(0, 3); // Limita a no máximo 3 rotas
 
-          const distKm = Math.round(route.distance / 1000);
-          document.getElementById('totalDistance').innerText = `${distKm} km`;
+          // Limpa rotas antigas do mapa
+          routePolylines.forEach(pl => map.removeLayer(pl));
+          routePolylines = [];
 
-          if (routeLayer) map.removeLayer(routeLayer);
-          routeLayer = L.geoJSON(route.geometry, {
-            style: { color: '#10b981', weight: 5 }
-          }).addTo(map);
+          const container = document.getElementById('routeOptionsContainer');
+          container.innerHTML = '';
 
-          updateLocationMarkers();
+          // Renderiza todas as opções de rota no mapa
+          availableRoutes.forEach((route, idx) => {
+            const distKm = Math.round(route.distance / 1000);
+            const polyline = L.geoJSON(route.geometry, {
+              style: { color: '#64748b', weight: 4, opacity: 0.6 }
+            }).addTo(map);
 
-          const bounds = routeLayer.getBounds();
-          map.fitBounds(bounds, { padding: [30, 30] });
+            polyline.on('click', () => selectActiveRoute(idx));
+            routePolylines.push(polyline);
 
-          const bbox = [
-            bounds.getSouth() - 0.10,
-            bounds.getWest() - 0.10,
-            bounds.getNorth() + 0.10,
-            bounds.getEast() + 0.10
-          ];
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.innerText = `Rota ${idx + 1} (${distKm} km)`;
+            btn.onclick = () => selectActiveRoute(idx);
+            container.appendChild(btn);
+          });
 
-          await fetchRouteStationsFromOSM(bbox, currentRouteGeometry);
-          renderStationsOnMapAndTable();
-
-          const driveFactor = parseFloat(document.getElementById('driveMode').value);
-          const acFactor = parseFloat(document.getElementById('acMode').value);
-          const adjustedRange = selectedCar.range / (driveFactor * acFactor);
-
-          const startPercent = parseFloat(document.getElementById('startBattery').value) || 80;
-          const currentAutonomyKm = Math.round((adjustedRange * startPercent) / 100);
-
-          const safeReserveKm = Math.round(adjustedRange * 0.15);
-          const rechargePointKm = Math.max(0, currentAutonomyKm - safeReserveKm);
-          
-          document.getElementById('rechargeDistanceAlert').innerText = (distKm > currentAutonomyKm - safeReserveKm) ? `em ${rechargePointKm} km` : "Não necessária";
-
-          const kwhCost = parseFloat(document.getElementById('costPerKwh').value) || 0;
-          const adultCount = parseInt(document.getElementById('adultCount').value) || 1;
-          const totalKwhNeeded = (distKm / 100) * selectedCar.consumption;
-          const totalCostEV = totalKwhNeeded * kwhCost;
-
-          document.getElementById('totalCost').innerText = `R$ ${totalCostEV.toFixed(2)}`;
-          document.getElementById('costPax').innerText = `R$ ${(totalCostEV / adultCount).toFixed(2)}`;
-
-          const gasPrice = parseFloat(document.getElementById('costPerLiterGas').value) || 5.89;
-          const gasKmPerLiter = parseFloat(document.getElementById('kmPerLiterGas').value) || 11.5;
-          const totalGasCost = (distKm / gasKmPerLiter) * gasPrice;
-
-          const ethanolPrice = parseFloat(document.getElementById('costPerLiterEthanol').value) || 4.19;
-          const ethanolKmPerLiter = parseFloat(document.getElementById('kmPerLiterEthanol').value) || 8.1;
-          const totalEthanolCost = (distKm / ethanolKmPerLiter) * ethanolPrice;
-
-          document.getElementById('gasCost').innerText = `R$ ${totalGasCost.toFixed(2)}`;
-          document.getElementById('ethanolCost').innerText = `R$ ${totalEthanolCost.toFixed(2)}`;
-
-          const bestFossilCost = Math.min(totalGasCost, totalEthanolCost);
-          const bestFossilName = totalEthanolCost < totalGasCost ? "Álcool (Etanol)" : "Gasolina";
-          document.getElementById('bestFossilOption').innerText = `${bestFossilName} (R$ ${bestFossilCost.toFixed(2)})`;
-
-          const savings = Math.max(0, bestFossilCost - totalCostEV);
-          document.getElementById('savingsEV').innerText = `R$ ${savings.toFixed(2)}`;
-
-          const usedPercent = (distKm / adjustedRange) * 100;
-          const remainingPercent = startPercent - usedPercent;
-          updateBatteryUI(remainingPercent);
-
+          // Ativa a primeira rota por padrão
+          await selectActiveRoute(0);
           showRouteToast();
         }
       } catch (err) {
