@@ -108,7 +108,7 @@
         </div>
       </div>
 
-      <!-- Card 2: Trajeto com Autocomplete de Ruas e Avenidas -->
+      <!-- Card 2: Trajeto com Autocomplete Avançado -->
       <div class="bg-blue-950/80 p-4 rounded-xl border border-blue-900 space-y-3 shadow-md flex flex-col justify-between">
         <div>
           <h2 class="text-sm font-semibold text-blue-100 border-b border-blue-900 pb-1.5 mb-2 flex items-center gap-1.5">
@@ -116,13 +116,13 @@
           </h2>
           <div class="space-y-2">
             <div class="relative">
-              <label class="block text-[11px] text-blue-300 mb-0.5">Origem (Endereço, Rua, Cidade)</label>
-              <input type="text" id="originInput" value="Recife, PE, Brasil" class="w-full bg-[#031038] border border-blue-800 rounded-md p-1.5 text-white text-xs outline-none focus:border-emerald-500" placeholder="Digite rua, avenida ou cidade...">
+              <label class="block text-[11px] text-blue-300 mb-0.5">Origem (Rua, Nº, Cidade, Estado)</label>
+              <input type="text" id="originInput" value="Recife, PE, Brasil" class="w-full bg-[#031038] border border-blue-800 rounded-md p-1.5 text-white text-xs outline-none focus:border-emerald-500" placeholder="Ex: Av. Boa Viagem, 500, Recife">
               <div id="originResults" class="autocomplete-results hidden"></div>
             </div>
             <div class="relative">
-              <label class="block text-[11px] text-blue-300 mb-0.5">Destino (Endereço, Rua, Cidade)</label>
-              <input type="text" id="destInput" value="Maceió, AL, Brasil" class="w-full bg-[#031038] border border-blue-800 rounded-md p-1.5 text-white text-xs outline-none focus:border-emerald-500" placeholder="Digite rua, avenida ou cidade...">
+              <label class="block text-[11px] text-blue-300 mb-0.5">Destino (Rua, Nº, Cidade, Estado)</label>
+              <input type="text" id="destInput" value="Maceió, AL, Brasil" class="w-full bg-[#031038] border border-blue-800 rounded-md p-1.5 text-white text-xs outline-none focus:border-emerald-500" placeholder="Ex: Av. Epitácio Pessoa, 4985, João Pessoa">
               <div id="destResults" class="autocomplete-results hidden"></div>
             </div>
             <div class="grid grid-cols-2 gap-2">
@@ -195,35 +195,44 @@
         </div>
       </div>
 
-      <!-- Card 4: Telemetria & Alertas -->
+      <!-- Card 4: Telemetria & Plano de Parada Detalhado -->
       <div class="bg-blue-950/80 p-4 rounded-xl border border-blue-900 space-y-3 shadow-md flex flex-col justify-between">
         <div>
           <h2 class="text-sm font-semibold text-blue-100 border-b border-blue-900 pb-1.5 mb-2 flex items-center gap-1.5">
-            <i class="fa-solid fa-chart-line text-emerald-400"></i> 4. Telemetria & Alertas
+            <i class="fa-solid fa-chart-line text-emerald-400"></i> 4. Telemetria & Parada
           </h2>
           
           <div class="space-y-2">
             <div class="flex justify-between text-xs text-blue-300">
-              <span>Nível na Chegada:</span>
+              <span>Nível Estimado Chegada:</span>
               <span id="batteryPercentage" class="font-bold text-sm">--%</span>
             </div>
             
-            <div class="w-full bg-[#031038] border-2 border-blue-800 rounded-xl h-7 p-1 relative flex items-center">
+            <div class="w-full bg-[#031038] border-2 border-blue-800 rounded-xl h-6 p-1 relative flex items-center">
               <div id="batteryBar" class="h-full rounded-lg transition-all duration-500 bg-emerald-500" style="width: 100%;"></div>
               <div class="absolute -right-3 w-2 h-3.5 bg-blue-800 rounded-r-sm"></div>
             </div>
           </div>
         </div>
 
-        <div class="text-[11px] text-blue-200 space-y-1.5 border-t border-blue-900 pt-2">
+        <div class="text-[11px] text-blue-200 space-y-1 border-t border-blue-900 pt-1.5">
           <div class="flex justify-between"><span class="text-blue-300">📏 Distância Total:</span><span id="totalDistance" class="font-bold text-emerald-400">0 km</span></div>
-          <div class="flex justify-between items-center"><span class="text-blue-300">⚡ Abastecer em:</span><span id="rechargeDistanceAlert" class="font-bold text-amber-400 text-right">-- km</span></div>
-          <div class="flex justify-between items-center"><span class="text-blue-300">🛡️ Carga Mín. Segura:</span><span id="safeMinCharge" class="font-bold text-yellow-400 text-right">--%</span></div>
-          <div class="border-t border-blue-900/60 pt-1 flex justify-between items-center">
-            <span class="text-blue-300">⛽ Custo no Fóssil:</span><span id="fossilCost" class="font-bold text-red-400">R$ 0,00</span>
+          <div class="flex justify-between items-center"><span class="text-blue-300">⚡ Parar para Carga em:</span><span id="rechargeDistanceAlert" class="font-bold text-amber-400 text-right">-- km</span></div>
+          
+          <!-- Bloco do Plano de Carregamento na Estrada -->
+          <div id="stopPlanContainer" class="bg-[#020b29] p-2 rounded border border-blue-800/80 my-1 space-y-1">
+            <div class="text-[10px] font-bold text-emerald-400 border-b border-blue-900 pb-0.5 flex items-center gap-1">
+              <i class="fa-solid fa-plug"></i> Estimação de Parada no Eletroposto:
+            </div>
+            <div class="flex justify-between text-[10px]"><span class="text-blue-300">Chegada no Posto:</span><span id="stopArrivalSoc" class="font-bold text-amber-300">--%</span></div>
+            <div class="flex justify-between text-[10px]"><span class="text-blue-300">Carga Mín. p/ Saída:</span><span id="stopDepartureSoc" class="font-bold text-emerald-400">--%</span></div>
+            <div class="flex justify-between text-[10px]"><span class="text-blue-300">Tempo de Carga (DC):</span><span id="stopChargingTime" class="font-bold text-yellow-300">-- min</span></div>
+            <div class="flex justify-between text-[10px]"><span class="text-blue-300">Custo da Recarga:</span><span id="stopChargingCost" class="font-bold text-emerald-400">R$ 0,00</span></div>
           </div>
+
+          <div class="flex justify-between items-center"><span class="text-blue-300">⛽ Custo no Fóssil:</span><span id="fossilCost" class="font-bold text-red-400">R$ 0,00</span></div>
           <div class="flex justify-between items-center bg-emerald-950/40 p-1 rounded border border-emerald-500/30">
-            <span class="text-emerald-300 font-semibold">Economia com EV:</span><span id="savingsEV" class="font-black text-emerald-400">R$ 0,00</span>
+            <span class="text-emerald-300 font-semibold">Economia EV:</span><span id="savingsEV" class="font-black text-emerald-400">R$ 0,00</span>
           </div>
         </div>
       </div>
@@ -411,11 +420,11 @@
       }).addTo(map);
 
       initVehicleSelectors();
-      setupAutocomplete('originInput', 'originResults', (coords, name) => {
+      setupAutocomplete('originInput', 'originResults', (coords) => {
         originCoords = coords;
         updateLocationMarkers();
       });
-      setupAutocomplete('destInput', 'destResults', (coords, name) => {
+      setupAutocomplete('destInput', 'destResults', (coords) => {
         destCoords = coords;
         updateLocationMarkers();
       });
@@ -435,7 +444,7 @@
       }
     }
 
-    // Autocomplete corrigido com suporte pleno a ruas, avenidas e números no Brasil
+    // Autocomplete aprimorado com dupla estratégia de busca (Estruturada e Aberta) para locais/ruas/números específicos
     function setupAutocomplete(inputId, resultsId, callback) {
       const input = document.getElementById(inputId);
       const results = document.getElementById(resultsId);
@@ -443,15 +452,23 @@
       let timeout = null;
       input.addEventListener('input', () => {
         clearTimeout(timeout);
-        const query = input.value;
+        const query = input.value.trim();
         if (query.length < 3) { results.classList.add('hidden'); return; }
 
         timeout = setTimeout(async () => {
           try {
-            // Consulta aberta com prioridade no Brasil e suporte a endereços de rua
-            const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&countrycodes=br&addressdetails=1&limit=6`;
-            const res = await fetch(url);
-            const data = await res.json();
+            // Busca primária aberta com sanitização e bounding box do Brasil
+            let url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&countrycodes=br&addressdetails=1&limit=6`;
+            let res = await fetch(url);
+            let data = await res.json();
+
+            // Se não encontrou resultado na busca estruturada por vírgula, faz fallback de query relaxada
+            if (!data || data.length === 0) {
+              const cleanedQuery = query.replace(/,/g, ' ');
+              url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(cleanedQuery)}&countrycodes=br&limit=6`;
+              res = await fetch(url);
+              data = await res.json();
+            }
             
             results.innerHTML = '';
             if (!data || data.length === 0) { results.classList.add('hidden'); return; }
@@ -515,7 +532,6 @@
           };
         }).filter(s => s.lat && s.lng);
 
-        // Mescla com a base de segurança garantindo que os postos do trajeto sejam exibidos
         const combined = [...osmStations, ...backupStations];
         const uniqueStations = [];
         const mapKeys = new Set();
@@ -672,6 +688,7 @@
           await fetchRouteStationsFromOSM(bbox);
           renderStationsOnMapAndTable();
 
+          // Cálculos de Telemetria e Fatores de Condução
           const driveFactor = parseFloat(document.getElementById('driveMode').value);
           const acFactor = parseFloat(document.getElementById('acMode').value);
           const adjustedRange = selectedCar.range / (driveFactor * acFactor);
@@ -679,18 +696,12 @@
           const startPercent = parseFloat(document.getElementById('startBattery').value) || 80;
           const currentAutonomyKm = Math.round((adjustedRange * startPercent) / 100);
 
-          const safeReserveKm = Math.round(adjustedRange * 0.15);
+          const safeReserveKm = Math.round(adjustedRange * 0.15); // 15% de reserva
           const rechargePointKm = Math.max(0, currentAutonomyKm - safeReserveKm);
-          document.getElementById('rechargeDistanceAlert').innerText = `em ${rechargePointKm} km`;
+          
+          document.getElementById('rechargeDistanceAlert').innerText = (distKm > currentAutonomyKm - safeReserveKm) ? `em ${rechargePointKm} km` : "Não necessária";
 
-          const neededRangeWithReserve = distKm * 1.20;
-          const minSafeStartPercent = Math.min(100, Math.ceil((neededRangeWithReserve / adjustedRange) * 100));
-          document.getElementById('safeMinCharge').innerText = `${minSafeStartPercent}%`;
-
-          const usedPercent = (distKm / adjustedRange) * 100;
-          const remainingPercent = startPercent - usedPercent;
-          updateBatteryUI(remainingPercent);
-
+          // Custo base e porcentagens
           const kwhCost = parseFloat(document.getElementById('costPerKwh').value) || 0;
           const paxCount = parseInt(document.getElementById('passengerCount').value) || 1;
           const totalKwhNeeded = (distKm / 100) * selectedCar.consumption;
@@ -699,6 +710,43 @@
           document.getElementById('totalCost').innerText = `R$ ${totalCostEV.toFixed(2)}`;
           document.getElementById('costPax').innerText = `R$ ${(totalCostEV / paxCount).toFixed(2)}`;
 
+          // Cálculo do Plano de Parada e Carregamento no Eletroposto
+          if (distKm > currentAutonomyKm - safeReserveKm) {
+            // Chegada estimada com 15% de margem de segurança no ponto de carga
+            const arrivalSoc = 15;
+            
+            // Quanto de bateria precisa para chegar ao destino com +15% de reserva final
+            const remainingDistFromStop = Math.max(0, distKm - rechargePointKm);
+            const neededSocForRemaining = Math.ceil((remainingDistFromStop / adjustedRange) * 100) + 15;
+            const departureSoc = Math.min(100, neededSocForRemaining);
+            
+            const socToCharge = Math.max(0, departureSoc - arrivalSoc);
+            const kwhToCharge = (socToCharge / 100) * selectedCar.battery;
+            
+            // Estimativa de tempo em carregador DC Rápido (potência média de carga: 45 kW)
+            const chargingPowerKw = 45; 
+            const timeInHours = kwhToCharge / chargingPowerKw;
+            const timeInMinutes = Math.round(timeInHours * 60);
+
+            const stopCost = kwhToCharge * kwhCost;
+
+            document.getElementById('stopArrivalSoc').innerText = `${arrivalSoc}%`;
+            document.getElementById('stopDepartureSoc').innerText = `${departureSoc}%`;
+            document.getElementById('stopChargingTime').innerText = `${timeInMinutes} min (~${(timeInHours).toFixed(1)}h)`;
+            document.getElementById('stopChargingCost').innerText = `R$ ${stopCost.toFixed(2)}`;
+          } else {
+            document.getElementById('stopArrivalSoc').innerText = "N/A";
+            document.getElementById('stopDepartureSoc').innerText = "N/A";
+            document.getElementById('stopChargingTime').innerText = "0 min";
+            document.getElementById('stopChargingCost').innerText = "R$ 0,00";
+          }
+
+          // Nível na Chegada Final
+          const usedPercent = (distKm / adjustedRange) * 100;
+          const remainingPercent = startPercent - usedPercent;
+          updateBatteryUI(remainingPercent);
+
+          // Fóssil e Economia
           const literCost = parseFloat(document.getElementById('costPerLiter').value) || 5.89;
           const fossilKmLiter = parseFloat(document.getElementById('fossilKmPerLiter').value) || 11.5;
           const totalLitersNeeded = distKm / fossilKmLiter;
