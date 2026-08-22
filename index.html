@@ -34,7 +34,7 @@
       background-color: #091a4a;
       border: 1px solid #1e3a8a;
       border-radius: 0.5rem;
-      max-height: 200px;
+      max-height: 220px;
       overflow-y: auto;
       z-index: 50;
       box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.7);
@@ -45,6 +45,8 @@
       color: #cbd5e1;
       cursor: pointer;
       border-bottom: 1px solid #1e293b;
+      display: flex;
+      flex-direction: column;
     }
     .autocomplete-item:hover {
       background-color: #1e3a8a;
@@ -764,7 +766,7 @@
           const newWork = prompt("Digite seu endereço de Trabalho:");
           if (newWork) {
             localStorage.setItem('hv_work_address', newWork);
-            askTargetWaypointAndSet(work);
+            askTargetWaypointAndSet(newWork);
           }
         } else askTargetWaypointAndSet(work);
       });
@@ -897,7 +899,7 @@
           <div class="relative">
             <input type="text" id="wpInput_${index}" value="${wp.address}" 
                    class="w-full bg-[#031038] border border-blue-800 rounded p-1.5 text-white text-xs outline-none focus:border-emerald-500" 
-                   placeholder="Digite cidade ou endereço..." autocomplete="off">
+                   placeholder="Digite cidade, hotel, shopping ou local..." autocomplete="off">
             <div id="wpResults_${index}" class="autocomplete-results hidden"></div>
           </div>
         `;
@@ -940,6 +942,7 @@
       renderWaypointsInputs();
     });
 
+    // BUSCA DE AUTOCOMPLETE EXPANDIDA COM SUPORTE A POIS, ESTABELECIMENTOS E NOMES COMERCIAIS
     function setupFastAutocomplete(inputId, resultsId, callback, index) {
       const input = document.getElementById(inputId);
       const results = document.getElementById(resultsId);
@@ -952,56 +955,111 @@
 
         clearTimeout(timeout);
         const query = input.value.trim();
-        if (query.length < 3) { 
+        if (query.length < 2) { 
           results.classList.add('hidden'); 
           return; 
         }
 
         timeout = setTimeout(async () => {
           try {
-            const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&countrycodes=br&addressdetails=1&limit=5`;
-            const res = await fetch(url);
+            // Utiliza a API do Photon (Komoot/OSM) otimizada para estabelecimentos e POIs
+            const photonUrl = `https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=6&lang=default`;
+            const res = await fetch(photonUrl);
             const data = await res.json();
             
             results.innerHTML = '';
-            if (!data || data.length === 0) { 
-              results.classList.add('hidden'); 
-              return; 
-            }
 
-            data.forEach(place => {
-              const div = document.createElement('div');
-              div.className = 'autocomplete-item';
-              div.innerText = place.display_name;
-              div.onclick = (e) => {
-                e.stopPropagation();
-                input.value = place.display_name;
-                results.classList.add('hidden');
+            if (data && data.features && data.features.length > 0) {
+              data.features.forEach(feature => {
+                const props = feature.properties;
+                const coords = [feature.geometry.coordinates[1], feature.geometry.coordinates[0]];
+
+                const title = props.name || props.street || query;
+                const details = [props.street, props.city, props.state, props.country].filter(Boolean).join(', ');
+
+                const div = document.createElement('div');
+                div.className = 'autocomplete-item';
+                div.innerHTML = `<span class="font-bold text-emerald-300">📍 ${title}</span>
+                                 <span class="text-[10px] text-slate-400">${details}</span>`;
                 
-                const coords = [parseFloat(place.lat), parseFloat(place.lon)];
-                callback(coords, place.display_name);
-              };
-              results.appendChild(div);
-            });
-            results.classList.remove('hidden');
+                div.onclick = (e) => {
+                  e.stopPropagation();
+                  const fullAddress = `${title}${details ? ' - ' + details : ''}`;
+                  input.value = fullAddress;
+                  results.classList.add('hidden');
+                  callback(coords, fullAddress);
+                };
+                results.appendChild(div);
+              });
+              results.classList.remove('hidden');
+            } else {
+              // Fallback para Nominatim com busca ampla de POIs
+              const nomUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&countrycodes=br&limit=5&addressdetails=1`;
+              const nomRes = await fetch(nomUrl);
+              const nomData = await nomRes.json();
+
+              if (nomData && nomData.length > 0) {
+                nomData.forEach(place => {
+                  const div = document.createElement('div');
+                  div.className = 'autocomplete-item';
+                  div.innerHTML = `<span class="font-bold text-emerald-300">📍 ${place.display_name.split(',')[0]}</span>
+                                   <span class="text-[10px] text-slate-400">${place.display_name}</span>`;
+                  div.onclick = (e) => {
+                    e.stopPropagation();
+                    input.value = place.display_name;
+                    results.classList.add('hidden');
+                    const coords = [parseFloat(place.lat), parseFloat(place.lon)];
+                    callback(coords, place.display_name);
+                  };
+                  results.appendChild(div);
+                });
+                results.classList.remove('hidden');
+              } else {
+                results.classList.add('hidden');
+              }
+            }
           } catch (err) {
             console.error("Erro no autocomplete:", err);
+            results.classList.add('hidden');
           }
-        }, 250);
+        }, 200);
+      });
+
+      // Esconde o autocomplete ao clicar fora
+      document.addEventListener('click', (e) => {
+        if (!input.contains(e.target) && !results.contains(e.target)) {
+          results.classList.add('hidden');
+        }
       });
     }
 
     async function geocodeFast(addressStr) {
       if (!addressStr || addressStr.trim() === '') return null;
+      
       try {
-        const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(addressStr)}&countrycodes=br&limit=1`;
-        const res = await fetch(url);
+        // Tenta primeiro via Photon (Komoot/OSM)
+        const photonUrl = `https://photon.komoot.io/api/?q=${encodeURIComponent(addressStr)}&limit=1`;
+        const res = await fetch(photonUrl);
         const data = await res.json();
-        if (data && data.length > 0) {
-          return [parseFloat(data[0].lat), parseFloat(data[0].lon)];
+
+        if (data && data.features && data.features.length > 0) {
+          const coords = data.features[0].geometry.coordinates;
+          return [coords[1], coords[0]];
         }
       } catch (err) {
-        console.warn("Erro no geocodificador:", err);
+        console.warn("Falha no geocoder secundário, alternando para o primário...", err);
+      }
+
+      try {
+        // Fallback Nominatim
+        const nomUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(addressStr)}&countrycodes=br&limit=1`;
+        const nomRes = await fetch(nomUrl);
+        const nomData = await nomRes.json();
+        if (nomData && nomData.length > 0) {
+          return [parseFloat(nomData[0].lat), parseFloat(nomData[0].lon)];
+        }
+      } catch (err) {
+        console.warn("Erro no geocodificador primário:", err);
       }
       return null;
     }
@@ -1031,7 +1089,6 @@
       waypointMarkers = [];
 
       for (let i = 0; i < waypoints.length; i++) {
-        // Sincroniza valor digitado direto no input
         const inputVal = document.getElementById(`wpInput_${i}`)?.value;
         if (inputVal !== undefined) waypoints[i].address = inputVal;
 
@@ -1440,7 +1497,6 @@
       }
     }
 
-    // CÁLCULO DE ROTA COM GEOCODING FORÇADO E PERMISSIBILIDADE DE MÚLTIPLOS CÁLCULOS
     async function calculateMultiRoute() {
       const calcBtn = document.getElementById('calcBtn');
       const calcBtnText = document.getElementById('calcBtnText');
@@ -1453,7 +1509,6 @@
       progressBar.classList.remove('hidden');
 
       try {
-        // Geocodificação forçada de todos os campos preenchidos
         for (let i = 0; i < waypoints.length; i++) {
           const inputVal = document.getElementById(`wpInput_${i}`)?.value;
           if (inputVal !== undefined) waypoints[i].address = inputVal;
@@ -1498,7 +1553,7 @@
           document.getElementById('totalDistance').innerText = `${distKm} km`;
           document.getElementById('travelTime').innerText = travelTimeStr;
 
-          const itineraryText = waypoints.map(w => (w.address ? w.address.split(',')[0] : "Ponto")).join(' ➔ ');
+          const itineraryText = waypoints.map(w => (w.address ? w.address.split('-')[0].trim() : "Ponto")).join(' ➔ ');
           document.getElementById('routeOptionsContainer').innerHTML = `<span class="font-bold text-emerald-400">${itineraryText}</span>`;
 
           const bbox = [
