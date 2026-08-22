@@ -716,17 +716,24 @@
       mapOverlayControl.addTo(map);
     }
 
+    // VALIDAÇÃO ESTRITA DE BATERIA (0 A 100%)
     function initBatteryInputValidation() {
       const batteryInput = document.getElementById('startBattery');
       
       const enforceLimit = () => {
         let val = parseFloat(batteryInput.value);
-        if (isNaN(val) || val < 0) batteryInput.value = 0;
-        else if (val > 100) batteryInput.value = 100;
+        if (isNaN(val) || val < 0) {
+          batteryInput.value = 0;
+        } else if (val > 100) {
+          batteryInput.value = 100;
+        } else {
+          batteryInput.value = Math.round(val);
+        }
       };
 
       batteryInput.addEventListener('input', enforceLimit);
       batteryInput.addEventListener('blur', enforceLimit);
+      batteryInput.addEventListener('change', enforceLimit);
     }
 
     function initSortableWaypoints() {
@@ -942,7 +949,6 @@
       renderWaypointsInputs();
     });
 
-    // BUSCA DE AUTOCOMPLETE EXPANDIDA COM SUPORTE A POIS, ESTABELECIMENTOS E NOMES COMERCIAIS
     function setupFastAutocomplete(inputId, resultsId, callback, index) {
       const input = document.getElementById(inputId);
       const results = document.getElementById(resultsId);
@@ -962,7 +968,6 @@
 
         timeout = setTimeout(async () => {
           try {
-            // Utiliza a API do Photon (Komoot/OSM) otimizada para estabelecimentos e POIs
             const photonUrl = `https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=6&lang=default`;
             const res = await fetch(photonUrl);
             const data = await res.json();
@@ -993,7 +998,6 @@
               });
               results.classList.remove('hidden');
             } else {
-              // Fallback para Nominatim com busca ampla de POIs
               const nomUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&countrycodes=br&limit=5&addressdetails=1`;
               const nomRes = await fetch(nomUrl);
               const nomData = await nomRes.json();
@@ -1025,7 +1029,6 @@
         }, 200);
       });
 
-      // Esconde o autocomplete ao clicar fora
       document.addEventListener('click', (e) => {
         if (!input.contains(e.target) && !results.contains(e.target)) {
           results.classList.add('hidden');
@@ -1037,7 +1040,6 @@
       if (!addressStr || addressStr.trim() === '') return null;
       
       try {
-        // Tenta primeiro via Photon (Komoot/OSM)
         const photonUrl = `https://photon.komoot.io/api/?q=${encodeURIComponent(addressStr)}&limit=1`;
         const res = await fetch(photonUrl);
         const data = await res.json();
@@ -1047,11 +1049,10 @@
           return [coords[1], coords[0]];
         }
       } catch (err) {
-        console.warn("Falha no geocoder secundário, alternando para o primário...", err);
+        console.warn("Falha no geocoder secundário...", err);
       }
 
       try {
-        // Fallback Nominatim
         const nomUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(addressStr)}&countrycodes=br&limit=1`;
         const nomRes = await fetch(nomUrl);
         const nomData = await nomRes.json();
