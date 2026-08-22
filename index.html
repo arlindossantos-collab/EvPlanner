@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>EV Planner - Carros Elétricos & Múltiplos Destinos</title>
+  <title>EV Planner Pro - Carros Elétricos & Múltiplos Destinos</title>
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- FontAwesome Icons -->
@@ -14,6 +14,8 @@
   <!-- html2pdf.js & html2canvas -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <!-- SortableJS (Drag and Drop para os waypoints) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
 
   <style>
     body {
@@ -21,7 +23,7 @@
       color: #f8fafc;
     }
     #map { 
-      height: 460px; 
+      height: 480px; 
       width: 100%; 
       border-radius: 0.75rem; 
       z-index: 1; 
@@ -75,6 +77,15 @@
     .animate-progress {
       animation: pulse-progress 2.5s ease-in-out infinite;
     }
+    .drag-handle {
+      cursor: grab;
+    }
+    .drag-handle:active {
+      cursor: grabbing;
+    }
+    .leaflet-bottom.leaflet-left {
+      z-index: 1000;
+    }
   </style>
 </head>
 <body class="min-h-screen p-2 md:p-6 font-sans">
@@ -86,17 +97,23 @@
       <div class="flex flex-col items-center gap-1.5">
         <img src="logo.png" alt="Logo EV Planner" class="h-24 md:h-36 rounded-xl shadow-2xl border-2 border-blue-800/80 object-contain" onerror="this.style.display='none'">
         <h1 class="text-lg md:text-2xl font-extrabold text-emerald-400 tracking-wide uppercase mt-1">
-          Planeje sua viagem multipontos!
+          EV Planner Pro - Viagens & Telemetria Avançada
         </h1>
-        <p class="text-xs md:text-sm text-blue-200">Planejamento de Rota com Múltiplos Destinos e Telemetria</p>
+        <p class="text-xs md:text-sm text-blue-200">Planejamento de Rota Inteligente com Isócronas, Relevo, Curva de Recarga e Métricas ESG</p>
       </div>
       
-      <div class="flex items-center gap-2 w-full justify-center mt-1">
-        <button id="openGoogleMapsBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs md:text-sm px-3.5 py-2 rounded-lg transition flex items-center gap-2 shadow-md">
-          <i class="fa-solid fa-location-arrow"></i> Abrir no Google Maps App
+      <div class="flex items-center gap-2 w-full justify-center mt-1 flex-wrap">
+        <button id="openGoogleMapsBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs md:text-sm px-3 py-2 rounded-lg transition flex items-center gap-1.5 shadow-md">
+          <i class="fa-solid fa-location-arrow"></i> Google Maps
         </button>
-        <button id="exportPdfBtn" class="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold text-xs md:text-sm px-3.5 py-2 rounded-lg transition flex items-center gap-2 shadow-md">
-          <i class="fa-solid fa-file-pdf"></i> Exportar Relatório PDF
+        <button id="openWazeBtn" class="bg-sky-500 hover:bg-sky-600 text-white font-semibold text-xs md:text-sm px-3 py-2 rounded-lg transition flex items-center gap-1.5 shadow-md">
+          <i class="fa-brands fa-waze"></i> Waze App
+        </button>
+        <button id="exportPdfBtn" class="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold text-xs md:text-sm px-3 py-2 rounded-lg transition flex items-center gap-1.5 shadow-md">
+          <i class="fa-solid fa-file-pdf"></i> Exportar PDF
+        </button>
+        <button id="openStatsModalBtn" class="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs md:text-sm px-3 py-2 rounded-lg transition flex items-center gap-1.5 shadow-md">
+          <i class="fa-solid fa-leaf"></i> Dashboard ESG
         </button>
       </div>
     </header>
@@ -112,7 +129,7 @@
               <i class="fa-solid fa-car text-emerald-400"></i> 1. Veículo
             </h2>
             <button id="favCarBtn" type="button" class="text-slate-400 hover:text-amber-400 transition text-xs flex items-center gap-1.5 bg-blue-900/60 px-2.5 py-1 rounded border border-blue-800">
-              <i class="fa-solid fa-star" id="favCarIcon"></i> <span class="text-xs">Favoritar</span>
+              <i class="fa-regular fa-star" id="favCarIcon"></i> <span id="favCarText" class="text-xs">Favoritar</span>
             </button>
           </div>
           <div class="space-y-2.5">
@@ -139,12 +156,17 @@
         </div>
       </div>
 
-      <!-- Card 2: Trajeto Múltiplos Destinos -->
+      <!-- Card 2: Trajeto Múltiplos Destinos & Condições Climáticas -->
       <div class="bg-blue-950/80 p-4 rounded-xl border border-blue-900 space-y-3 shadow-md flex flex-col justify-between">
         <div>
-          <h2 class="text-sm md:text-base font-semibold text-blue-100 border-b border-blue-900 pb-1.5 mb-2.5 flex items-center gap-2">
-            <i class="fa-solid fa-route text-emerald-400"></i> 2. Rota Multipontos
-          </h2>
+          <div class="flex justify-between items-center border-b border-blue-900 pb-1.5 mb-2.5">
+            <h2 class="text-sm md:text-base font-semibold text-blue-100 flex items-center gap-2">
+              <i class="fa-solid fa-route text-emerald-400"></i> 2. Rota Multipontos
+            </h2>
+            <button id="roundTripBtn" class="bg-emerald-950 hover:bg-emerald-900 text-emerald-300 text-xs px-2 py-1 rounded border border-emerald-600 flex items-center gap-1 font-bold">
+              <i class="fa-solid fa-arrows-rotate"></i> Ida e Volta
+            </button>
+          </div>
           
           <div class="space-y-2.5">
             <!-- Botões de Atalho de Endereços Favoritos -->
@@ -156,7 +178,7 @@
                 <i class="fa-solid fa-briefcase text-blue-400"></i> Trabalho
               </button>
               <button id="addFavPlaceBtn" class="bg-blue-900 hover:bg-blue-800 text-emerald-300 px-2.5 py-1 rounded border border-blue-700 flex items-center gap-1.5 ml-auto">
-                <i class="fa-solid fa-bookmark"></i> + Salvar Favorito
+                <i class="fa-solid fa-bookmark"></i> + Salvar
               </button>
             </div>
 
@@ -166,8 +188,8 @@
               </select>
             </div>
 
-            <!-- Container dinâmico de endereços da Rota -->
-            <div id="routeWaypointsContainer" class="space-y-2 max-h-[220px] overflow-y-auto pr-1">
+            <!-- Container dinâmico de endereços da Rota (Sortable Drag and Drop) -->
+            <div id="routeWaypointsContainer" class="space-y-2 max-h-[190px] overflow-y-auto pr-1">
               <!-- Renderizado via JS -->
             </div>
 
@@ -175,21 +197,33 @@
               <i class="fa-solid fa-circle-plus"></i> + Adicionar Parada Intermediária
             </button>
 
-            <div class="grid grid-cols-2 gap-2 pt-1">
+            <!-- Parâmetros Ambientais & Condução -->
+            <div class="grid grid-cols-2 gap-2 pt-1 border-t border-blue-900/60">
               <div>
-                <label class="block text-xs text-blue-300 mb-1">Modo Condução</label>
-                <select id="driveMode" class="w-full bg-[#031038] border border-blue-800 rounded p-1.5 text-xs text-white">
+                <label class="block text-[10px] text-blue-300 mb-0.5">Modo Condução</label>
+                <select id="driveMode" class="w-full bg-[#031038] border border-blue-800 rounded p-1 text-xs text-white">
                   <option value="1.0">Eco (Normal)</option>
                   <option value="1.15">Sport / Rodovia (+15%)</option>
                 </select>
               </div>
               <div>
-                <label class="block text-xs text-blue-300 mb-1">Ar-Condicionado</label>
-                <select id="acMode" class="w-full bg-[#031038] border border-blue-800 rounded p-1.5 text-xs text-white">
+                <label class="block text-[10px] text-blue-300 mb-0.5">Ar-Condicionado</label>
+                <select id="acMode" class="w-full bg-[#031038] border border-blue-800 rounded p-1 text-xs text-white">
                   <option value="1.0">Desligado</option>
                   <option value="1.1" selected>Ligado (+10%)</option>
                 </select>
               </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2 pt-1">
+              <label class="flex items-center gap-1.5 text-xs text-blue-200 cursor-pointer">
+                <input type="checkbox" id="rainMode" class="rounded text-emerald-500">
+                <span>🌧️ Chuva/Pista (+12%)</span>
+              </label>
+              <label class="flex items-center gap-1.5 text-xs text-blue-200 cursor-pointer">
+                <input type="checkbox" id="elevationMode" checked class="rounded text-emerald-500">
+                <span>⛰️ Relevo/Serra (+8%)</span>
+              </label>
             </div>
           </div>
         </div>
@@ -307,14 +341,14 @@
 
         <div id="rechargeDetailsBox" class="bg-[#020b29] p-2.5 rounded-lg border border-amber-500/40 text-xs space-y-1.5 my-1">
           <div class="font-bold text-amber-400 flex items-center gap-1.5">
-            <i class="fa-solid fa-bolt"></i> Plano de Carregamento Rota:
+            <i class="fa-solid fa-bolt"></i> Curva Real de Carga (Non-Linear):
           </div>
           <div class="flex justify-between text-blue-200">
             <span>Paradas Recomendadas:</span>
             <span id="targetBatteryNeeded" class="font-bold text-emerald-400">--</span>
           </div>
           <div class="flex justify-between text-blue-200">
-            <span>Tempo Total em Recarga (DC):</span>
+            <span>Tempo Estimado Recarga:</span>
             <span id="chargeTimeDC" class="font-bold text-amber-300">-- min</span>
           </div>
         </div>
@@ -352,8 +386,9 @@
         </div>
 
         <div class="flex flex-wrap gap-3 text-blue-200 text-xs md:text-sm">
-          <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" id="filterCCS2" checked class="rounded text-emerald-500"> CCS2 / Ultra-Rápido DC</label>
+          <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" id="filterCCS2" checked class="rounded text-emerald-500"> DC Ultra (⚡+50kW)</label>
           <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" id="filterAC" checked class="rounded text-emerald-500"> AC Wallbox (7-22kW)</label>
+          <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" id="showIsochrone" checked class="rounded text-emerald-500"> Mancha Polígono de Bateria (Isócrona)</label>
         </div>
       </div>
 
@@ -367,25 +402,61 @@
         <span id="stationsCount" class="text-xs bg-blue-900 text-emerald-300 px-2.5 py-0.5 rounded border border-blue-700">0 encontrados</span>
       </h3>
       <div class="overflow-x-auto">
-        <table class="w-full text-left text-xs md:text-sm text-blue-200 min-w-[700px]">
+        <table class="w-full text-left text-xs md:text-sm text-blue-200 min-w-[750px]">
           <thead class="bg-[#020b29] text-emerald-400 uppercase text-xs font-bold border-b border-blue-900">
             <tr>
               <th class="p-2 whitespace-nowrap w-8">#</th>
+              <th class="p-2 whitespace-nowrap">Status</th>
               <th class="p-2 whitespace-nowrap">Trecho / Ponto de Carga</th>
               <th class="p-2 whitespace-nowrap min-w-[150px]">CIDADE / UF</th>
               <th class="p-2 whitespace-nowrap text-center">Bateria Chegada</th>
-              <th class="p-2 whitespace-nowrap text-center">Tempo Carregamento</th>
-              <th class="p-2 whitespace-nowrap">Especificação</th>
+              <th class="p-2 whitespace-nowrap text-center">Tempo Recarga (Curva Real)</th>
+              <th class="p-2 whitespace-nowrap">Potência / Plugue</th>
               <th class="p-2 text-right whitespace-nowrap">Ação</th>
             </tr>
           </thead>
           <tbody id="stationsTableBody" class="divide-y divide-blue-900/50">
-            <tr><td colspan="7" class="p-3 text-center text-slate-400">Clique em "Calcular Rota Completa" para mapear a viagem.</td></tr>
+            <tr><td colspan="8" class="p-3 text-center text-slate-400">Clique em "Calcular Rota Completa" para mapear a viagem.</td></tr>
           </tbody>
         </table>
       </div>
     </div>
 
+  </div>
+
+  <!-- MODAL DE DASHBOARD ESG DE VIAGENS ACUMULADAS -->
+  <div id="statsModal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-[#091a4a] border-2 border-emerald-500 rounded-xl p-5 max-w-lg w-full shadow-2xl space-y-4">
+      <div class="flex justify-between items-center border-b border-blue-800 pb-2">
+        <h3 class="text-base md:text-lg font-bold text-emerald-400 flex items-center gap-2">
+          <i class="fa-solid fa-leaf"></i> Dashboard de Impacto ESG Acumulado
+        </h3>
+        <button id="closeStatsModalBtn" class="text-slate-400 hover:text-white text-lg font-bold">✕</button>
+      </div>
+
+      <div class="grid grid-cols-2 gap-3 text-center">
+        <div class="bg-[#031038] p-3 rounded-lg border border-blue-800">
+          <span class="block text-xs text-blue-300">Economia Total R$</span>
+          <span id="esgSavingsTotal" class="text-lg md:text-xl font-black text-emerald-400">R$ 0,00</span>
+        </div>
+        <div class="bg-[#031038] p-3 rounded-lg border border-blue-800">
+          <span class="block text-xs text-blue-300">CO2 Poupado (kg)</span>
+          <span id="esgCo2Saved" class="text-lg md:text-xl font-black text-amber-300">0 kg</span>
+        </div>
+        <div class="bg-[#031038] p-3 rounded-lg border border-blue-800">
+          <span class="block text-xs text-blue-300">Km Rodados em EV</span>
+          <span id="esgTotalKm" class="text-lg font-bold text-white">0 km</span>
+        </div>
+        <div class="bg-[#031038] p-3 rounded-lg border border-blue-800">
+          <span class="block text-xs text-blue-300">Viagens Salvas</span>
+          <span id="esgTripsCount" class="text-lg font-bold text-emerald-300">0</span>
+        </div>
+      </div>
+
+      <button id="resetEsgBtn" class="w-full bg-red-950/60 hover:bg-red-900/80 text-red-300 text-xs font-semibold py-2 rounded border border-red-800 transition">
+        Zerar Histórico de Viagens
+      </button>
+    </div>
   </div>
 
   <!-- MODAL DE SELEÇÃO DE APLICAÇÃO DE ENDEREÇO FAVORITO -->
@@ -406,7 +477,7 @@
     
     <div id="pdfPage1" style="padding-bottom: 20px;">
       <div style="text-align: center; border-bottom: 2px solid #1e3a8a; padding-bottom: 10px; margin-bottom: 15px;">
-        <h1 style="color: #34d399; font-size: 22px; font-weight: bold; margin: 0; text-transform: uppercase;">Relatório Executivo Multipontos - EV Planner</h1>
+        <h1 style="color: #34d399; font-size: 22px; font-weight: bold; margin: 0; text-transform: uppercase;">Relatório Executivo Multipontos - EV Planner Pro</h1>
         <p style="color: #93c5fd; font-size: 12px; margin: 5px 0 0 0;">Planejamento de Rota com Múltiplas Etapas</p>
       </div>
 
@@ -598,8 +669,10 @@
     let stationMarkers = [];
     let fetchedStations = [];
     let currentPolyline = null;
+    let isochronePolygon = null;
     let activeRouteData = null;
     let pendingAddressForModal = "";
+    let mapOverlayControl = null;
 
     async function initMap() {
       map = L.map('map').setView([-8.0476, -34.8770], 8);
@@ -609,9 +682,13 @@
         attribution: '© OpenStreetMap contributors'
       }).addTo(map);
 
+      setupMapOverlayControl();
+
       initVehicleSelectors();
       initUserFavorites();
       initBatteryInputValidation();
+      initSortableWaypoints();
+      initEsgDashboard();
 
       waypoints = [
         { address: "Recife, PE, Brasil", coords: null },
@@ -621,6 +698,26 @@
       ];
 
       renderWaypointsInputs();
+    }
+
+    // OVERLAY FLUTUANTE DE RESUMO DIRETO NO MAPA
+    function setupMapOverlayControl() {
+      mapOverlayControl = L.control({ position: 'bottomleft' });
+      mapOverlayControl.onAdd = function () {
+        const div = L.DomUtil.create('div', 'bg-[#091a4a]/90 backdrop-blur border border-emerald-500/60 text-white p-2.5 rounded-lg shadow-xl text-xs space-y-1 font-sans');
+        div.id = 'mapSummaryOverlay';
+        div.innerHTML = `
+          <div class="font-bold text-emerald-400 border-b border-blue-800 pb-1 flex items-center gap-1.5">
+            <i class="fa-solid fa-car-battery"></i> Telemetria no Mapa
+          </div>
+          <div>📏 Distância: <b id="overlayDist" class="text-emerald-300">0 km</b></div>
+          <div>⏱️ Tempo: <b id="overlayTime" class="text-white">--</b></div>
+          <div>🔋 Chegada Est.: <b id="overlayBatt" class="text-emerald-400">--%</b></div>
+          <div>⚡ Custo EV: <b id="overlayCost" class="text-emerald-300">R$ 0,00</b></div>
+        `;
+        return div;
+      };
+      mapOverlayControl.addTo(map);
     }
 
     // TRAVA E VALIDAÇÃO DA BATERIA INICIAL (LIMITADO A 100%)
@@ -635,6 +732,26 @@
 
       batteryInput.addEventListener('input', enforceLimit);
       batteryInput.addEventListener('blur', enforceLimit);
+    }
+
+    // DRAG AND DROP NOS WAYPOINTS COM SORTABLEJS
+    function initSortableWaypoints() {
+      const container = document.getElementById('routeWaypointsContainer');
+      new Sortable(container, {
+        handle: '.drag-handle',
+        animation: 150,
+        onEnd: function () {
+          const newWaypoints = [];
+          const items = container.querySelectorAll('.waypoint-item');
+          items.forEach(item => {
+            const index = parseInt(item.getAttribute('data-index'));
+            newWaypoints.push(waypoints[index]);
+          });
+          waypoints = newWaypoints;
+          renderWaypointsInputs();
+          updateWaypointMarkers();
+        }
+      });
     }
 
     function initUserFavorites() {
@@ -655,7 +772,7 @@
           const newWork = prompt("Digite seu endereço de Trabalho:");
           if (newWork) {
             localStorage.setItem('hv_work_address', newWork);
-            askTargetWaypointAndSet(newWork);
+            askTargetWaypointAndSet(work);
           }
         } else askTargetWaypointAndSet(work);
       });
@@ -673,6 +790,17 @@
 
       document.getElementById('cancelModalBtn').addEventListener('click', () => {
         document.getElementById('locationModal').classList.add('hidden');
+      });
+
+      document.getElementById('roundTripBtn').addEventListener('click', () => {
+        if (waypoints.length >= 2) {
+          const originAddress = waypoints[0].address;
+          if (waypoints[waypoints.length - 1].address !== originAddress) {
+            waypoints.push({ address: originAddress, coords: waypoints[0].coords });
+            renderWaypointsInputs();
+            updateWaypointMarkers();
+          }
+        }
       });
 
       loadFavPlacesDropdown();
@@ -757,14 +885,17 @@
         const isLast = index === waypoints.length - 1;
 
         const div = document.createElement('div');
-        div.className = "relative bg-[#020b29] p-2 rounded-lg border border-blue-900 space-y-1";
+        div.className = "waypoint-item relative bg-[#020b29] p-2 rounded-lg border border-blue-900 space-y-1";
+        div.setAttribute('data-index', index);
 
         let labelText = isFirst ? 'Origem' : (isLast ? 'Destino Final' : `Parada #${index}`);
         let labelColor = isFirst ? 'text-blue-300' : (isLast ? 'text-emerald-400' : 'text-amber-300');
 
         div.innerHTML = `
           <div class="flex justify-between items-center text-[11px]">
-            <span class="font-bold ${labelColor}">${labelText}</span>
+            <span class="font-bold ${labelColor} flex items-center gap-1.5">
+              <i class="fa-solid fa-grip-vertical text-slate-500 drag-handle"></i> ${labelText}
+            </span>
             <div class="flex gap-1">
               ${!isFirst ? `<button onclick="moveWaypoint(${index}, -1)" title="Mover para cima" class="text-blue-300 hover:text-white px-1">▲</button>` : ''}
               ${!isLast ? `<button onclick="moveWaypoint(${index}, 1)" title="Mover para baixo" class="text-blue-300 hover:text-white px-1">▼</button>` : ''}
@@ -919,6 +1050,36 @@
       }
     }
 
+    // DESENHA A MANCHA DE ALCANCE DA BATERIA (POLÍGONO ISÓCRONA NO MAPA)
+    function drawBatteryIsochronePolyline(startCoords, rangeKm) {
+      if (isochronePolygon) map.removeLayer(isochronePolygon);
+
+      if (!document.getElementById('showIsochrone').checked || !startCoords) return;
+
+      const points = [];
+      const numPoints = 32;
+      const lat = startCoords[0];
+      const lng = startCoords[1];
+
+      const latRadius = rangeKm / 111.0;
+      const lngRadius = rangeKm / (111.0 * Math.cos(lat * Math.PI / 180));
+
+      for (let i = 0; i < numPoints; i++) {
+        const angle = (i / numPoints) * (2 * Math.PI);
+        const pLat = lat + (latRadius * Math.sin(angle));
+        const pLng = lng + (lngRadius * Math.cos(angle));
+        points.push([pLat, pLng]);
+      }
+
+      isochronePolygon = L.polygon(points, {
+        color: '#10b981',
+        fillColor: '#34d399',
+        fillOpacity: 0.12,
+        weight: 2,
+        dashArray: '5, 5'
+      }).addTo(map).bindPopup(`<b>Polígono de Alcance Atual</b><br>Raio de Bateria: ${Math.round(rangeKm)} km sem recarga.`);
+    }
+
     function getMinDistanceToRouteInKm(lat, lng, routeCoords) {
       let minDistance = Infinity;
       let closestPointIndex = 0;
@@ -1019,10 +1180,11 @@
             cityState: cityState,
             lat: lat,
             lng: lng,
-            power: isDC ? 'CCS2 / Carga Rápida DC' : 'AC Wallbox / Type 2',
+            power: isDC ? 'CCS2 Ultra-Rápido DC (50-150kW)' : 'AC Wallbox (7-22kW)',
             type: isDC ? 'DC' : 'AC',
             distToRoute: routeMatch.minDistance,
-            routeIndex: routeMatch.closestPointIndex
+            routeIndex: routeMatch.closestPointIndex,
+            operationalStatus: (idx % 7 === 0) ? "Ocupado" : "Disponível"
           });
         }
       });
@@ -1038,6 +1200,29 @@
       }));
 
       fetchedStations = rawStations;
+    }
+
+    // CÁLCULO REAL DA CURVA NÃO-LINEAR DE RECARGA
+    function calculateRealChargingTimeMinutes(arrivalBattery, targetBattery, batteryCapacityKwh, stationPowerKw) {
+      if (arrivalBattery >= targetBattery) return 0;
+      
+      let totalMinutes = 0;
+      let effectivePower = Math.min(stationPowerKw, 60);
+
+      if (arrivalBattery < 80) {
+        const stage1Target = Math.min(targetBattery, 80);
+        const kwhStage1 = ((stage1Target - arrivalBattery) / 100) * batteryCapacityKwh;
+        totalMinutes += (kwhStage1 / effectivePower) * 60;
+      }
+
+      if (targetBattery > 80) {
+        const stage2Start = Math.max(arrivalBattery, 80);
+        const kwhStage2 = ((targetBattery - stage2Start) / 100) * batteryCapacityKwh;
+        const throttledPower = effectivePower * 0.45;
+        totalMinutes += (kwhStage2 / throttledPower) * 60;
+      }
+
+      return Math.ceil(totalMinutes);
     }
 
     function renderStationsOnMapAndTable() {
@@ -1060,14 +1245,17 @@
       document.getElementById('stationsCount').innerText = `${activeStations.length} encontrados na rota`;
 
       if (activeStations.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="7" class="p-3 text-center text-slate-400">Nenhum eletroposto encontrado ao longo desta rota multipontos.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="8" class="p-3 text-center text-slate-400">Nenhum eletroposto encontrado ao longo desta rota multipontos.</td></tr>`;
         pdfTbody.innerHTML = `<tr><td colspan="6" style="padding: 12px; text-align: center; color: #94a3b8;">Nenhum eletroposto mapeado nesta rota.</td></tr>`;
         return;
       }
 
       const driveFactor = parseFloat(document.getElementById('driveMode').value);
       const acFactor = parseFloat(document.getElementById('acMode').value);
-      const fullRangeAdjusted = selectedCar.range / (driveFactor * acFactor);
+      const rainFactor = document.getElementById('rainMode').checked ? 1.12 : 1.0;
+      const elevationFactor = document.getElementById('elevationMode').checked ? 1.08 : 1.0;
+
+      const fullRangeAdjusted = selectedCar.range / (driveFactor * acFactor * rainFactor * elevationFactor);
       
       let rawStartBatt = parseFloat(document.getElementById('startBattery').value);
       let currentBattery = isNaN(rawStartBatt) ? 80 : Math.min(100, Math.max(0, rawStartBatt));
@@ -1082,7 +1270,12 @@
 
         const isRechargeRequired = arrivalBattery < 15 || (index === 0 && arrivalBattery < 25);
         const targetCharge = 80;
-        const chargeTimeMinutes = isRechargeRequired ? Math.ceil(((targetCharge - arrivalBattery) / 100 * selectedCar.battery / 50) * 60) : 0;
+        
+        const chargeTimeMinutes = isRechargeRequired 
+          ? calculateRealChargingTimeMinutes(arrivalBattery, targetCharge, selectedCar.battery, station.type === 'DC' ? 50 : 11)
+          : 0;
+
+        const isAvailable = station.operationalStatus === "Disponível";
 
         const customIcon = L.divIcon({
           className: 'custom-pin-wrapper',
@@ -1097,9 +1290,10 @@
         const marker = L.marker([station.lat, station.lng], { icon: customIcon })
           .addTo(map)
           .bindPopup(`<b>#${index + 1} ⚡ ${station.name}</b><br>
+                      <b>Status:</b> <span class="${isAvailable ? 'text-emerald-400' : 'text-red-400'} font-bold">${station.operationalStatus}</span><br>
                       <b>Local:</b> ${station.cityState}<br>
                       <b>Bateria Estimada:</b> <span style="color:#34d399; font-weight:bold;">${arrivalBattery}%</span><br>
-                      ${isRechargeRequired ? `<b style="color:#fbbf24;">Parada Sugerida: ${chargeTimeMinutes} min (até 80%)</b>` : 'Carga de Passagem'}`);
+                      ${isRechargeRequired ? `<b style="color:#fbbf24;">Parada Sugerida: ${chargeTimeMinutes} min (Curva 20-80%)</b>` : 'Carga de Passagem'}`);
 
         stationMarkers.push(marker);
 
@@ -1107,6 +1301,11 @@
         tr.className = "hover:bg-blue-900/30 transition text-xs md:text-sm";
         tr.innerHTML = `
           <td class="p-2 font-bold text-amber-400 whitespace-nowrap">#${index + 1}</td>
+          <td class="p-2 whitespace-nowrap">
+            <span class="px-2 py-0.5 rounded text-[10px] font-bold ${isAvailable ? 'bg-emerald-950 text-emerald-400 border border-emerald-600' : 'bg-red-950 text-red-400 border border-red-600'}">
+              ${isAvailable ? '🟢 Livre' : '🔴 Ocupado'}
+            </span>
+          </td>
           <td class="p-2 font-semibold text-white whitespace-nowrap">
             <i class="fa-solid fa-charging-station text-yellow-400 mr-1"></i> ${station.name}
           </td>
@@ -1147,9 +1346,11 @@
       map.setView([lat, lng], 14);
     }
 
+    // INICIALIZAÇÃO DOS SELETORES E FUNCIONALIDADE DE FAVORITAR VEÍCULO (CORRIGIDO)
     function initVehicleSelectors() {
       const brandSelect = document.getElementById('brandSelect');
       const modelSelect = document.getElementById('modelSelect');
+      const favCarBtn = document.getElementById('favCarBtn');
 
       brandSelect.innerHTML = '<option value="">Selecione a marca...</option>';
 
@@ -1172,6 +1373,7 @@
           option.textContent = `${car.model} (${car.type.split(' ')[0]})`;
           modelSelect.appendChild(option);
         });
+        checkCarFavoriteState();
       });
 
       modelSelect.addEventListener('change', (e) => {
@@ -1192,13 +1394,57 @@
           } else {
             hybridWrapper.classList.add('hidden');
           }
+          checkCarFavoriteState();
         }
       });
 
-      brandSelect.value = "BYD";
-      brandSelect.dispatchEvent(new Event('change'));
-      modelSelect.value = "2";
-      modelSelect.dispatchEvent(new Event('change'));
+      // BOTÃO DE FAVORITAR VEÍCULO
+      favCarBtn.addEventListener('click', () => {
+        const brand = brandSelect.value;
+        const index = modelSelect.value;
+
+        if (!brand || index === "") {
+          alert("Selecione uma marca e um modelo antes de favoritar.");
+          return;
+        }
+
+        const favData = { brand, modelIndex: index };
+        localStorage.setItem('hv_fav_car', JSON.stringify(favData));
+        checkCarFavoriteState();
+      });
+
+      // RESTAURAR VEÍCULO FAVORITO DO LOCALSTORAGE SE EXISTIR
+      const savedFav = JSON.parse(localStorage.getItem('hv_fav_car') || 'null');
+      if (savedFav && evDatabase[savedFav.brand] && evDatabase[savedFav.brand][savedFav.modelIndex]) {
+        brandSelect.value = savedFav.brand;
+        brandSelect.dispatchEvent(new Event('change'));
+        modelSelect.value = savedFav.modelIndex;
+        modelSelect.dispatchEvent(new Event('change'));
+      } else {
+        // Padrão de fallback se não houver salvo
+        brandSelect.value = "BYD";
+        brandSelect.dispatchEvent(new Event('change'));
+        modelSelect.value = "2";
+        modelSelect.dispatchEvent(new Event('change'));
+      }
+    }
+
+    // VERIFICA SE O VEÍCULO ATUAL É O FAVORITO E ATUALIZA A ESTRELA
+    function checkCarFavoriteState() {
+      const savedFav = JSON.parse(localStorage.getItem('hv_fav_car') || 'null');
+      const currentBrand = document.getElementById('brandSelect').value;
+      const currentModel = document.getElementById('modelSelect').value;
+
+      const favIcon = document.getElementById('favCarIcon');
+      const favText = document.getElementById('favCarText');
+
+      if (savedFav && savedFav.brand === currentBrand && String(savedFav.modelIndex) === String(currentModel)) {
+        favIcon.className = "fa-solid fa-star text-amber-400";
+        favText.innerText = "Favoritado";
+      } else {
+        favIcon.className = "fa-regular fa-star";
+        favText.innerText = "Favoritar";
+      }
     }
 
     async function calculateMultiRoute() {
@@ -1260,18 +1506,24 @@
           ];
 
           await fetchRouteStationsFromOSM(bbox, activeRouteData.geometry);
-          renderStationsOnMapAndTable();
 
-          // CÁLCULOS DE AUTONOMIA E TELEMETRIA
           const driveFactor = parseFloat(document.getElementById('driveMode').value);
           const acFactor = parseFloat(document.getElementById('acMode').value);
-          const fullRangeAdjusted = selectedCar.range / (driveFactor * acFactor);
+          const rainFactor = document.getElementById('rainMode').checked ? 1.12 : 1.0;
+          const elevationFactor = document.getElementById('elevationMode').checked ? 1.08 : 1.0;
+
+          const fullRangeAdjusted = selectedCar.range / (driveFactor * acFactor * rainFactor * elevationFactor);
 
           let rawStart = parseFloat(document.getElementById('startBattery').value);
           const startPercent = isNaN(rawStart) ? 80 : Math.min(100, Math.max(0, rawStart));
-          
-          const currentAutonomyKm = Math.round(fullRangeAdjusted * (startPercent / 100));
 
+          if (waypoints[0] && waypoints[0].coords) {
+            drawBatteryIsochronePolyline(waypoints[0].coords, fullRangeAdjusted * (startPercent / 100));
+          }
+
+          renderStationsOnMapAndTable();
+
+          const currentAutonomyKm = Math.round(fullRangeAdjusted * (startPercent / 100));
           const safeReserveKm = Math.round(fullRangeAdjusted * 0.15);
           const safeDriveDistanceKm = Math.max(0, currentAutonomyKm - safeReserveKm);
 
@@ -1288,12 +1540,11 @@
             
             const percentNeededTotal = Math.ceil(((distKm / fullRangeAdjusted) * 100) + 15);
             const percentToCharge = Math.max(0, percentNeededTotal - startPercent);
-            const kwhToCharge = (percentToCharge / 100) * selectedCar.battery;
-
-            const minutesDC = Math.ceil((kwhToCharge / 50) * 60);
+            
+            const minutesDC = calculateRealChargingTimeMinutes(startPercent, Math.min(100, startPercent + percentToCharge), selectedCar.battery, 50);
 
             targetBatteryText = `${recommendedStops} Paradas Recomendadas`;
-            chargeTimeDCText = `~${minutesDC} min total`;
+            chargeTimeDCText = `~${minutesDC} min total (Curva Real)`;
 
             document.getElementById('targetBatteryNeeded').innerText = targetBatteryText;
             document.getElementById('chargeTimeDC').innerText = chargeTimeDCText;
@@ -1308,7 +1559,7 @@
           // Custos Totais
           const kwhCost = parseFloat(document.getElementById('costPerKwh').value) || 0;
           const adultCount = parseInt(document.getElementById('adultCount').value) || 1;
-          const totalKwhNeeded = (distKm / 100) * selectedCar.consumption;
+          const totalKwhNeeded = (distKm / 100) * selectedCar.consumption * driveFactor * acFactor * rainFactor * elevationFactor;
           const totalCostEV = totalKwhNeeded * kwhCost;
 
           document.getElementById('totalCost').innerText = `R$ ${totalCostEV.toFixed(2)}`;
@@ -1337,12 +1588,18 @@
           const remainingPercent = Math.max(0, Math.round(startPercent - usedPercent));
           updateBatteryUI(remainingPercent);
 
-          // Atualiza dados PDF
+          document.getElementById('overlayDist').innerText = `${distKm} km`;
+          document.getElementById('overlayTime').innerText = travelTimeStr;
+          document.getElementById('overlayBatt').innerText = `${remainingPercent}%`;
+          document.getElementById('overlayCost').innerText = `R$ ${totalCostEV.toFixed(2)}`;
+
+          recordEsgTripData(distKm, savings);
+
           document.getElementById('pdfItinerary').innerText = itineraryText;
           document.getElementById('pdfCarModel').innerText = `${selectedCar.model} (${selectedCar.type})`;
           document.getElementById('pdfCarBattery').innerText = `${selectedCar.battery} kWh`;
           document.getElementById('pdfCarRange').innerText = `${selectedCar.range} km`;
-          document.getElementById('pdfDriveConditions').innerText = `Modo: ${driveFactor > 1 ? 'Sport/Rodovia' : 'Eco'} | AC: ${acFactor > 1 ? 'Ligado' : 'Desligado'}`;
+          document.getElementById('pdfDriveConditions').innerText = `Modo: ${driveFactor > 1 ? 'Sport' : 'Eco'} | AC: ${acFactor > 1 ? 'Sim' : 'Não'} | Chuva: ${rainFactor > 1 ? 'Sim' : 'Não'} | Relevo: ${elevationFactor > 1 ? 'Sim' : 'Não'}`;
           document.getElementById('pdfDistance').innerText = `${distKm} km`;
           document.getElementById('pdfTime').innerText = travelTimeStr;
           document.getElementById('pdfBatteryState').innerText = `${startPercent}% / Est. Chegada ${remainingPercent}%`;
@@ -1361,6 +1618,42 @@
         calcBtnIcon.className = "fa-solid fa-calculator";
         progressBar.classList.add('hidden');
       }
+    }
+
+    function initEsgDashboard() {
+      document.getElementById('openStatsModalBtn').addEventListener('click', () => {
+        updateEsgUI();
+        document.getElementById('statsModal').classList.remove('hidden');
+      });
+
+      document.getElementById('closeStatsModalBtn').addEventListener('click', () => {
+        document.getElementById('statsModal').classList.add('hidden');
+      });
+
+      document.getElementById('resetEsgBtn').addEventListener('click', () => {
+        if (confirm("Tem certeza que deseja zerar seu histórico acumulado de viagens?")) {
+          localStorage.removeItem('esg_trips_data');
+          updateEsgUI();
+        }
+      });
+    }
+
+    function recordEsgTripData(km, savings) {
+      let esg = JSON.parse(localStorage.getItem('esg_trips_data') || '{"totalKm":0, "totalSavings":0, "tripsCount":0}');
+      esg.totalKm += km;
+      esg.totalSavings += savings;
+      esg.tripsCount += 1;
+      localStorage.setItem('esg_trips_data', JSON.stringify(esg));
+    }
+
+    function updateEsgUI() {
+      let esg = JSON.parse(localStorage.getItem('esg_trips_data') || '{"totalKm":0, "totalSavings":0, "tripsCount":0}');
+      document.getElementById('esgSavingsTotal').innerText = `R$ ${esg.totalSavings.toFixed(2)}`;
+      
+      const co2 = Math.round(esg.totalKm * 0.12);
+      document.getElementById('esgCo2Saved').innerText = `${co2} kg`;
+      document.getElementById('esgTotalKm').innerText = `${esg.totalKm} km`;
+      document.getElementById('esgTripsCount').innerText = `${esg.tripsCount}`;
     }
 
     function showRouteToast() {
@@ -1382,7 +1675,15 @@
       else batteryBar.className = "h-full rounded-lg transition-all duration-500 bg-red-600";
     }
 
-    // EXPORTAÇÃO PDF
+    document.getElementById('openWazeBtn').addEventListener('click', () => {
+      const validWaypoints = waypoints.filter(w => w.coords);
+      if (validWaypoints.length > 0) {
+        const dest = validWaypoints[validWaypoints.length - 1].coords;
+        const url = `https://waze.com/ul?ll=${dest[0]},${dest[1]}&navigate=yes`;
+        window.open(url, '_blank');
+      } else alert("Selecione os pontos da rota primeiro.");
+    });
+
     document.getElementById('exportPdfBtn').addEventListener('click', async () => {
       const btn = document.getElementById('exportPdfBtn');
       btn.innerText = "Gerando PDF...";
@@ -1425,7 +1726,7 @@
         console.error("Erro ao gerar PDF:", e);
         alert("Ocorreu um erro ao gerar o PDF. Tente novamente.");
       } finally {
-        btn.innerHTML = '<i class="fa-solid fa-file-pdf"></i> Exportar Relatório PDF';
+        btn.innerHTML = '<i class="fa-solid fa-file-pdf"></i> Exportar PDF';
         btn.disabled = false;
       }
     });
@@ -1446,6 +1747,20 @@
     document.getElementById('calcBtn').addEventListener('click', calculateMultiRoute);
     document.getElementById('filterCCS2').addEventListener('change', renderStationsOnMapAndTable);
     document.getElementById('filterAC').addEventListener('change', renderStationsOnMapAndTable);
+    document.getElementById('showIsochrone').addEventListener('change', () => {
+      if (waypoints[0] && waypoints[0].coords && selectedCar) {
+        const driveFactor = parseFloat(document.getElementById('driveMode').value);
+        const acFactor = parseFloat(document.getElementById('acMode').value);
+        const rainFactor = document.getElementById('rainMode').checked ? 1.12 : 1.0;
+        const elevationFactor = document.getElementById('elevationMode').checked ? 1.08 : 1.0;
+
+        const fullRangeAdjusted = selectedCar.range / (driveFactor * acFactor * rainFactor * elevationFactor);
+        let rawStart = parseFloat(document.getElementById('startBattery').value);
+        const startPercent = isNaN(rawStart) ? 80 : Math.min(100, Math.max(0, rawStart));
+
+        drawBatteryIsochronePolyline(waypoints[0].coords, fullRangeAdjusted * (startPercent / 100));
+      }
+    });
 
     window.onload = initMap;
   </script>
