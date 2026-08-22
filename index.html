@@ -89,7 +89,7 @@
     <!-- Cabeçalho -->
     <header class="flex flex-col items-center justify-center border-b border-blue-900/60 pb-4 gap-2 text-center relative">
       <div class="absolute top-0 right-0 bg-blue-900/40 border border-blue-800 text-blue-300 text-[10px] px-2 py-0.5 rounded shadow">
-        Versão 1.03
+        Versão 1.04
       </div>
 
       <div class="flex flex-col items-center gap-1.5">
@@ -921,6 +921,21 @@
       return { minDistance, closestPointIndex };
     }
 
+    async function fetchCityStateFromCoords(lat, lng) {
+      try {
+        const res = await fetch(`https://photon.komoot.io/reverse?lat=${lat}&lon=${lng}`);
+        const data = await res.json();
+        if (data && data.features && data.features.length > 0) {
+          const props = data.features[0].properties;
+          const city = props.city || props.town || props.village || props.county || "Localidade";
+          const stateFull = props.state || "";
+          const uf = ufMap[stateFull] || stateFull || "BR";
+          return `${city} / ${uf}`;
+        }
+      } catch (e) {}
+      return "Região na Rota / BR";
+    }
+
     async function fetchRouteStationsFromOSM(bbox, routeGeometry) {
       document.getElementById('stationsCount').innerText = "Buscando eletropostos na rota...";
       const buffer = 0.35; 
@@ -943,39 +958,40 @@
       const routeCoords = routeGeometry.coordinates;
       const uniqueMap = new Map();
 
-      manualStationsDatabase.forEach((mStation, idx) => {
+      for (const mStation of manualStationsDatabase) {
         const routeMatch = getMinDistanceToRouteInKm(mStation.lat, mStation.lng, routeCoords);
         if (routeMatch.minDistance <= 25) {
           uniqueMap.set(`${mStation.lat.toFixed(4)}_${mStation.lng.toFixed(4)}`, {
-            id: `manual_${idx}`, name: mStation.name, cityState: mStation.cityState,
+            id: `manual_${Math.random()}`, name: mStation.name, cityState: mStation.cityState,
             lat: mStation.lat, lng: mStation.lng, power: mStation.power, type: mStation.type,
             distToRoute: routeMatch.minDistance, routeIndex: routeMatch.closestPointIndex, operationalStatus: mStation.operationalStatus
           });
         }
-      });
+      }
 
       if (data && data.elements) {
-        data.elements.forEach((item, idx) => {
+        for (const item of data.elements) {
           const lat = item.lat || (item.center ? item.center.lat : null);
           const lng = item.lon || (item.center ? item.center.lon : null);
-          if (!lat || !lng) return;
+          if (!lat || !lng) continue;
           const key = `${lat.toFixed(4)}_${lng.toFixed(4)}`;
-          if (uniqueMap.has(key)) return;
+          if (uniqueMap.has(key)) continue;
 
           const tags = item.tags || {};
-          const name = tags.name || tags.operator || tags.brand || `Eletroposto #${idx + 1}`;
+          const name = tags.name || tags.operator || tags.brand || `Eletroposto`;
           const isDC = tags['socket:ccs'] || tags['socket:type2_combo'] || (tags.description && tags.description.toLowerCase().includes('dc'));
           
           const routeMatch = getMinDistanceToRouteInKm(lat, lng, routeCoords);
           if (routeMatch.minDistance <= 20) {
+            const resolvedCityState = await fetchCityStateFromCoords(lat, lng);
             uniqueMap.set(key, {
-              id: item.id || idx, name: name, cityState: null, lat: lat, lng: lng,
+              id: item.id, name: name, cityState: resolvedCityState, lat: lat, lng: lng,
               power: isDC ? 'CCS2 Ultra-Rápido DC (50-150kW)' : 'AC Wallbox (7-22kW)',
               type: isDC ? 'DC' : 'AC', distToRoute: routeMatch.minDistance, routeIndex: routeMatch.closestPointIndex,
               operationalStatus: "Disponível"
             });
           }
-        });
+        }
       }
 
       const rawStations = Array.from(uniqueMap.values());
@@ -1082,21 +1098,32 @@
             const ethanolPrice = parseFloat(document.getElementById('costPerLiterEthanol').value) || 5.07;
 
             const bestKmPL = (ethanolPrice / ethanolKmPL < gasPrice / gasKmPL) ? ethanolKmPL : gasKmPL;
-            const fuelRange = startLiters * bestKmPL;
+            const totalRangeCapacity = electricRange + (startLiters * bestKmPL);
+
+            if (distKm > totalRangeCapacity) {
+              const neededStops = Math.ceil(distKm / totalRangeCapacity) - 1;
+              document.getElementById('rechargeDistanceAlert').innerText = `Necessárias ${neededStops} paradas de reabastecimento/recarga`;
+              document.getElementById('targetBatteryNeeded').innerText = `Autonomia total excedida (${Math.round(totalRangeCapacity)}km máx)`;
+            } else {
+              document.getElementById('rechargeDistanceAlert').innerText = `Autonomia combinada suficiente`;
+              document.getElementById('targetBatteryNeeded').innerText = `Sem paradas obrigatórias`;
+            }
 
             const electricUsed = Math.min(distKm, electricRange);
-            const fuelUsed = Math.min(Math.max(0, distKm - electricRange), fuelRange);
+            const fuelUsed = Math.min(Math.max(0, distKm - electricRange), startLiters * bestKmPL);
 
             const electricCost = (electricUsed / 100) * selectedCar.consumption * (parseFloat(document.getElementById('costPerKwh').value) || 2.39);
             const fuelCost = (fuelUsed / bestKmPL) * (bestKmPL === ethanolKmPL ? ethanolPrice : gasPrice);
             totalCost = electricCost + fuelCost;
-
-            document.getElementById('rechargeDistanceAlert').innerText = `Híbrido: ${Math.round(electricUsed)}km elétrico + ${Math.round(fuelUsed)}km combustível`;
-            document.getElementById('targetBatteryNeeded').innerText = `Tanque cobre o restante (0 paradas obrigatórias)`;
           } else {
             const kwhCost = parseFloat(document.getElementById('costPerKwh').value) || 2.39;
             totalCost = ((distKm / 100) * selectedCar.consumption) * kwhCost;
-            document.getElementById('rechargeDistanceAlert').innerText = distKm > electricRange ? "Parada de recarga necessária" : "Autonomia elétrica suficiente";
+            if (distKm > electricRange) {
+              const stops = Math.ceil(distKm / electricRange) - 1;
+              document.getElementById('rechargeDistanceAlert').innerText = `${stops} parada(s) de recarga necessária(s)`;
+            } else {
+              document.getElementById('rechargeDistanceAlert').innerText = "Autonomia elétrica suficiente";
+            }
           }
 
           document.getElementById('totalCost').innerText = `R$ ${totalCost.toFixed(2)}`;
