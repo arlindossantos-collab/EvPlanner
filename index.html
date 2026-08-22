@@ -89,7 +89,7 @@
     <!-- Cabeçalho -->
     <header class="flex flex-col items-center justify-center border-b border-blue-900/60 pb-4 gap-2 text-center relative">
       <div class="absolute top-0 right-0 bg-blue-900/40 border border-blue-800 text-blue-300 text-[10px] px-2 py-0.5 rounded shadow">
-        Versão 1.06
+        Versão 1.07
       </div>
 
       <div class="flex flex-col items-center gap-1.5">
@@ -1029,10 +1029,13 @@
         const marker = L.marker([station.lat, station.lng], { icon: abrpIcon }).addTo(map).bindPopup(`<b>#${index + 1} ⚡ ${station.name}</b><br>${station.cityState || 'Localidade na Rota'}<br>Km ${station.routeKm} da rota`);
         stationMarkers.push(marker);
 
-        // Calcula a bateria estimada na chegada a este posto
         let battAtArrival = Math.max(0, 100 - Math.round((station.routeKm / initialRangeKm) * 100));
+        let operationMsg = "Ponto de Carga na Rota";
         if (station.routeKm > initialRangeKm) {
           battAtArrival = 0;
+          const deficitKm = station.routeKm - initialRangeKm;
+          const neededRechargePct = Math.min(100, Math.ceil((deficitKm / selectedCar.range) * 100));
+          operationMsg = `⚠️ Carregar +${neededRechargePct}% aqui`;
         }
 
         const tr = document.createElement('tr');
@@ -1043,7 +1046,7 @@
           <td class="p-2 font-semibold text-white whitespace-nowrap"><i class="fa-solid fa-charging-station text-yellow-400 mr-1"></i> ${station.name} (Km ${station.routeKm})</td>
           <td class="p-2 text-emerald-300 font-bold whitespace-nowrap">${station.cityState || 'Rodovia / Trecho'}</td>
           <td class="p-2 text-center whitespace-nowrap font-bold ${battAtArrival > 15 ? 'text-emerald-400' : 'text-red-400'}">${battAtArrival}%</td>
-          <td class="p-2 text-center whitespace-nowrap font-bold text-amber-300">Trecho Km ${station.routeKm}</td>
+          <td class="p-2 text-center whitespace-nowrap font-bold text-amber-300">${operationMsg}</td>
           <td class="p-2 whitespace-nowrap"><span class="bg-blue-900 text-blue-100 px-2 py-0.5 rounded border border-blue-700 text-xs">${station.power}</span></td>
           <td class="p-2 text-right whitespace-nowrap"><button onclick="map.setView([${station.lat}, ${station.lng}], 14)" class="bg-blue-600 text-white font-bold px-2.5 py-1 rounded text-xs">Ver</button></td>
         `;
@@ -1101,6 +1104,8 @@
           renderStationsOnMapAndTable(distKm, electricRange);
 
           let totalCost = 0;
+          const kwhCost = parseFloat(document.getElementById('costPerKwh').value) || 2.39;
+
           if (selectedCar.isHybrid) {
             const startLiters = parseFloat(document.getElementById('startFuelLiters').value) || 40;
             const gasKmPL = parseFloat(document.getElementById('kmPerLiterGas').value) || selectedCar.gasKm || 15.0;
@@ -1112,30 +1117,36 @@
             const totalRangeCapacity = electricRange + (startLiters * bestKmPL);
 
             if (distKm > totalRangeCapacity) {
-              const neededStops = Math.ceil(distKm / totalRangeCapacity) - 1;
-              document.getElementById('rechargeDistanceAlert').innerText = `Necessárias ${neededStops} paradas (Autonomia acaba aos ${Math.round(totalRangeCapacity)} km)`;
-              document.getElementById('targetBatteryNeeded').innerText = `Parada obrigatória no Km ${Math.round(totalRangeCapacity)}`;
+              const deficitKm = distKm - totalRangeCapacity;
+              const neededRecharge = Math.ceil((deficitKm / selectedCar.range) * 100);
+              document.getElementById('rechargeDistanceAlert').innerText = `Necessário reabastecer / carregar +${neededRecharge}% no percurso`;
+              document.getElementById('targetBatteryNeeded').innerText = `Parada obrigatória em rota`;
             } else {
-              document.getElementById('rechargeDistanceAlert').innerText = `Autonomia combinada suficiente (${Math.round(totalRangeCapacity)} km máx)`;
-              document.getElementById('targetBatteryNeeded').innerText = `Sem paradas obrigatórias`;
+              const remainingRange = totalRangeCapacity - distKm;
+              const arrivalBattPct = Math.max(0, Math.round((remainingRange / selectedCar.range) * 100));
+              const tripElectricUsed = Math.min(distKm, electricRange);
+              const tripCost = (tripElectricUsed / 100) * selectedCar.consumption * kwhCost;
+              document.getElementById('rechargeDistanceAlert').innerText = `Você chegará ao destino com ${arrivalBattPct}% de bateria (Valor aprox. R$ ${tripCost.toFixed(2)})`;
+              document.getElementById('targetBatteryNeeded').innerText = `Chegada com ${arrivalBattPct}% restante`;
             }
 
             const electricUsed = Math.min(distKm, electricRange);
             const fuelUsed = Math.min(Math.max(0, distKm - electricRange), startLiters * bestKmPL);
-
-            const electricCost = (electricUsed / 100) * selectedCar.consumption * (parseFloat(document.getElementById('costPerKwh').value) || 2.39);
+            const electricCost = (electricUsed / 100) * selectedCar.consumption * kwhCost;
             const fuelCost = (fuelUsed / bestKmPL) * (bestKmPL === ethanolKmPL ? ethanolPrice : gasPrice);
             totalCost = electricCost + fuelCost;
           } else {
-            const kwhCost = parseFloat(document.getElementById('costPerKwh').value) || 2.39;
             totalCost = ((distKm / 100) * selectedCar.consumption) * kwhCost;
             if (distKm > electricRange) {
-              const stops = Math.ceil(distKm / electricRange) - 1;
-              document.getElementById('rechargeDistanceAlert').innerText = `${stops} parada(s) necessária(s). 1ª recarga aos ${Math.round(electricRange)} km`;
-              document.getElementById('targetBatteryNeeded').innerText = `Bateria esgota aos ${Math.round(electricRange)} km`;
+              const deficitKm = distKm - electricRange;
+              const neededRecharge = Math.min(100, Math.ceil((deficitKm / selectedCar.range) * 100));
+              document.getElementById('rechargeDistanceAlert').innerText = `Autonomia insuficiente. Precisa carregar +${neededRecharge}% no eletroposto`;
+              document.getElementById('targetBatteryNeeded').innerText = `Recarga necessária de +${neededRecharge}%`;
             } else {
-              document.getElementById('rechargeDistanceAlert').innerText = "Autonomia elétrica suficiente";
-              document.getElementById('targetBatteryNeeded').innerText = "Chegada com bateria OK";
+              const remainingKm = electricRange - distKm;
+              const arrivalBattPct = Math.max(0, Math.round((remainingKm / selectedCar.range) * 100));
+              document.getElementById('rechargeDistanceAlert').innerText = `Você chegará ao destino com ${arrivalBattPct}% de bateria (Valor aprox. R$ ${totalCost.toFixed(2)})`;
+              document.getElementById('targetBatteryNeeded').innerText = `Chegada com ${arrivalBattPct}% restante`;
             }
           }
 
