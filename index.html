@@ -677,6 +677,28 @@
       ]
     };
 
+    // Base de Eletropostos Manuais Complementares (Garante postos chave como Rei das Coxinhas em rotas PE-PB)
+    const manualStationsDatabase = [
+      {
+        name: "Planeta Charger - Rei das Coxinhas (Pedras de Fogo)",
+        cityState: "Pedras de Fogo / PB",
+        lat: -7.3957,
+        lng: -34.9552,
+        power: "CCS2 Ultra-Rápido DC (60kW)",
+        type: "DC",
+        operationalStatus: "Disponível"
+      },
+      {
+        name: "Planeta Charger - Rei das Coxinhas (Gravatá)",
+        cityState: "Gravatá / PE",
+        lat: -8.1888,
+        lng: -35.5069,
+        power: "CCS2 Ultra-Rápido DC (120kW)",
+        type: "DC",
+        operationalStatus: "Disponível"
+      }
+    ];
+
     let map, waypoints = [];
     let waypointMarkers = [];
     let selectedCar = null;
@@ -706,7 +728,6 @@
       initEsgDashboard();
       initDefaultDepartureDate();
 
-      // Endereços iniciam vazios
       waypoints = [
         { address: "", coords: null },
         { address: "", coords: null }
@@ -781,7 +802,7 @@
       document.getElementById('setHomeBtn').addEventListener('click', () => {
         const home = localStorage.getItem('hv_home_address');
         if (!home) {
-          const newHome = prompt("Digite seu endereço de Casa:");
+          const newHome = prompt("Digite seu endereço (Ex.: Rua, número, bairro, cidade, estado):");
           if (newHome) {
             localStorage.setItem('hv_home_address', newHome);
             askTargetWaypointAndSet(newHome);
@@ -792,7 +813,7 @@
       document.getElementById('setWorkBtn').addEventListener('click', () => {
         const work = localStorage.getItem('hv_work_address');
         if (!work) {
-          const newWork = prompt("Digite seu endereço de Trabalho:");
+          const newWork = prompt("Digite seu endereço de Trabalho (Ex.: Rua, número, bairro, cidade, estado):");
           if (newWork) {
             localStorage.setItem('hv_work_address', newWork);
             askTargetWaypointAndSet(newWork);
@@ -928,7 +949,7 @@
           <div class="relative">
             <input type="text" id="wpInput_${index}" value="${wp.address}" 
                    class="w-full bg-[#031038] border border-blue-800 rounded p-1.5 text-white text-xs outline-none focus:border-emerald-500" 
-                   placeholder="Digite cidade, hotel, shopping ou local..." autocomplete="off">
+                   placeholder="Ex: Rua, número, bairro, cidade, estado" autocomplete="off">
             <div id="wpResults_${index}" class="autocomplete-results hidden"></div>
           </div>
         `;
@@ -1281,53 +1302,69 @@
         }
       }
 
-      if (!data || !data.elements) {
-        fetchedStations = [];
-        document.getElementById('stationsCount').innerText = "0 encontrados";
-        return;
-      }
-
       const routeCoords = routeGeometry.coordinates;
       const uniqueMap = new Map();
 
-      data.elements.forEach((item, idx) => {
-        const lat = item.lat || (item.center ? item.center.lat : null);
-        const lng = item.lon || (item.center ? item.center.lon : null);
-
-        if (!lat || !lng) return;
-
-        const key = `${lat.toFixed(4)}_${lng.toFixed(4)}`;
-        if (uniqueMap.has(key)) return;
-
-        const tags = item.tags || {};
-        const name = tags.name || tags.operator || tags.brand || `Eletroposto #${idx + 1}`;
-        const isDC = tags['socket:ccs'] || tags['socket:type2_combo'] || tags['socket:chademo'] || 
-                     (tags.description && tags.description.toLowerCase().includes('dc')) ||
-                     (tags.capacity && tags.capacity.toLowerCase().includes('dc'));
-
-        let city = tags['addr:city'] || tags['addr:town'] || tags['is_in:city'] || tags['addr:municipality'];
-        let state = tags['addr:state'] || tags['is_in:state'];
-
-        if (state && ufMap[state]) state = ufMap[state];
-
-        let cityState = (city && state) ? `${city} / ${state}` : null;
-        const routeMatch = getMinDistanceToRouteInKm(lat, lng, routeCoords);
-
-        if (routeMatch.minDistance <= 22) {
+      // Injeta eletropostos manuais/complementares da base
+      manualStationsDatabase.forEach((mStation, idx) => {
+        const routeMatch = getMinDistanceToRouteInKm(mStation.lat, mStation.lng, routeCoords);
+        if (routeMatch.minDistance <= 25) {
+          const key = `${mStation.lat.toFixed(4)}_${mStation.lng.toFixed(4)}`;
           uniqueMap.set(key, {
-            id: item.id || idx,
-            name: name,
-            cityState: cityState,
-            lat: lat,
-            lng: lng,
-            power: isDC ? 'CCS2 Ultra-Rápido DC (50-150kW)' : 'AC Wallbox (7-22kW)',
-            type: isDC ? 'DC' : 'AC',
+            id: `manual_${idx}`,
+            name: mStation.name,
+            cityState: mStation.cityState,
+            lat: mStation.lat,
+            lng: mStation.lng,
+            power: mStation.power,
+            type: mStation.type,
             distToRoute: routeMatch.minDistance,
             routeIndex: routeMatch.closestPointIndex,
-            operationalStatus: (idx % 7 === 0) ? "Ocupado" : "Disponível"
+            operationalStatus: mStation.operationalStatus
           });
         }
       });
+
+      if (data && data.elements) {
+        data.elements.forEach((item, idx) => {
+          const lat = item.lat || (item.center ? item.center.lat : null);
+          const lng = item.lon || (item.center ? item.center.lon : null);
+
+          if (!lat || !lng) return;
+
+          const key = `${lat.toFixed(4)}_${lng.toFixed(4)}`;
+          if (uniqueMap.has(key)) return;
+
+          const tags = item.tags || {};
+          const name = tags.name || tags.operator || tags.brand || `Eletroposto #${idx + 1}`;
+          const isDC = tags['socket:ccs'] || tags['socket:type2_combo'] || tags['socket:chademo'] || 
+                       (tags.description && tags.description.toLowerCase().includes('dc')) ||
+                       (tags.capacity && tags.capacity.toLowerCase().includes('dc'));
+
+          let city = tags['addr:city'] || tags['addr:town'] || tags['is_in:city'] || tags['addr:municipality'];
+          let state = tags['addr:state'] || tags['is_in:state'];
+
+          if (state && ufMap[state]) state = ufMap[state];
+
+          let cityState = (city && state) ? `${city} / ${state}` : null;
+          const routeMatch = getMinDistanceToRouteInKm(lat, lng, routeCoords);
+
+          if (routeMatch.minDistance <= 22) {
+            uniqueMap.set(key, {
+              id: item.id || idx,
+              name: name,
+              cityState: cityState,
+              lat: lat,
+              lng: lng,
+              power: isDC ? 'CCS2 Ultra-Rápido DC (50-150kW)' : 'AC Wallbox (7-22kW)',
+              type: isDC ? 'DC' : 'AC',
+              distToRoute: routeMatch.minDistance,
+              routeIndex: routeMatch.closestPointIndex,
+              operationalStatus: (idx % 7 === 0) ? "Ocupado" : "Disponível"
+            });
+          }
+        });
+      }
 
       const rawStations = Array.from(uniqueMap.values());
       rawStations.sort((a, b) => a.routeIndex - b.routeIndex);
