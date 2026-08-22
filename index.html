@@ -195,7 +195,7 @@
             </div>
 
             <button id="addWaypointBtn" class="w-full bg-blue-900/80 hover:bg-blue-800 text-emerald-300 font-semibold py-1.5 px-2 rounded border border-blue-700 text-xs flex items-center justify-center gap-1.5 transition">
-              <i class="fa-solid fa-circle-plus"></i> + Adicionar Parada Intermediária
+              <i class="fa-solid fa-circle-plus"></i> + Adicionar Parada Programada
             </button>
 
             <div class="grid grid-cols-2 gap-2 pt-1 border-t border-blue-900/60">
@@ -659,7 +659,13 @@
       initUserFavorites();
       initSortableWaypoints();
 
-      waypoints = [{ address: "", coords: null }, { address: "", coords: null }];
+      // Estrutura inicial exata: Origem, Destino 1, Destino 2, Destino 3
+      waypoints = [
+        { address: "", coords: null, label: "Origem" },
+        { address: "", coords: null, label: "Destino 1" },
+        { address: "", coords: null, label: "Destino 2" },
+        { address: "", coords: null, label: "Destino 3" }
+      ];
       renderWaypointsInputs();
     }
 
@@ -721,6 +727,11 @@
           if (newHome) { localStorage.setItem('hv_home_address', newHome); askTargetWaypointAndSet(newHome); }
         } else askTargetWaypointAndSet(home);
       });
+
+      document.getElementById('addWaypointBtn').addEventListener('click', () => {
+        waypoints.push({ address: "", coords: null, label: `Parada Programada #${waypoints.filter(w => w.label.includes('Parada')).length + 1}` });
+        renderWaypointsInputs();
+      });
     }
 
     function askTargetWaypointAndSet(addressStr) {
@@ -732,10 +743,22 @@
     function renderWaypointsInputs() {
       const container = document.getElementById('routeWaypointsContainer');
       container.innerHTML = '';
+      
       waypoints.forEach((wp, index) => {
+        let labelText = wp.label;
+        if (!labelText) {
+          if (index === 0) labelText = "Origem";
+          else if (index === waypoints.length - 1 && !waypoints[index].label.includes('Parada')) labelText = `Destino ${index}`;
+          else labelText = `Parada Programada`;
+        }
+
         const div = document.createElement('div');
         div.className = "waypoint-item relative bg-[#020b29] p-2 rounded-lg border border-blue-900 space-y-1";
         div.innerHTML = `
+          <div class="flex justify-between items-center text-[11px] mb-1">
+            <span class="font-bold text-emerald-300">${labelText}</span>
+            ${index > 3 ? `<button onclick="removeWaypoint(${index})" class="text-red-400 hover:text-red-300 font-bold px-1">✕ Remover</button>` : ''}
+          </div>
           <input type="text" id="wpInput_${index}" value="${wp.address}" 
                  class="w-full bg-[#031038] border border-blue-800 rounded p-1.5 text-white text-xs outline-none" 
                  placeholder="Ex: Rua, número, bairro, cidade, estado" autocomplete="off">
@@ -748,6 +771,14 @@
           updateWaypointMarkers();
         }, index);
       });
+    }
+
+    function removeWaypoint(index) {
+      if (index > 3) {
+        waypoints.splice(index, 1);
+        renderWaypointsInputs();
+        updateWaypointMarkers();
+      }
     }
 
     function setupFastAutocomplete(inputId, resultsId, callback, index) {
@@ -911,7 +942,7 @@
       }
 
       const validCoords = waypoints.filter(w => w.coords).map(w => `${w.coords[1]},${w.coords[0]}`);
-      if (validCoords.length < 2) { alert("Informe origem e destino."); return; }
+      if (validCoords.length < 2) { alert("Informe pelo menos a Origem e um Destino."); return; }
 
       const res = await fetch(`https://router.project-osrm.org/route/v1/driving/${validCoords.join(';')}?overview=full&geometries=geojson`);
       const data = await res.json();
