@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>EV Planner Pro - Carros Elétricos & Múltiplos Destinos</title>
+  <title>EV Planner Pro - Carros Elétricos, Híbridos & Múltiplos Destinos</title>
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- FontAwesome Icons -->
@@ -102,7 +102,7 @@
         <h1 class="text-lg md:text-2xl font-extrabold text-emerald-400 tracking-wide uppercase mt-1">
           EV Planner Pro - Viagens & Telemetria Avançada
         </h1>
-        <p class="text-xs md:text-sm text-blue-200">Planejamento de Rota Inteligente com Isócronas, Relevo, Clima, Curva de Recarga e Métricas ESG</p>
+        <p class="text-xs md:text-sm text-blue-200">Planejamento de Rota Inteligente com Isócronas, Relevo, Clima, Curva de Recarga e Híbridos</p>
       </div>
       
       <div class="flex items-center gap-2 w-full justify-center mt-1 flex-wrap">
@@ -154,7 +154,7 @@
         <div id="carSpecs" class="bg-[#020b29] p-2.5 rounded-lg text-xs md:text-sm space-y-1.5 border border-blue-900 mt-2">
           <div class="flex justify-between"><span class="text-blue-300">Propulsão:</span><span id="specType" class="font-bold text-emerald-400">-</span></div>
           <div class="flex justify-between"><span class="text-blue-300">Bateria Útil:</span><span id="specBattery" class="font-bold text-white">-</span></div>
-          <div class="flex justify-between"><span class="text-blue-300">Autonomia Base:</span><span id="specRange" class="font-bold text-emerald-400">-</span></div>
+          <div class="flex justify-between"><span class="text-blue-300">Autonomia Elétrica:</span><span id="specRange" class="font-bold text-emerald-400">-</span></div>
           <div class="flex justify-between"><span class="text-blue-300">Consumo Elétrico:</span><span id="specConsumption" class="font-bold text-white">-</span></div>
         </div>
       </div>
@@ -330,7 +330,7 @@
         </div>
 
         <div class="bg-[#020b29] p-2 rounded-lg text-xs md:text-sm space-y-1 border border-blue-900 mt-2">
-          <div class="flex justify-between"><span class="text-blue-300">Custo EV Total:</span><span id="totalCost" class="font-bold text-emerald-400">R$ 0,00</span></div>
+          <div class="flex justify-between"><span class="text-blue-300">Custo Total da Viagem:</span><span id="totalCost" class="font-bold text-emerald-400">R$ 0,00</span></div>
           <div class="flex justify-between"><span class="text-blue-300">Por Adulto:</span><span id="costPax" class="font-bold text-white">R$ 0,00</span></div>
         </div>
       </div>
@@ -344,7 +344,7 @@
           
           <div class="space-y-1.5">
             <div class="flex justify-between text-xs md:text-sm text-blue-300">
-              <span>Bateria no Destino Final:</span>
+              <span id="batteryStatusLabel">Bateria no Destino Final:</span>
               <span id="batteryPercentage" class="font-bold text-xs md:text-sm">--%</span>
             </div>
             
@@ -356,14 +356,14 @@
 
         <div id="rechargeDetailsBox" class="bg-[#020b29] p-2.5 rounded-lg border border-amber-500/40 text-xs space-y-1.5 my-1">
           <div class="font-bold text-amber-400 flex items-center gap-1.5">
-            <i class="fa-solid fa-bolt"></i> Curva Real de Carga (Non-Linear):
+            <i class="fa-solid fa-bolt"></i> Gestão de Energia / Híbrido:
           </div>
           <div class="flex justify-between text-blue-200">
-            <span>Paradas Recomendadas:</span>
+            <span>Estratégia de Paradas:</span>
             <span id="targetBatteryNeeded" class="font-bold text-emerald-400">--</span>
           </div>
           <div class="flex justify-between text-blue-200">
-            <span>Tempo Estimado Recarga:</span>
+            <span>Tempo de Recarga:</span>
             <span id="chargeTimeDC" class="font-bold text-amber-300">-- min</span>
           </div>
         </div>
@@ -371,16 +371,12 @@
         <div class="text-xs md:text-sm text-blue-200 space-y-1.5 border-t border-blue-900 pt-2">
           <div class="flex justify-between"><span class="text-blue-300">📏 Distância Acumulada:</span><span id="totalDistance" class="font-bold text-emerald-400">0 km</span></div>
           <div class="flex justify-between"><span class="text-blue-300">⏱️ Tempo Condução Total:</span><span id="travelTime" class="font-bold text-white">-- h -- min</span></div>
-          <div class="flex justify-between items-center"><span class="text-blue-300">⚡ Status de Recarga:</span><span id="rechargeDistanceAlert" class="font-bold text-amber-400">--</span></div>
+          <div class="flex justify-between items-center"><span class="text-blue-300">⚡ Status:</span><span id="rechargeDistanceAlert" class="font-bold text-amber-400">--</span></div>
           
           <div id="fossilComparisonBox" class="bg-[#020b29] p-2 rounded border border-blue-800 my-1 space-y-1 text-xs">
             <div class="flex justify-between"><span class="text-amber-300">⛽ Gasolina Total:</span><span id="gasCost" class="font-bold text-red-300">R$ 0,00</span></div>
             <div class="flex justify-between"><span class="text-emerald-300">🌽 Etanol Total:</span><span id="ethanolCost" class="font-bold text-amber-300">R$ 0,00</span></div>
             <div class="flex justify-between border-t border-blue-900 pt-1"><span class="text-blue-300">Melhor Opção Fóssil:</span><span id="bestFossilOption" class="font-bold text-yellow-400">-</span></div>
-          </div>
-
-          <div class="flex justify-between items-center bg-emerald-950/40 p-1.5 rounded border border-emerald-500/30 text-xs md:text-sm">
-            <span class="text-emerald-300 font-semibold">Economia EV Total:</span><span id="savingsEV" class="font-black text-emerald-400">R$ 0,00</span>
           </div>
         </div>
       </div>
@@ -425,7 +421,7 @@
               <th class="p-2 whitespace-nowrap">Trecho / Ponto de Carga</th>
               <th class="p-2 whitespace-nowrap min-w-[150px]">CIDADE / UF</th>
               <th class="p-2 whitespace-nowrap text-center">Bateria Chegada</th>
-              <th class="p-2 whitespace-nowrap text-center">Tempo Recarga (Curva Real)</th>
+              <th class="p-2 whitespace-nowrap text-center">Tipo de Operação</th>
               <th class="p-2 whitespace-nowrap">Potência / Plugue</th>
               <th class="p-2 text-right whitespace-nowrap">Ação</th>
             </tr>
@@ -493,7 +489,7 @@
     <div id="pdfPage1" style="padding-bottom: 20px;">
       <div style="text-align: center; border-bottom: 2px solid #1e3a8a; padding-bottom: 10px; margin-bottom: 15px;">
         <h1 style="color: #34d399; font-size: 22px; font-weight: bold; margin: 0; text-transform: uppercase;">Relatório Executivo Multipontos - EV Planner Pro</h1>
-        <p style="color: #93c5fd; font-size: 12px; margin: 5px 0 0 0;">Planejamento de Rota com Múltiplas Etapas & Clima</p>
+        <p style="color: #93c5fd; font-size: 12px; margin: 5px 0 0 0;">Planejamento de Rota com Múltiplas Etapas, Clima & Híbridos</p>
       </div>
 
       <table style="width: 100%; border-collapse: collapse; margin-bottom: 15px; font-size: 12px;">
@@ -505,7 +501,7 @@
               <p style="margin: 4px 0;"><b>Data/Hora Partida:</b> <span id="pdfDepartureDateTime" style="color:#fbbf24;">-</span></p>
               <p style="margin: 4px 0;"><b>Previsão do Tempo:</b> <span id="pdfWeatherInfo" style="color:#34d399;">-</span></p>
               <p style="margin: 4px 0;"><b>Veículo Selecionado:</b> <span id="pdfCarModel">-</span></p>
-              <p style="margin: 4px 0;"><b>Bateria Útil:</b> <span id="pdfCarBattery">-</span> | <b>Autonomia Base:</b> <span id="pdfCarRange">-</span></p>
+              <p style="margin: 4px 0;"><b>Propulsão:</b> <span id="pdfCarType">-</span></p>
             </div>
           </td>
           <td style="width: 50%; vertical-align: top; padding-left: 10px;">
@@ -513,10 +509,8 @@
               <h3 style="color: #34d399; border-bottom: 1px solid #1e3a8a; padding-bottom: 5px; margin-top: 0; font-size: 14px;">⚡ Telemetria & Custos Totais</h3>
               <p style="margin: 4px 0;"><b>Distância Total Acumulada:</b> <span id="pdfDistance" style="color: #34d399; font-weight: bold;">-</span></p>
               <p style="margin: 4px 0;"><b>Tempo de Condução Estimado:</b> <span id="pdfTime" style="color: #ffffff; font-weight: bold;">-</span></p>
-              <p style="margin: 4px 0;"><b>Bateria Inicial / Estimada Destino Final:</b> <span id="pdfBatteryState">-</span></p>
-              <p style="margin: 4px 0;"><b>Necessidade de Parada:</b> <span id="pdfRechargeAlert" style="color: #fbbf24; font-weight: bold;">-</span></p>
-              <p style="margin: 4px 0;"><b>Tempo Estimado Recarga (DC):</b> <span id="pdfChargeTimeDC">-</span></p>
-              <p style="margin: 4px 0;"><b>Custo Estimado EV Total:</b> <span id="pdfCostEV" style="color: #34d399; font-weight: bold;">-</span> | <b>Economia vs Fóssil:</b> <span id="pdfSavings" style="color: #34d399; font-weight: bold;">-</span></p>
+              <p style="margin: 4px 0;"><b>Gestão de Energia:</b> <span id="pdfBatteryState">-</span></p>
+              <p style="margin: 4px 0;"><b>Custo Total Estimado:</b> <span id="pdfCostEV" style="color: #34d399; font-weight: bold;">-</span></p>
             </div>
           </td>
         </tr>
@@ -533,7 +527,7 @@
     <div id="pdfPage2" style="padding-top: 10px;">
       <div style="border-bottom: 2px solid #1e3a8a; padding-bottom: 10px; margin-bottom: 15px;">
         <h2 style="color: #34d399; font-size: 18px; font-weight: bold; margin: 0; text-transform: uppercase;">Itinerário de Paradas da Viagem</h2>
-        <p style="color: #93c5fd; font-size: 12px; margin: 4px 0 0 0;">Detalhes do nível de bateria e tempo de parada segmento a segmento</p>
+        <p style="color: #93c5fd; font-size: 12px; margin: 4px 0 0 0;">Detalhes do nível de bateria e operação do sistema híbrido segmento a segmento</p>
       </div>
 
       <table style="width: 100%; border-collapse: collapse; font-size: 11px; text-align: left;">
@@ -543,7 +537,7 @@
             <th style="padding: 8px;">Eletroposto / Ponto</th>
             <th style="padding: 8px;">CIDADE / UF</th>
             <th style="padding: 8px; text-align: center;">Bateria Chegada</th>
-            <th style="padding: 8px; text-align: center;">Tempo Parada</th>
+            <th style="padding: 8px; text-align: center;">Operação</th>
             <th style="padding: 8px;">Especificação Técnica</th>
           </tr>
         </thead>
@@ -677,7 +671,6 @@
       ]
     };
 
-    // Base de Eletropostos Manuais Complementares (Garante postos chave como Rei das Coxinhas em rotas PE-PB)
     const manualStationsDatabase = [
       {
         name: "Planeta Charger - Rei das Coxinhas (Pedras de Fogo)",
@@ -752,8 +745,7 @@
           </div>
           <div>📏 Distância: <b id="overlayDist" class="text-emerald-300">0 km</b></div>
           <div>⏱️ Tempo: <b id="overlayTime" class="text-white">--</b></div>
-          <div>🔋 Chegada Est.: <b id="overlayBatt" class="text-emerald-400">--%</b></div>
-          <div>⚡ Custo EV: <b id="overlayCost" class="text-emerald-300">R$ 0,00</b></div>
+          <div>⚡ Custo Total: <b id="overlayCost" class="text-emerald-300">R$ 0,00</b></div>
         `;
         return div;
       };
@@ -762,18 +754,12 @@
 
     function initBatteryInputValidation() {
       const batteryInput = document.getElementById('startBattery');
-      
       const enforceLimit = () => {
         let val = parseFloat(batteryInput.value);
-        if (isNaN(val) || val < 0) {
-          batteryInput.value = 0;
-        } else if (val > 100) {
-          batteryInput.value = 100;
-        } else {
-          batteryInput.value = Math.round(val);
-        }
+        if (isNaN(val) || val < 0) batteryInput.value = 0;
+        else if (val > 100) batteryInput.value = 100;
+        else batteryInput.value = Math.round(val);
       };
-
       batteryInput.addEventListener('input', enforceLimit);
       batteryInput.addEventListener('blur', enforceLimit);
       batteryInput.addEventListener('change', enforceLimit);
@@ -786,10 +772,8 @@
         animation: 150,
         onEnd: function () {
           const newWaypoints = [];
-          const items = container.querySelectorAll('.waypoint-item');
-          items.forEach(item => {
-            const index = parseInt(item.getAttribute('data-index'));
-            newWaypoints.push(waypoints[index]);
+          container.querySelectorAll('.waypoint-item').forEach(item => {
+            newWaypoints.push(waypoints[parseInt(item.getAttribute('data-index'))]);
           });
           waypoints = newWaypoints;
           renderWaypointsInputs();
@@ -995,7 +979,6 @@
     function setupFastAutocomplete(inputId, resultsId, callback, index) {
       const input = document.getElementById(inputId);
       const results = document.getElementById(resultsId);
-
       let timeout = null;
 
       input.addEventListener('input', () => {
@@ -1004,10 +987,7 @@
 
         clearTimeout(timeout);
         const query = input.value.trim();
-        if (query.length < 2) { 
-          results.classList.add('hidden'); 
-          return; 
-        }
+        if (query.length < 2) { results.classList.add('hidden'); return; }
 
         timeout = setTimeout(async () => {
           try {
@@ -1021,14 +1001,12 @@
               data.features.forEach(feature => {
                 const props = feature.properties;
                 const coords = [feature.geometry.coordinates[1], feature.geometry.coordinates[0]];
-
                 const title = props.name || props.street || query;
                 const details = [props.street, props.city, props.state, props.country].filter(Boolean).join(', ');
 
                 const div = document.createElement('div');
                 div.className = 'autocomplete-item';
-                div.innerHTML = `<span class="font-bold text-emerald-300">📍 ${title}</span>
-                                 <span class="text-[10px] text-slate-400">${details}</span>`;
+                div.innerHTML = `<span class="font-bold text-emerald-300">📍 ${title}</span><span class="text-[10px] text-slate-400">${details}</span>`;
                 
                 div.onclick = (e) => {
                   e.stopPropagation();
@@ -1041,70 +1019,30 @@
               });
               results.classList.remove('hidden');
             } else {
-              const nomUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&countrycodes=br&limit=5&addressdetails=1`;
-              const nomRes = await fetch(nomUrl);
-              const nomData = await nomRes.json();
-
-              if (nomData && nomData.length > 0) {
-                nomData.forEach(place => {
-                  const div = document.createElement('div');
-                  div.className = 'autocomplete-item';
-                  div.innerHTML = `<span class="font-bold text-emerald-300">📍 ${place.display_name.split(',')[0]}</span>
-                                   <span class="text-[10px] text-slate-400">${place.display_name}</span>`;
-                  div.onclick = (e) => {
-                    e.stopPropagation();
-                    input.value = place.display_name;
-                    results.classList.add('hidden');
-                    const coords = [parseFloat(place.lat), parseFloat(place.lon)];
-                    callback(coords, place.display_name);
-                  };
-                  results.appendChild(div);
-                });
-                results.classList.remove('hidden');
-              } else {
-                results.classList.add('hidden');
-              }
+              results.classList.add('hidden');
             }
           } catch (err) {
-            console.error("Erro no autocomplete:", err);
             results.classList.add('hidden');
           }
         }, 200);
       });
 
       document.addEventListener('click', (e) => {
-        if (!input.contains(e.target) && !results.contains(e.target)) {
-          results.classList.add('hidden');
-        }
+        if (!input.contains(e.target) && !results.contains(e.target)) results.classList.add('hidden');
       });
     }
 
     async function geocodeFast(addressStr) {
       if (!addressStr || addressStr.trim() === '') return null;
-      
       try {
         const photonUrl = `https://photon.komoot.io/api/?q=${encodeURIComponent(addressStr)}&limit=1`;
         const res = await fetch(photonUrl);
         const data = await res.json();
-
         if (data && data.features && data.features.length > 0) {
           const coords = data.features[0].geometry.coordinates;
           return [coords[1], coords[0]];
         }
-      } catch (err) {
-        console.warn("Falha no geocoder secundário...", err);
-      }
-
-      try {
-        const nomUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(addressStr)}&countrycodes=br&limit=1`;
-        const nomRes = await fetch(nomUrl);
-        const nomData = await nomRes.json();
-        if (nomData && nomData.length > 0) {
-          return [parseFloat(nomData[0].lat), parseFloat(nomData[0].lon)];
-        }
-      } catch (err) {
-        console.warn("Erro no geocodificador primário:", err);
-      }
+      } catch (err) {}
       return null;
     }
 
@@ -1113,18 +1051,14 @@
         const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=10`;
         const res = await fetch(url);
         const data = await res.json();
-
         if (data && data.address) {
           const addr = data.address;
           const city = addr.city || addr.town || addr.municipality || addr.village || addr.county || "Desconhecida";
           const stateName = addr.state || "";
-          
           const uf = ufMap[stateName] || (stateName.length === 2 ? stateName.toUpperCase() : "UF");
           return `${city} / ${uf}`;
         }
-      } catch (e) {
-        console.warn("Falha no geocodificador reverso:", e);
-      }
+      } catch (e) {}
       return null;
     }
 
@@ -1145,15 +1079,10 @@
         if (data && data.hourly && data.hourly.time) {
           const times = data.hourly.time;
           const targetDateTimeStr = `${dateStr}T${timeStr.split(':')[0]}:00`;
-          
           let targetIdx = 0;
           for (let i = 0; i < times.length; i++) {
-            if (times[i] >= targetDateTimeStr) {
-              targetIdx = i;
-              break;
-            }
+            if (times[i] >= targetDateTimeStr) { targetIdx = i; break; }
           }
-
           const temp = data.hourly.temperature_2m[targetIdx];
           const precipProb = data.hourly.precipitation_probability[targetIdx] || 0;
           const weatherCode = data.hourly.weathercode[targetIdx] || 0;
@@ -1174,16 +1103,14 @@
           textElem.innerHTML = `🌤️ ${conditionDesc}`;
           badgeElem.innerHTML = `${temp}°C`;
 
-          const rainCheckbox = document.getElementById('rainMode');
           if (isRaining) {
-            rainCheckbox.checked = true;
+            document.getElementById('rainMode').checked = true;
             textElem.innerHTML = `🌧️ Alerta: ${conditionDesc} (Pista Molhada Ativada)`;
           } else {
-            rainCheckbox.checked = false;
+            document.getElementById('rainMode').checked = false;
           }
         }
       } catch (e) {
-        console.warn("Erro ao buscar clima:", e);
         textElem.innerHTML = "🌤️ Clima indisponível no momento";
         badgeElem.innerHTML = "--°C";
       }
@@ -1196,16 +1123,13 @@
       for (let i = 0; i < waypoints.length; i++) {
         const inputVal = document.getElementById(`wpInput_${i}`)?.value;
         if (inputVal !== undefined) waypoints[i].address = inputVal;
-
         if (!waypoints[i].coords && waypoints[i].address) {
           waypoints[i].coords = await geocodeFast(waypoints[i].address);
         }
-
         if (waypoints[i].coords) {
           const isFirst = i === 0;
           const isLast = i === waypoints.length - 1;
           const title = isFirst ? 'Origem' : (isLast ? 'Destino Final' : `Parada #${i}`);
-
           const marker = L.marker(waypoints[i].coords).addTo(map).bindPopup(`<b>${title}:</b><br>${waypoints[i].address}`);
           waypointMarkers.push(marker);
         }
@@ -1214,113 +1138,64 @@
 
     function drawBatteryIsochronePolyline(startCoords, rangeKm) {
       if (isochronePolygon) map.removeLayer(isochronePolygon);
-
       if (!document.getElementById('showIsochrone').checked || !startCoords) return;
 
       const points = [];
       const numPoints = 32;
       const lat = startCoords[0];
       const lng = startCoords[1];
-
       const latRadius = rangeKm / 111.0;
       const lngRadius = rangeKm / (111.0 * Math.cos(lat * Math.PI / 180));
 
       for (let i = 0; i < numPoints; i++) {
         const angle = (i / numPoints) * (2 * Math.PI);
-        const pLat = lat + (latRadius * Math.sin(angle));
-        const pLng = lng + (lngRadius * Math.cos(angle));
-        points.push([pLat, pLng]);
+        points.push([lat + (latRadius * Math.sin(angle)), lng + (lngRadius * Math.cos(angle))]);
       }
 
       isochronePolygon = L.polygon(points, {
-        color: '#10b981',
-        fillColor: '#34d399',
-        fillOpacity: 0.12,
-        weight: 2,
-        dashArray: '5, 5'
-      }).addTo(map).bindPopup(`<b>Polígono de Alcance Atual</b><br>Raio de Bateria: ${Math.round(rangeKm)} km sem recarga.`);
+        color: '#10b981', fillColor: '#34d399', fillOpacity: 0.12, weight: 2, dashArray: '5, 5'
+      }).addTo(map).bindPopup(`<b>Raio Elétrico Inicial</b><br>Autonomia da bateria: ${Math.round(rangeKm)} km.`);
     }
 
     function getMinDistanceToRouteInKm(lat, lng, routeCoords) {
       let minDistance = Infinity;
       let closestPointIndex = 0;
-
       for (let i = 0; i < routeCoords.length - 1; i += 3) {
-        const rLat = routeCoords[i][1];
-        const rLng = routeCoords[i][0];
-        const d = L.latLng(lat, lng).distanceTo(L.latLng(rLat, rLng)) / 1000;
-        if (d < minDistance) {
-          minDistance = d;
-          closestPointIndex = i;
-        }
+        const d = L.latLng(lat, lng).distanceTo(L.latLng(routeCoords[i][1], routeCoords[i][0])) / 1000;
+        if (d < minDistance) { minDistance = d; closestPointIndex = i; }
       }
       return { minDistance, closestPointIndex };
     }
 
     async function fetchRouteStationsFromOSM(bbox, routeGeometry) {
       document.getElementById('stationsCount').innerText = "Mapeando eletropostos...";
-      
       const buffer = 0.25;
-      const south = bbox[0] - buffer;
-      const west = bbox[1] - buffer;
-      const north = bbox[2] + buffer;
-      const east = bbox[3] + buffer;
-      
       const query = `[out:json][timeout:15];
       (
-        node["amenity"="charging_station"](${south},${west},${north},${east});
-        way["amenity"="charging_station"](${south},${west},${north},${east});
-        node["man_made"="charge_point"](${south},${west},${north},${east});
-        node["amenity"="ev_charging"](${south},${west},${north},${east});
-        node["socket:ccs"](${south},${west},${north},${east});
-        node["socket:type2"](${south},${west},${north},${east});
+        node["amenity"="charging_station"](${bbox[0]-buffer},${bbox[1]-buffer},${bbox[2]+buffer},${bbox[3]+buffer});
+        way["amenity"="charging_station"](${bbox[0]-buffer},${bbox[1]-buffer},${bbox[2]+buffer},${bbox[3]+buffer});
+        node["man_made"="charge_point"](${bbox[0]-buffer},${bbox[1]-buffer},${bbox[2]+buffer},${bbox[3]+buffer});
       );
       out body center;`;
-      
-      const endpoints = [
-        'https://overpass.private.coffee/api/interpreter',
-        'https://overpass-api.de/api/interpreter',
-        'https://maps.mail.ru/osm/tools/overpass/api/interpreter'
-      ];
 
       let data = null;
-
-      for (let url of endpoints) {
+      for (let url of ['https://overpass-api.de/api/interpreter', 'https://overpass.private.coffee/api/interpreter']) {
         try {
-          const controller = new AbortController();
-          const timer = setTimeout(() => controller.abort(), 8000);
-
-          const res = await fetch(url, { method: 'POST', body: query, signal: controller.signal });
-          clearTimeout(timer);
-
-          if (res.ok) {
-            data = await res.json();
-            if (data && data.elements && data.elements.length > 0) break;
-          }
-        } catch (e) {
-          console.warn(`Servidor Overpass (${url}) instável...`);
-        }
+          const res = await fetch(url, { method: 'POST', body: query });
+          if (res.ok) { data = await res.json(); if (data && data.elements) break; }
+        } catch (e) {}
       }
 
       const routeCoords = routeGeometry.coordinates;
       const uniqueMap = new Map();
 
-      // Injeta eletropostos manuais/complementares da base
       manualStationsDatabase.forEach((mStation, idx) => {
         const routeMatch = getMinDistanceToRouteInKm(mStation.lat, mStation.lng, routeCoords);
         if (routeMatch.minDistance <= 25) {
-          const key = `${mStation.lat.toFixed(4)}_${mStation.lng.toFixed(4)}`;
-          uniqueMap.set(key, {
-            id: `manual_${idx}`,
-            name: mStation.name,
-            cityState: mStation.cityState,
-            lat: mStation.lat,
-            lng: mStation.lng,
-            power: mStation.power,
-            type: mStation.type,
-            distToRoute: routeMatch.minDistance,
-            routeIndex: routeMatch.closestPointIndex,
-            operationalStatus: mStation.operationalStatus
+          uniqueMap.set(`${mStation.lat.toFixed(4)}_${mStation.lng.toFixed(4)}`, {
+            id: `manual_${idx}`, name: mStation.name, cityState: mStation.cityState,
+            lat: mStation.lat, lng: mStation.lng, power: mStation.power, type: mStation.type,
+            distToRoute: routeMatch.minDistance, routeIndex: routeMatch.closestPointIndex, operationalStatus: mStation.operationalStatus
           });
         }
       });
@@ -1329,37 +1204,20 @@
         data.elements.forEach((item, idx) => {
           const lat = item.lat || (item.center ? item.center.lat : null);
           const lng = item.lon || (item.center ? item.center.lon : null);
-
           if (!lat || !lng) return;
-
           const key = `${lat.toFixed(4)}_${lng.toFixed(4)}`;
           if (uniqueMap.has(key)) return;
 
           const tags = item.tags || {};
           const name = tags.name || tags.operator || tags.brand || `Eletroposto #${idx + 1}`;
-          const isDC = tags['socket:ccs'] || tags['socket:type2_combo'] || tags['socket:chademo'] || 
-                       (tags.description && tags.description.toLowerCase().includes('dc')) ||
-                       (tags.capacity && tags.capacity.toLowerCase().includes('dc'));
-
-          let city = tags['addr:city'] || tags['addr:town'] || tags['is_in:city'] || tags['addr:municipality'];
-          let state = tags['addr:state'] || tags['is_in:state'];
-
-          if (state && ufMap[state]) state = ufMap[state];
-
-          let cityState = (city && state) ? `${city} / ${state}` : null;
+          const isDC = tags['socket:ccs'] || tags['socket:type2_combo'] || (tags.description && tags.description.toLowerCase().includes('dc'));
           const routeMatch = getMinDistanceToRouteInKm(lat, lng, routeCoords);
 
           if (routeMatch.minDistance <= 22) {
             uniqueMap.set(key, {
-              id: item.id || idx,
-              name: name,
-              cityState: cityState,
-              lat: lat,
-              lng: lng,
+              id: item.id || idx, name: name, cityState: null, lat: lat, lng: lng,
               power: isDC ? 'CCS2 Ultra-Rápido DC (50-150kW)' : 'AC Wallbox (7-22kW)',
-              type: isDC ? 'DC' : 'AC',
-              distToRoute: routeMatch.minDistance,
-              routeIndex: routeMatch.closestPointIndex,
+              type: isDC ? 'DC' : 'AC', distToRoute: routeMatch.minDistance, routeIndex: routeMatch.closestPointIndex,
               operationalStatus: (idx % 7 === 0) ? "Ocupado" : "Disponível"
             });
           }
@@ -1368,36 +1226,22 @@
 
       const rawStations = Array.from(uniqueMap.values());
       rawStations.sort((a, b) => a.routeIndex - b.routeIndex);
-
       await Promise.all(rawStations.map(async (st) => {
-        if (!st.cityState || st.cityState.includes("Localidade") || st.cityState.includes("Cidade")) {
-          const loc = await reverseGeocodeFast(st.lat, st.lng);
-          if (loc) st.cityState = loc;
-        }
+        if (!st.cityState) { const loc = await reverseGeocodeFast(st.lat, st.lng); if (loc) st.cityState = loc; }
       }));
-
       fetchedStations = rawStations;
     }
 
     function calculateRealChargingTimeMinutes(arrivalBattery, targetBattery, batteryCapacityKwh, stationPowerKw) {
       if (arrivalBattery >= targetBattery) return 0;
-      
       let totalMinutes = 0;
       let effectivePower = Math.min(stationPowerKw, 60);
-
       if (arrivalBattery < 80) {
-        const stage1Target = Math.min(targetBattery, 80);
-        const kwhStage1 = ((stage1Target - arrivalBattery) / 100) * batteryCapacityKwh;
-        totalMinutes += (kwhStage1 / effectivePower) * 60;
+        totalMinutes += (((Math.min(targetBattery, 80) - arrivalBattery) / 100) * batteryCapacityKwh / effectivePower) * 60;
       }
-
       if (targetBattery > 80) {
-        const stage2Start = Math.max(arrivalBattery, 80);
-        const kwhStage2 = ((targetBattery - stage2Start) / 100) * batteryCapacityKwh;
-        const throttledPower = effectivePower * 0.45;
-        totalMinutes += (kwhStage2 / throttledPower) * 60;
+        totalMinutes += (((targetBattery - Math.max(arrivalBattery, 80)) / 100) * batteryCapacityKwh / (effectivePower * 0.45)) * 60;
       }
-
       return Math.ceil(totalMinutes);
     }
 
@@ -1407,16 +1251,12 @@
 
       const tbody = document.getElementById('stationsTableBody');
       const pdfTbody = document.getElementById('pdfStationsTableBody');
-      
       tbody.innerHTML = '';
       pdfTbody.innerHTML = '';
 
       const showDC = document.getElementById("filterCCS2").checked;
       const showAC = document.getElementById("filterAC").checked;
-
-      const activeStations = fetchedStations.filter(s => 
-        (s.type === 'DC' && showDC) || (s.type === 'AC' && showAC)
-      );
+      const activeStations = fetchedStations.filter(s => (s.type === 'DC' && showDC) || (s.type === 'AC' && showAC));
 
       document.getElementById('stationsCount').innerText = `${activeStations.length} encontrados na rota`;
 
@@ -1430,76 +1270,59 @@
       const acFactor = parseFloat(document.getElementById('acMode').value);
       const rainFactor = document.getElementById('rainMode').checked ? 1.12 : 1.0;
       const elevationFactor = document.getElementById('elevationMode').checked ? 1.08 : 1.0;
-
       const fullRangeAdjusted = selectedCar.range / (driveFactor * acFactor * rainFactor * elevationFactor);
       
-      let rawStartBatt = parseFloat(document.getElementById('startBattery').value);
-      let currentBattery = isNaN(rawStartBatt) ? 80 : Math.min(100, Math.max(0, rawStartBatt));
-
+      let startBattery = Math.min(100, Math.max(0, parseFloat(document.getElementById('startBattery').value) || 80));
       const totalRouteDist = activeRouteData ? Math.round(activeRouteData.distance / 1000) : 300;
       const totalPoints = activeRouteData ? activeRouteData.geometry.coordinates.length : 1;
 
       activeStations.forEach((station, index) => {
         const stationDistFromStart = Math.round((station.routeIndex / totalPoints) * totalRouteDist);
         const batteryUsed = Math.round((stationDistFromStart / fullRangeAdjusted) * 100);
-        let arrivalBattery = Math.max(2, currentBattery - batteryUsed);
+        let arrivalBattery = Math.max(0, startBattery - batteryUsed);
 
-        const isRechargeRequired = arrivalBattery < 15 || (index === 0 && arrivalBattery < 25);
-        const targetCharge = 80;
-        
-        const chargeTimeMinutes = isRechargeRequired 
-          ? calculateRealChargingTimeMinutes(arrivalBattery, targetCharge, selectedCar.battery, station.type === 'DC' ? 50 : 11)
-          : 0;
+        let isRechargeRequired = false;
+        let operationLabel = "Passagem / Opcional";
+
+        if (!selectedCar.isHybrid) {
+          // Carro 100% elétrico (BEV): exige parada se a bateria estiver baixa
+          isRechargeRequired = arrivalBattery < 15 || (index === 0 && arrivalBattery < 25);
+          operationLabel = isRechargeRequired ? "⏱️ Parada Sugerida (Curva DC)" : "Carga de Passagem";
+        } else {
+          // Carro Híbrido / REEV: Como pode rodar a gasolina, a recarga elétrica é OPCIONAL. O carro não obriga a parar.
+          operationLabel = arrivalBattery <= 5 ? "⛽ Rodando a Gasolina (Bateria esgotada)" : "Híbrido (Opcional)";
+        }
 
         const isAvailable = station.operationalStatus === "Disponível";
 
         const customIcon = L.divIcon({
           className: 'custom-pin-wrapper',
-          html: `<div class="ev-pin border-${arrivalBattery > 20 ? 'emerald' : 'amber'}-400">
+          html: `<div class="ev-pin border-${arrivalBattery > 15 ? 'emerald' : 'amber'}-400">
                   <span>⚡ #${index + 1}</span>
                   <span style="font-size:9px; color:#ffffff;">${arrivalBattery}% Chegada</span>
                  </div>`,
-          iconSize: [60, 30],
-          iconAnchor: [30, 15]
+          iconSize: [60, 30], iconAnchor: [30, 15]
         });
 
         const marker = L.marker([station.lat, station.lng], { icon: customIcon })
           .addTo(map)
           .bindPopup(`<b>#${index + 1} ⚡ ${station.name}</b><br>
-                      <b>Status:</b> <span class="${isAvailable ? 'text-emerald-400' : 'text-red-400'} font-bold">${station.operationalStatus}</span><br>
                       <b>Local:</b> ${station.cityState}<br>
-                      <b>Bateria Estimada:</b> <span style="color:#34d399; font-weight:bold;">${arrivalBattery}%</span><br>
-                      ${isRechargeRequired ? `<b style="color:#fbbf24;">Parada Sugerida: ${chargeTimeMinutes} min (Curva 20-80%)</b>` : 'Carga de Passagem'}`);
-
+                      <b>Bateria Restante:</b> <span style="color:#34d399; font-weight:bold;">${arrivalBattery}%</span><br>
+                      <b>Operação:</b> ${operationLabel}`);
         stationMarkers.push(marker);
 
         const tr = document.createElement('tr');
         tr.className = "hover:bg-blue-900/30 transition text-xs md:text-sm";
         tr.innerHTML = `
           <td class="p-2 font-bold text-amber-400 whitespace-nowrap">#${index + 1}</td>
-          <td class="p-2 whitespace-nowrap">
-            <span class="px-2 py-0.5 rounded text-[10px] font-bold ${isAvailable ? 'bg-emerald-950 text-emerald-400 border border-emerald-600' : 'bg-red-950 text-red-400 border border-red-600'}">
-              ${isAvailable ? '🟢 Livre' : '🔴 Ocupado'}
-            </span>
-          </td>
-          <td class="p-2 font-semibold text-white whitespace-nowrap">
-            <i class="fa-solid fa-charging-station text-yellow-400 mr-1"></i> ${station.name}
-          </td>
-          <td class="p-2 text-emerald-300 font-bold whitespace-nowrap min-w-[150px]">
-            ${station.cityState}
-          </td>
-          <td class="p-2 text-center whitespace-nowrap">
-            <span class="font-bold ${arrivalBattery < 15 ? 'text-red-400' : 'text-emerald-400'}">${arrivalBattery}%</span>
-          </td>
-          <td class="p-2 text-center whitespace-nowrap font-bold ${isRechargeRequired ? 'text-amber-300' : 'text-slate-400'}">
-            ${isRechargeRequired ? `⏱️ ~${chargeTimeMinutes} min (até 80%)` : 'Opcional / Passagem'}
-          </td>
+          <td class="p-2 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[10px] font-bold ${isAvailable ? 'bg-emerald-950 text-emerald-400 border border-emerald-600' : 'bg-red-950 text-red-400 border border-red-600'}">${isAvailable ? '🟢 Livre' : '🔴 Ocupado'}</span></td>
+          <td class="p-2 font-semibold text-white whitespace-nowrap"><i class="fa-solid fa-charging-station text-yellow-400 mr-1"></i> ${station.name}</td>
+          <td class="p-2 text-emerald-300 font-bold whitespace-nowrap min-w-[150px]">${station.cityState}</td>
+          <td class="p-2 text-center whitespace-nowrap"><span class="font-bold ${arrivalBattery < 15 ? 'text-amber-400' : 'text-emerald-400'}">${arrivalBattery}%</span></td>
+          <td class="p-2 text-center whitespace-nowrap font-bold text-amber-300">${operationLabel}</td>
           <td class="p-2 whitespace-nowrap"><span class="bg-blue-900 text-blue-100 px-2 py-0.5 rounded border border-blue-700 text-xs">${station.power}</span></td>
-          <td class="p-2 text-right whitespace-nowrap">
-            <button onclick="focusStation(${station.lat}, ${station.lng})" class="bg-blue-600 hover:bg-blue-500 text-white font-bold px-2.5 py-1 rounded text-xs transition">
-              <i class="fa-solid fa-eye"></i> Ver
-            </button>
-          </td>
+          <td class="p-2 text-right whitespace-nowrap"><button onclick="focusStation(${station.lat}, ${station.lng})" class="bg-blue-600 hover:bg-blue-500 text-white font-bold px-2.5 py-1 rounded text-xs transition"><i class="fa-solid fa-eye"></i> Ver</button></td>
         `;
         tbody.appendChild(tr);
 
@@ -1510,17 +1333,15 @@
           <td style="padding: 6px 8px; font-weight: bold; color: #fbbf24;">#${index + 1}</td>
           <td style="padding: 6px 8px; font-weight: bold; color: #ffffff;">${station.name}</td>
           <td style="padding: 6px 8px; font-weight: bold; color: #34d399;">${station.cityState}</td>
-          <td style="padding: 6px 8px; text-align: center; font-weight: bold; color: ${arrivalBattery < 15 ? '#f87171' : '#34d399'};">${arrivalBattery}%</td>
-          <td style="padding: 6px 8px; text-align: center; font-weight: bold; color: #fbbf24;">${isRechargeRequired ? `~${chargeTimeMinutes} min` : 'Passagem'}</td>
+          <td style="padding: 6px 8px; text-align: center; font-weight: bold; color: #34d399;">${arrivalBattery}%</td>
+          <td style="padding: 6px 8px; text-align: center; font-weight: bold; color: #fbbf24;">${operationLabel}</td>
           <td style="padding: 6px 8px; color: #93c5fd;">${station.power}</td>
         `;
         pdfTbody.appendChild(pdfTr);
       });
     }
 
-    function focusStation(lat, lng) {
-      map.setView([lat, lng], 14);
-    }
+    function focusStation(lat, lng) { map.setView([lat, lng], 14); }
 
     function initVehicleSelectors() {
       const brandSelect = document.getElementById('brandSelect');
@@ -1528,11 +1349,9 @@
       const favCarBtn = document.getElementById('favCarBtn');
 
       brandSelect.innerHTML = '<option value="">Selecione a marca...</option>';
-
       Object.keys(evDatabase).sort().forEach(brand => {
         const option = document.createElement('option');
-        option.value = brand; 
-        option.textContent = brand;
+        option.value = brand; option.textContent = brand;
         brandSelect.appendChild(option);
       });
 
@@ -1540,12 +1359,10 @@
         const brand = e.target.value;
         modelSelect.innerHTML = '<option value="">Selecione modelo...</option>';
         if (!brand) { modelSelect.disabled = true; return; }
-
         modelSelect.disabled = false;
         evDatabase[brand].forEach((car, index) => {
           const option = document.createElement('option');
-          option.value = index; 
-          option.textContent = `${car.model} (${car.type.split(' ')[0]})`;
+          option.value = index; option.textContent = `${car.model} (${car.type.split(' ')[0]})`;
           modelSelect.appendChild(option);
         });
         checkCarFavoriteState();
@@ -1558,7 +1375,7 @@
           selectedCar = evDatabase[brand][index];
           document.getElementById('specType').innerText = selectedCar.type;
           document.getElementById('specBattery').innerText = `${selectedCar.battery} kWh`;
-          document.getElementById('specRange').innerText = `${selectedCar.range} km`;
+          document.getElementById('specRange').innerText = `${selectedCar.range} km (Elétrico)`;
           document.getElementById('specConsumption').innerText = `${selectedCar.consumption} kWh/100km`;
 
           const hybridWrapper = document.getElementById('hybridConsumptionWrapper');
@@ -1576,14 +1393,8 @@
       favCarBtn.addEventListener('click', () => {
         const brand = brandSelect.value;
         const index = modelSelect.value;
-
-        if (!brand || index === "") {
-          alert("Selecione uma marca e um modelo antes de favoritar.");
-          return;
-        }
-
-        const favData = { brand, modelIndex: index };
-        localStorage.setItem('hv_fav_car', JSON.stringify(favData));
+        if (!brand || index === "") { alert("Selecione marca e modelo."); return; }
+        localStorage.setItem('hv_fav_car', JSON.stringify({ brand, modelIndex: index }));
         checkCarFavoriteState();
       });
 
@@ -1605,7 +1416,6 @@
       const savedFav = JSON.parse(localStorage.getItem('hv_fav_car') || 'null');
       const currentBrand = document.getElementById('brandSelect').value;
       const currentModel = document.getElementById('modelSelect').value;
-
       const favIcon = document.getElementById('favCarIcon');
       const favText = document.getElementById('favCarText');
 
@@ -1625,7 +1435,7 @@
       const progressBar = document.getElementById('calcProgressBar');
 
       calcBtn.disabled = true;
-      calcBtnText.innerText = "Calculando rota multipontos...";
+      calcBtnText.innerText = "Calculando rota...";
       calcBtnIcon.className = "fa-solid fa-spinner fa-spin";
       progressBar.classList.remove('hidden');
 
@@ -1639,43 +1449,30 @@
         }
 
         await updateWaypointMarkers();
-
         const validCoords = waypoints.filter(w => w.coords && w.coords.length === 2).map(w => `${w.coords[1]},${w.coords[0]}`);
 
         if (validCoords.length < 2) {
-          alert("Por favor, informe ao menos 2 localidades válidas para calcular a rota.");
+          alert("Por favor, informe ao menos 2 localidades válidas.");
           return;
         }
 
         if (waypoints[0] && waypoints[0].coords) {
-          const dateVal = document.getElementById('departureDate').value;
-          const timeVal = document.getElementById('departureTime').value || "08:00";
-          await fetchWeatherForecast(waypoints[0].coords[0], waypoints[0].coords[1], dateVal, timeVal);
+          await fetchWeatherForecast(waypoints[0].coords[0], waypoints[0].coords[1], document.getElementById('departureDate').value, document.getElementById('departureTime').value || "08:00");
         }
 
-        const coordString = validCoords.join(';');
-        const url = `https://router.project-osrm.org/route/v1/driving/${coordString}?overview=full&geometries=geojson`;
-
-        const res = await fetch(url);
+        const res = await fetch(`https://router.project-osrm.org/route/v1/driving/${validCoords.join(';')}?overview=full&geometries=geojson`);
         const data = await res.json();
 
         if (data.routes && data.routes.length > 0) {
           activeRouteData = data.routes[0];
-
           if (currentPolyline) map.removeLayer(currentPolyline);
 
-          currentPolyline = L.geoJSON(activeRouteData.geometry, {
-            style: { color: '#10b981', weight: 6, opacity: 0.9 }
-          }).addTo(map);
-
-          const bounds = currentPolyline.getBounds();
-          map.fitBounds(bounds, { padding: [30, 30] });
+          currentPolyline = L.geoJSON(activeRouteData.geometry, { style: { color: '#10b981', weight: 6, opacity: 0.9 } }).addTo(map);
+          map.fitBounds(currentPolyline.getBounds(), { padding: [30, 30] });
 
           const distKm = Math.round(activeRouteData.distance / 1000);
           const durationSeconds = activeRouteData.duration;
-          const hours = Math.floor(durationSeconds / 3600);
-          const minutes = Math.round((durationSeconds % 3600) / 60);
-          const travelTimeStr = hours > 0 ? `${hours}h ${minutes}min` : `${minutes} min`;
+          const travelTimeStr = `${Math.floor(durationSeconds / 3600)}h ${Math.round((durationSeconds % 3600) / 60)}min`;
 
           document.getElementById('totalDistance').innerText = `${distKm} km`;
           document.getElementById('travelTime').innerText = travelTimeStr;
@@ -1683,14 +1480,7 @@
           const itineraryText = waypoints.map(w => (w.address ? w.address.split('-')[0].trim() : "Ponto")).join(' ➔ ');
           document.getElementById('routeOptionsContainer').innerHTML = `<span class="font-bold text-emerald-400">${itineraryText}</span>`;
 
-          const bbox = [
-            bounds.getSouth(),
-            bounds.getWest(),
-            bounds.getNorth(),
-            bounds.getEast()
-          ];
-
-          await fetchRouteStationsFromOSM(bbox, activeRouteData.geometry);
+          await fetchRouteStationsFromOSM([currentPolyline.getBounds().getSouth(), currentPolyline.getBounds().getWest(), currentPolyline.getBounds().getNorth(), currentPolyline.getBounds().getEast()], activeRouteData.geometry);
 
           const driveFactor = parseFloat(document.getElementById('driveMode').value);
           const acFactor = parseFloat(document.getElementById('acMode').value);
@@ -1698,9 +1488,7 @@
           const elevationFactor = document.getElementById('elevationMode').checked ? 1.08 : 1.0;
 
           const fullRangeAdjusted = selectedCar.range / (driveFactor * acFactor * rainFactor * elevationFactor);
-
-          let rawStart = parseFloat(document.getElementById('startBattery').value);
-          const startPercent = isNaN(rawStart) ? 80 : Math.min(100, Math.max(0, rawStart));
+          const startPercent = Math.min(100, Math.max(0, parseFloat(document.getElementById('startBattery').value) || 80));
 
           if (waypoints[0] && waypoints[0].coords) {
             drawBatteryIsochronePolyline(waypoints[0].coords, fullRangeAdjusted * (startPercent / 100));
@@ -1708,98 +1496,77 @@
 
           renderStationsOnMapAndTable();
 
-          const currentAutonomyKm = Math.round(fullRangeAdjusted * (startPercent / 100));
-          const safeReserveKm = Math.round(fullRangeAdjusted * 0.15);
-          const safeDriveDistanceKm = Math.max(0, currentAutonomyKm - safeReserveKm);
-
-          const needsRecharge = distKm > safeDriveDistanceKm;
-
-          let rechargeAlertText = "";
-          let targetBatteryText = "";
-          let chargeTimeDCText = "0 min";
-
-          if (needsRecharge) {
-            const recommendedStops = Math.ceil(distKm / fullRangeAdjusted);
-            rechargeAlertText = `Necessária Parada (${recommendedStops} paradas no trajeto)`;
-            document.getElementById('rechargeDistanceAlert').innerText = `Primeira parada em até ${safeDriveDistanceKm} km`;
-            
-            const percentNeededTotal = Math.ceil(((distKm / fullRangeAdjusted) * 100) + 15);
-            const percentToCharge = Math.max(0, percentNeededTotal - startPercent);
-            
-            const minutesDC = calculateRealChargingTimeMinutes(startPercent, Math.min(100, startPercent + percentToCharge), selectedCar.battery, 50);
-
-            targetBatteryText = `${recommendedStops} Paradas Recomendadas`;
-            chargeTimeDCText = `~${minutesDC} min total (Curva Real)`;
-
-            document.getElementById('targetBatteryNeeded').innerText = targetBatteryText;
-            document.getElementById('chargeTimeDC').innerText = chargeTimeDCText;
-          } else {
-            rechargeAlertText = "Direto (Sem Paradas)";
-            targetBatteryText = "Direto sem paradas";
-            document.getElementById('rechargeDistanceAlert').innerText = "Direto sem paradas";
-            document.getElementById('targetBatteryNeeded').innerText = "Carga Inicial Suficiente";
-            document.getElementById('chargeTimeDC').innerText = "0 min";
-          }
-
-          const kwhCost = parseFloat(document.getElementById('costPerKwh').value) || 0;
-          const adultCount = parseInt(document.getElementById('adultCount').value) || 1;
-          const totalKwhNeeded = (distKm / 100) * selectedCar.consumption * driveFactor * acFactor * rainFactor * elevationFactor;
-          const totalCostEV = totalKwhNeeded * kwhCost;
-
-          document.getElementById('totalCost').innerText = `R$ ${totalCostEV.toFixed(2)}`;
-          document.getElementById('costPax').innerText = `R$ ${(totalCostEV / adultCount).toFixed(2)}`;
-
+          const electricKmPossible = Math.round(fullRangeAdjusted * (startPercent / 100));
           const gasPrice = parseFloat(document.getElementById('costPerLiterGas').value) || 6.88;
           const ethanolPrice = parseFloat(document.getElementById('costPerLiterEthanol').value) || 5.07;
+          const gasKmPerLiter = parseFloat(document.getElementById('kmPerLiterGas').value) || 15.0;
+          const ethanolKmPerLiter = parseFloat(document.getElementById('kmPerLiterEthanol').value) || 10.5;
 
-          const gasKmPerLiter = parseFloat(document.getElementById('kmPerLiterGas').value) || 11.5;
-          const ethanolKmPerLiter = parseFloat(document.getElementById('kmPerLiterEthanol').value) || 8.1;
+          const bestFossilPrice = Math.min(gasPrice / gasKmPerLiter, ethanolPrice / ethanolKmPerLiter);
+          const bestFossilName = (ethanolPrice / ethanolKmPerLiter < gasPrice / gasKmPerLiter) ? "Etanol" : "Gasolina";
+          const bestKmPerL = bestFossilName === "Etanol" ? ethanolKmPerLiter : gasKmPerLiter;
 
-          const totalGasCost = (distKm / gasKmPerLiter) * gasPrice;
-          const totalEthanolCost = (distKm / ethanolKmPerLiter) * ethanolPrice;
+          let totalTripCost = 0;
+          let rechargeAlertText = "";
+          let targetBatteryText = "";
 
-          document.getElementById('gasCost').innerText = `R$ ${totalGasCost.toFixed(2)}`;
-          document.getElementById('ethanolCost').innerText = `R$ ${totalEthanolCost.toFixed(2)}`;
+          if (!selectedCar.isHybrid) {
+            // Veículo 100% Elétrico
+            const kwhCost = parseFloat(document.getElementById('costPerKwh').value) || 2.39;
+            const totalKwh = (distKm / 100) * selectedCar.consumption * driveFactor * acFactor * rainFactor * elevationFactor;
+            totalTripCost = totalKwh * kwhCost;
 
-          const bestFossilCost = Math.min(totalGasCost, totalEthanolCost);
-          const bestFossilName = totalEthanolCost < totalGasCost ? "Etanol" : "Gasolina";
-          document.getElementById('bestFossilOption').innerText = `${bestFossilName} (R$ ${bestFossilCost.toFixed(2)})`;
+            if (distKm > electricKmPossible) {
+              rechargeAlertText = `⚠️ Necessárias paradas de recarga (${Math.ceil(distKm / fullRangeAdjusted)} paradas)`;
+              targetBatteryText = "Paradas obrigatórias (Recarga DC)";
+            } else {
+              rechargeAlertText = "Direto (Bateria Suficiente)";
+              targetBatteryText = "Sem paradas";
+            }
+          } else {
+            // Veículo Híbrido / REEV
+            const electricKmCovered = Math.min(distKm, electricKmPossible);
+            const remainingKmFossil = Math.max(0, distKm - electricKmCovered);
+            
+            const kwhCost = parseFloat(document.getElementById('costPerKwh').value) || 2.39;
+            const electricKwhUsed = (electricKmCovered / 100) * selectedCar.consumption * driveFactor * acFactor * rainFactor * elevationFactor;
+            const electricCost = electricKwhUsed * kwhCost;
 
-          const savings = Math.max(0, bestFossilCost - totalCostEV);
-          document.getElementById('savingsEV').innerText = `R$ ${savings.toFixed(2)}`;
+            const fossilCost = (remainingKmFossil / bestKmPerL) * (bestFossilName === "Etanol" ? ethanolPrice : gasPrice);
+            totalTripCost = electricCost + fossilCost;
 
-          const usedPercent = (distKm / fullRangeAdjusted) * 100;
-          const remainingPercent = Math.max(0, Math.round(startPercent - usedPercent));
-          updateBatteryUI(remainingPercent);
+            if (remainingKmFossil > 0) {
+              rechargeAlertText = `Híbrido: ${electricKmCovered}km elétricos + ${remainingKmFossil}km a ${bestFossilName} (Sem paradas obrigatórias!)`;
+              targetBatteryText = `Usa gasolina após ${electricKmCovered} km (0 paradas)`;
+            } else {
+              rechargeAlertText = `100% elétrico no percurso (${electricKmCovered} km)`;
+              targetBatteryText = "Autonomia elétrica suficiente";
+            }
+          }
+
+          document.getElementById('totalCost').innerText = `R$ ${totalTripCost.toFixed(2)}`;
+          document.getElementById('costPax').innerText = `R$ ${(totalTripCost / (parseInt(document.getElementById('adultCount').value) || 1)).toFixed(2)}`;
+
+          document.getElementById('gasCost').innerText = `R$ ${(distKm / gasKmPerLiter * gasPrice).toFixed(2)}`;
+          document.getElementById('ethanolCost').innerText = `R$ ${(distKm / ethanolKmPerLiter * ethanolPrice).toFixed(2)}`;
+          document.getElementById('bestFossilOption').innerText = `${bestFossilName} (R$ ${(distKm / bestKmPerL * (bestFossilName === "Etanol" ? ethanolPrice : gasPrice)).toFixed(2)})`;
+
+          document.getElementById('rechargeDistanceAlert').innerText = rechargeAlertText;
+          document.getElementById('targetBatteryNeeded').innerText = targetBatteryText;
+          document.getElementById('chargeTimeDC').innerText = selectedCar.isHybrid ? "N/A (Motor a combustão de apoio)" : "~30 min (Se necessário)";
+
+          const finalBatt = Math.max(0, Math.round(startPercent - ((distKm / fullRangeAdjusted) * 100)));
+          updateBatteryUI(finalBatt);
 
           document.getElementById('overlayDist').innerText = `${distKm} km`;
           document.getElementById('overlayTime').innerText = travelTimeStr;
-          document.getElementById('overlayBatt').innerText = `${remainingPercent}%`;
-          document.getElementById('overlayCost').innerText = `R$ ${totalCostEV.toFixed(2)}`;
+          document.getElementById('overlayCost').innerText = `R$ ${totalTripCost.toFixed(2)}`;
 
-          recordEsgTripData(distKm, savings);
-
-          const departureDateVal = document.getElementById('departureDate').value;
-          const departureTimeVal = document.getElementById('departureTime').value;
-
-          document.getElementById('pdfItinerary').innerText = itineraryText;
-          document.getElementById('pdfDepartureDateTime').innerText = `${departureDateVal} às ${departureTimeVal}`;
-          document.getElementById('pdfWeatherInfo').innerText = currentWeatherDescription;
-          document.getElementById('pdfCarModel').innerText = `${selectedCar.model} (${selectedCar.type})`;
-          document.getElementById('pdfCarBattery').innerText = `${selectedCar.battery} kWh`;
-          document.getElementById('pdfCarRange').innerText = `${selectedCar.range} km`;
-          document.getElementById('pdfDistance').innerText = `${distKm} km`;
-          document.getElementById('pdfTime').innerText = travelTimeStr;
-          document.getElementById('pdfBatteryState').innerText = `${startPercent}% / Est. Chegada ${remainingPercent}%`;
-          document.getElementById('pdfRechargeAlert').innerText = rechargeAlertText;
-          document.getElementById('pdfChargeTimeDC').innerText = chargeTimeDCText;
-          document.getElementById('pdfCostEV').innerText = `R$ ${totalCostEV.toFixed(2)}`;
-          document.getElementById('pdfSavings').innerText = `R$ ${savings.toFixed(2)}`;
-
+          recordEsgTripData(distKm, Math.max(0, ((distKm / bestKmPerL * gasPrice) - totalTripCost)));
           showRouteToast();
         }
       } catch (err) {
-        console.error("Erro no cálculo da rota multipontos:", err);
+        console.error(err);
       } finally {
         calcBtn.disabled = false;
         calcBtnText.innerText = "Calcular Rota Completa";
@@ -1810,38 +1577,24 @@
 
     function initEsgDashboard() {
       document.getElementById('openStatsModalBtn').addEventListener('click', () => {
-        updateEsgUI();
+        let esg = JSON.parse(localStorage.getItem('esg_trips_data') || '{"totalKm":0, "totalSavings":0, "tripsCount":0}');
+        document.getElementById('esgSavingsTotal').innerText = `R$ ${esg.totalSavings.toFixed(2)}`;
+        document.getElementById('esgCo2Saved').innerText = `${Math.round(esg.totalKm * 0.12)} kg`;
+        document.getElementById('esgTotalKm').innerText = `${esg.totalKm} km`;
+        document.getElementById('esgTripsCount').innerText = `${esg.tripsCount}`;
         document.getElementById('statsModal').classList.remove('hidden');
       });
 
-      document.getElementById('closeStatsModalBtn').addEventListener('click', () => {
-        document.getElementById('statsModal').classList.add('hidden');
-      });
-
+      document.getElementById('closeStatsModalBtn').addEventListener('click', () => document.getElementById('statsModal').classList.add('hidden'));
       document.getElementById('resetEsgBtn').addEventListener('click', () => {
-        if (confirm("Tem certeza que deseja zerar seu histórico acumulado de viagens?")) {
-          localStorage.removeItem('esg_trips_data');
-          updateEsgUI();
-        }
+        if (confirm("Zerar histórico?")) { localStorage.removeItem('esg_trips_data'); document.getElementById('statsModal').classList.add('hidden'); }
       });
     }
 
     function recordEsgTripData(km, savings) {
       let esg = JSON.parse(localStorage.getItem('esg_trips_data') || '{"totalKm":0, "totalSavings":0, "tripsCount":0}');
-      esg.totalKm += km;
-      esg.totalSavings += savings;
-      esg.tripsCount += 1;
+      esg.totalKm += km; esg.totalSavings += savings; esg.tripsCount += 1;
       localStorage.setItem('esg_trips_data', JSON.stringify(esg));
-    }
-
-    function updateEsgUI() {
-      let esg = JSON.parse(localStorage.getItem('esg_trips_data') || '{"totalKm":0, "totalSavings":0, "tripsCount":0}');
-      document.getElementById('esgSavingsTotal').innerText = `R$ ${esg.totalSavings.toFixed(2)}`;
-      
-      const co2 = Math.round(esg.totalKm * 0.12);
-      document.getElementById('esgCo2Saved').innerText = `${co2} kg`;
-      document.getElementById('esgTotalKm').innerText = `${esg.totalKm} km`;
-      document.getElementById('esgTripsCount').innerText = `${esg.tripsCount}`;
     }
 
     function showRouteToast() {
@@ -1852,105 +1605,26 @@
 
     function updateBatteryUI(percent) {
       const clamped = Math.max(0, Math.min(100, percent));
-      const batteryBar = document.getElementById('batteryBar');
-      const batteryText = document.getElementById('batteryPercentage');
-
-      batteryBar.style.width = `${clamped}%`;
-      batteryText.innerText = `${Math.round(clamped)}%`;
-
-      if (clamped > 50) batteryBar.className = "h-full rounded-lg transition-all duration-500 bg-emerald-500";
-      else if (clamped >= 20) batteryBar.className = "h-full rounded-lg transition-all duration-500 bg-amber-500";
-      else batteryBar.className = "h-full rounded-lg transition-all duration-500 bg-red-600";
+      document.getElementById('batteryBar').style.width = `${clamped}%`;
+      document.getElementById('batteryPercentage').innerText = `${clamped}%`;
     }
 
     document.getElementById('openWazeBtn').addEventListener('click', () => {
       const validWaypoints = waypoints.filter(w => w.coords);
-      if (validWaypoints.length > 0) {
-        const dest = validWaypoints[validWaypoints.length - 1].coords;
-        const url = `https://waze.com/ul?ll=${dest[0]},${dest[1]}&navigate=yes`;
-        window.open(url, '_blank');
-      } else alert("Selecione os pontos da rota primeiro.");
-    });
-
-    document.getElementById('exportPdfBtn').addEventListener('click', async () => {
-      const btn = document.getElementById('exportPdfBtn');
-      btn.innerText = "Gerando PDF...";
-      btn.disabled = true;
-
-      const pdfMapContainer = document.getElementById('pdfMapImageContainer');
-      pdfMapContainer.innerHTML = '';
-
-      const mapElement = document.getElementById('map');
-
-      try {
-        const canvas = await html2canvas(mapElement, {
-          useCORS: true,
-          allowTaint: true,
-          scale: 2
-        });
-
-        const img = document.createElement('img');
-        img.src = canvas.toDataURL('image/jpeg', 0.95);
-        img.style.width = '100%';
-        img.style.height = '100%';
-        img.style.objectFit = 'cover';
-        pdfMapContainer.appendChild(img);
-
-        const pdfElement = document.getElementById('pdfContainer');
-        pdfElement.style.display = 'block';
-
-        const opt = {
-          margin: 0.2,
-          filename: 'relatorio_viagem_multipontos_evplanner.pdf',
-          image: { type: 'jpeg', quality: 0.98 },
-          html2canvas: { scale: 2, useCORS: true },
-          jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
-        };
-
-        await html2pdf().set(opt).from(pdfElement).save();
-
-        pdfElement.style.display = 'none';
-      } catch (e) {
-        console.error("Erro ao gerar PDF:", e);
-        alert("Ocorreu um erro ao gerar o PDF. Tente novamente.");
-      } finally {
-        btn.innerHTML = '<i class="fa-solid fa-file-pdf"></i> Exportar PDF';
-        btn.disabled = false;
-      }
+      if (validWaypoints.length > 0) window.open(`https://waze.com/ul?ll=${validWaypoints[validWaypoints.length-1].coords.join(',')}&navigate=yes`, '_blank');
+      else alert("Selecione os pontos da rota primeiro.");
     });
 
     document.getElementById('openGoogleMapsBtn').addEventListener('click', () => {
       const validAddresses = waypoints.map(w => encodeURIComponent(w.address)).filter(a => a);
-      if (validAddresses.length >= 2) {
-        const origin = validAddresses[0];
-        const dest = validAddresses[validAddresses.length - 1];
-        const waypointsStr = validAddresses.slice(1, -1).join('|');
-        
-        let url = `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${dest}&travelmode=driving`;
-        if (waypointsStr) url += `&waypoints=${waypointsStr}`;
-        window.open(url, '_blank');
-      }
+      if (validAddresses.length >= 2) window.open(`https://www.google.com/maps/dir/?api=1&origin=${validAddresses[0]}&destination=${validAddresses[validAddresses.length-1]}&travelmode=driving`, '_blank');
     });
 
     document.getElementById('calcBtn').addEventListener('click', calculateMultiRoute);
     document.getElementById('filterCCS2').addEventListener('change', renderStationsOnMapAndTable);
     document.getElementById('filterAC').addEventListener('change', renderStationsOnMapAndTable);
-    document.getElementById('showIsochrone').addEventListener('change', () => {
-      if (waypoints[0] && waypoints[0].coords && selectedCar) {
-        const driveFactor = parseFloat(document.getElementById('driveMode').value);
-        const acFactor = parseFloat(document.getElementById('acMode').value);
-        const rainFactor = document.getElementById('rainMode').checked ? 1.12 : 1.0;
-        const elevationFactor = document.getElementById('elevationMode').checked ? 1.08 : 1.0;
-
-        const fullRangeAdjusted = selectedCar.range / (driveFactor * acFactor * rainFactor * elevationFactor);
-        let rawStart = parseFloat(document.getElementById('startBattery').value);
-        const startPercent = isNaN(rawStart) ? 80 : Math.min(100, Math.max(0, rawStart));
-
-        drawBatteryIsochronePolyline(waypoints[0].coords, fullRangeAdjusted * (startPercent / 100));
-      }
-    });
 
     window.onload = initMap;
   </script>
 </body>
-</html>
+  </html>
