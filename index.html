@@ -89,7 +89,7 @@
     <!-- Cabeçalho -->
     <header class="flex flex-col items-center justify-center border-b border-blue-900/60 pb-4 gap-2 text-center relative">
       <div class="absolute top-0 right-0 bg-blue-900/40 border border-blue-800 text-blue-300 text-[10px] px-2 py-0.5 rounded shadow">
-        Versão 1.07
+        Versão 1.08
       </div>
 
       <div class="flex flex-col items-center gap-1.5">
@@ -596,24 +596,16 @@
     };
 
     const manualStationsDatabase = [
-      {
-        name: "Planeta Charger - Rei das Coxinhas (Pedras de Fogo)",
-        cityState: "Pedras de Fogo / PB",
-        lat: -7.3957,
-        lng: -34.9552,
-        power: "CCS2 Ultra-Rápido DC (60kW)",
-        type: "DC",
-        operationalStatus: "Disponível"
-      },
-      {
-        name: "Planeta Charger - Rei das Coxinhas (Gravatá)",
-        cityState: "Gravatá / PE",
-        lat: -8.1888,
-        lng: -35.5069,
-        power: "CCS2 Ultra-Rápido DC (120kW)",
-        type: "DC",
-        operationalStatus: "Disponível"
-      }
+      { name: "Planeta Charger - Rei das Coxinhas (Pedras de Fogo)", cityState: "Pedras de Fogo / PB", lat: -7.3957, lng: -34.9552, power: "CCS2 Ultra-Rápido DC (60kW)", type: "DC", operationalStatus: "Disponível" },
+      { name: "Planeta Charger - Rei das Coxinhas (Gravatá)", cityState: "Gravatá / PE", lat: -8.1888, lng: -35.5069, power: "CCS2 Ultra-Rápido DC (120kW)", type: "DC", operationalStatus: "Disponível" },
+      { name: "Eletroposto BR-101 (Maceió)", cityState: "Maceió / AL", lat: -9.6658, lng: -35.7353, power: "CCS2 Rápido DC (50kW)", type: "DC", operationalStatus: "Disponível" },
+      { name: "Eletroposto Shell Recharge (Aracaju)", cityState: "Aracaju / SE", lat: -10.9472, lng: -37.0731, power: "CCS2 Ultra-Rápido DC (150kW)", type: "DC", operationalStatus: "Disponível" },
+      { name: "Eletroposto Eletrobras (Salvador - BR-324)", cityState: "Salvador / BA", lat: -12.9714, lng: -38.5014, power: "CCS2 Ultra-Rápido DC (150kW)", type: "DC", operationalStatus: "Disponível" },
+      { name: "Eletroposto Rodovia BR-116 (Feira de Santana)", cityState: "Feira de Santana / BA", lat: -12.2664, lng: -38.9663, power: "CCS2 Rápido DC (50kW)", type: "DC", operationalStatus: "Disponível" },
+      { name: "Eletroposto Vitória da Conquista", cityState: "Vitória da Conquista / BA", lat: -14.8661, lng: -40.8394, power: "CCS2 Ultra-Rápido DC (120kW)", type: "DC", operationalStatus: "Disponível" },
+      { name: "Eletroposto BR-116 (Montes Claros)", cityState: "Montes Claros / MG", lat: -16.735, lng: -43.8617, power: "CCS2 Rápido DC (50kW)", type: "DC", operationalStatus: "Disponível" },
+      { name: "Eletroposto Zletric (Belo Horizonte - BR-381)", cityState: "Belo Horizonte / MG", lat: -19.9167, lng: -43.9345, power: "CCS2 Ultra-Rápido DC (150kW)", type: "DC", operationalStatus: "Disponível" },
+      { name: "Eletroposto Rodovia Fernão Dias (Extrema)", cityState: "Extrema / MG", lat: -22.8556, lng: -46.3197, power: "CCS2 Ultra-Rápido DC (150kW)", type: "DC", operationalStatus: "Disponível" }
     ];
 
     let map, waypoints = [];
@@ -941,16 +933,17 @@
       return "Região na Rota / BR";
     }
 
-    async function fetchRouteStationsFromOSM(bbox, routeGeometry) {
+    async function fetchRouteStationsFromOSM(routeGeometry) {
       document.getElementById('stationsCount').innerText = "Buscando eletropostos na rota...";
       
       const routeCoords = routeGeometry.coordinates;
       const uniqueMap = new Map();
 
+      // 1. Processa a base estendida de carregadores de referência interestaduais
       for (const mStation of manualStationsDatabase) {
         const routeMatch = getMinDistanceToRouteInKm(mStation.lat, mStation.lng, routeCoords);
-        if (routeMatch.minDistance <= 35) {
-          uniqueMap.set(`${mStation.lat.toFixed(4)}_${mStation.lng.toFixed(4)}`, {
+        if (routeMatch.minDistance <= 50) { // Tolerância estendida para grandes rodovias
+          uniqueMap.set(`${mStation.lat.toFixed(3)}_${mStation.lng.toFixed(3)}`, {
             id: `manual_${Math.random()}`, name: mStation.name, cityState: mStation.cityState,
             lat: mStation.lat, lng: mStation.lng, power: mStation.power, type: mStation.type,
             distToRoute: routeMatch.minDistance, routeKm: routeMatch.routeKm, operationalStatus: mStation.operationalStatus
@@ -958,45 +951,53 @@
         }
       }
 
-      const query = `[out:json][timeout:15];
-      (
-        node["amenity"="charging_station"](${bbox[0]-0.4},${bbox[1]-0.4},${bbox[2]+0.4},${bbox[3]+0.4});
-        way["amenity"="charging_station"](${bbox[0]-0.4},${bbox[1]-0.4},${bbox[2]+0.4},${bbox[3]+0.4});
-        node["amenity"="ev_charging"](${bbox[0]-0.4},${bbox[1]-0.4},${bbox[2]+0.4},${bbox[3]+0.4});
-      );
-      out body center;`;
+      // 2. Fragmenta rotas longas em sub-segmentos a cada ~300km para consultar a API Overpass por blocos sem timeout
+      const chunkStep = Math.max(1, Math.floor(routeCoords.length / 8));
+      for (let i = 0; i < routeCoords.length; i += chunkStep) {
+        const pt = routeCoords[i];
+        const lat = pt[1];
+        const lng = pt[0];
 
-      let data = null;
-      for (let url of ['https://overpass-api.de/api/interpreter', 'https://overpass.private.coffee/api/interpreter']) {
+        const query = `[out:json][timeout:10];
+        (
+          node["amenity"="charging_station"](approx.${lat},${lng},80000);
+          way["amenity"="charging_station"](approx.${lat},${lng},80000);
+          node["amenity"="ev_charging"](approx.${lat},${lng},80000);
+        );
+        out body center;`;
+
         try {
-          const res = await fetch(url, { method: 'POST', body: query });
-          if (res.ok) { data = await res.json(); if (data && data.elements) break; }
-        } catch (e) {}
-      }
-
-      if (data && data.elements) {
-        for (const item of data.elements) {
-          const lat = item.lat || (item.center ? item.center.lat : null);
-          const lng = item.lon || (item.center ? item.center.lon : null);
-          if (!lat || !lng) continue;
-          const key = `${lat.toFixed(4)}_${lng.toFixed(4)}`;
-          if (uniqueMap.has(key)) continue;
-
-          const tags = item.tags || {};
-          const name = tags.name || tags.operator || tags.brand || `Eletroposto`;
-          const isDC = tags['socket:ccs'] || tags['socket:type2_combo'] || (tags.description && tags.description.toLowerCase().includes('dc'));
-          
-          const routeMatch = getMinDistanceToRouteInKm(lat, lng, routeCoords);
-          if (routeMatch.minDistance <= 30) {
-            const resolvedCityState = await fetchCityStateFromCoords(lat, lng);
-            uniqueMap.set(key, {
-              id: item.id, name: name, cityState: resolvedCityState, lat: lat, lng: lng,
-              power: isDC ? 'CCS2 Ultra-Rápido DC (50-150kW)' : 'AC Wallbox (7-22kW)',
-              type: isDC ? 'DC' : 'AC', distToRoute: routeMatch.minDistance, routeKm: routeMatch.routeKm,
-              operationalStatus: "Disponível"
-            });
+          let data = null;
+          for (let url of ['https://overpass-api.de/api/interpreter', 'https://overpass.private.coffee/api/interpreter']) {
+            const res = await fetch(url, { method: 'POST', body: query });
+            if (res.ok) { data = await res.json(); if (data && data.elements) break; }
           }
-        }
+
+          if (data && data.elements) {
+            for (const item of data.elements) {
+              const elLat = item.lat || (item.center ? item.center.lat : null);
+              const elLng = item.lon || (item.center ? item.center.lon : null);
+              if (!elLat || !elLng) continue;
+              const key = `${elLat.toFixed(4)}_${elLng.toFixed(4)}`;
+              if (uniqueMap.has(key)) continue;
+
+              const tags = item.tags || {};
+              const name = tags.name || tags.operator || tags.brand || `Eletroposto Rota`;
+              const isDC = tags['socket:ccs'] || tags['socket:type2_combo'] || (tags.description && tags.description.toLowerCase().includes('dc'));
+              
+              const routeMatch = getMinDistanceToRouteInKm(elLat, elLng, routeCoords);
+              if (routeMatch.minDistance <= 35) {
+                const resolvedCityState = await fetchCityStateFromCoords(elLat, elLng);
+                uniqueMap.set(key, {
+                  id: item.id, name: name, cityState: resolvedCityState, lat: elLat, lng: elLng,
+                  power: isDC ? 'CCS2 Ultra-Rápido DC (50-150kW)' : 'AC Wallbox (7-22kW)',
+                  type: isDC ? 'DC' : 'AC', distToRoute: routeMatch.minDistance, routeKm: routeMatch.routeKm,
+                  operationalStatus: "Disponível"
+                });
+              }
+            }
+          }
+        } catch (err) {}
       }
 
       const rawStations = Array.from(uniqueMap.values());
@@ -1099,8 +1100,7 @@
           const electricRange = selectedCar.range * (startBatt / 100);
           drawBatteryIsochronePolyline(waypoints[0].coords, electricRange);
 
-          const bounds = currentPolyline.getBounds();
-          await fetchRouteStationsFromOSM([bounds.getSouth(), bounds.getWest(), bounds.getNorth(), bounds.getEast()], activeRouteData.geometry);
+          await fetchRouteStationsFromOSM(activeRouteData.geometry);
           renderStationsOnMapAndTable(distKm, electricRange);
 
           let totalCost = 0;
@@ -1167,4 +1167,4 @@
     window.onload = initMap;
   </script>
 </body>
-                                                                                              </html>
+</html>
