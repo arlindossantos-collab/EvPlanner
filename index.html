@@ -14,7 +14,7 @@
   <!-- html2pdf.js & html2canvas -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-  <!-- SortableJS (Drag and Drop para os waypoints) -->
+  <!-- SortableJS -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
 
   <style>
@@ -170,7 +170,6 @@
           </div>
           
           <div class="space-y-2.5">
-            <!-- Botões de Atalho de Endereços Favoritos -->
             <div class="flex gap-1.5 text-xs flex-wrap">
               <button id="setHomeBtn" class="bg-blue-900 hover:bg-blue-800 text-blue-100 px-2.5 py-1 rounded border border-blue-700 flex items-center gap-1.5">
                 <i class="fa-solid fa-house text-amber-400"></i> Casa
@@ -189,7 +188,6 @@
               </select>
             </div>
 
-            <!-- Container dinâmico de endereços da Rota -->
             <div id="routeWaypointsContainer" class="space-y-2 max-h-[190px] overflow-y-auto pr-1">
               <!-- Renderizado via JS -->
             </div>
@@ -198,7 +196,6 @@
               <i class="fa-solid fa-circle-plus"></i> + Adicionar Parada Intermediária
             </button>
 
-            <!-- Parâmetros Ambientais & Condução -->
             <div class="grid grid-cols-2 gap-2 pt-1 border-t border-blue-900/60">
               <div>
                 <label class="block text-[10px] text-blue-300 mb-0.5">Modo Condução</label>
@@ -540,7 +537,6 @@
   </div>
 
   <script>
-    // MAPA DE SIGLAS DOS ESTADOS BRASILEIROS
     const ufMap = {
       "Acre": "AC", "Alagoas": "AL", "Amapá": "AP", "Amazonas": "AM", "Bahia": "BA",
       "Ceará": "CE", "Distrito Federal": "DF", "Espírito Santo": "ES", "Goiás": "GO",
@@ -551,7 +547,6 @@
       "Sergipe": "SE", "Tocantins": "TO"
     };
 
-    // BASE DE VEÍCULOS
     const evDatabase = {
       "BYD": [
         { model: 'Dolphin Mini (4 Lugares)', type: 'BEV (100% Elétrico)', battery: 38.0, range: 280, consumption: 13.5, isHybrid: false },
@@ -732,7 +727,6 @@
       batteryInput.addEventListener('blur', enforceLimit);
     }
 
-    // ARRASTO DE WAYPOINTS ISOLADO APENAS NO ÍCONE DRAG-HANDLE
     function initSortableWaypoints() {
       const container = document.getElementById('routeWaypointsContainer');
       new Sortable(container, {
@@ -910,7 +904,6 @@
 
         container.appendChild(div);
 
-        // EVITA QUE O SORTABLE BLOQUEIE O FOCO NO INPUT
         const inputElem = document.getElementById(`wpInput_${index}`);
         inputElem.addEventListener('mousedown', (e) => e.stopPropagation());
         inputElem.addEventListener('touchstart', (e) => e.stopPropagation());
@@ -1038,6 +1031,10 @@
       waypointMarkers = [];
 
       for (let i = 0; i < waypoints.length; i++) {
+        // Sincroniza valor digitado direto no input
+        const inputVal = document.getElementById(`wpInput_${i}`)?.value;
+        if (inputVal !== undefined) waypoints[i].address = inputVal;
+
         if (!waypoints[i].coords && waypoints[i].address) {
           waypoints[i].coords = await geocodeFast(waypoints[i].address);
         }
@@ -1443,6 +1440,7 @@
       }
     }
 
+    // CÁLCULO DE ROTA COM GEOCODING FORÇADO E PERMISSIBILIDADE DE MÚLTIPLOS CÁLCULOS
     async function calculateMultiRoute() {
       const calcBtn = document.getElementById('calcBtn');
       const calcBtnText = document.getElementById('calcBtnText');
@@ -1455,12 +1453,21 @@
       progressBar.classList.remove('hidden');
 
       try {
+        // Geocodificação forçada de todos os campos preenchidos
+        for (let i = 0; i < waypoints.length; i++) {
+          const inputVal = document.getElementById(`wpInput_${i}`)?.value;
+          if (inputVal !== undefined) waypoints[i].address = inputVal;
+          if (waypoints[i].address && waypoints[i].address.trim() !== "") {
+            waypoints[i].coords = await geocodeFast(waypoints[i].address);
+          }
+        }
+
         await updateWaypointMarkers();
 
-        const validCoords = waypoints.filter(w => w.coords).map(w => `${w.coords[1]},${w.coords[0]}`);
+        const validCoords = waypoints.filter(w => w.coords && w.coords.length === 2).map(w => `${w.coords[1]},${w.coords[0]}`);
 
         if (validCoords.length < 2) {
-          alert("Por favor, informe ao menos 2 pontos válidos para calcular a rota.");
+          alert("Por favor, informe ao menos 2 localidades válidas para calcular a rota.");
           return;
         }
 
@@ -1552,7 +1559,6 @@
             document.getElementById('chargeTimeDC').innerText = "0 min";
           }
 
-          // Custos Totais
           const kwhCost = parseFloat(document.getElementById('costPerKwh').value) || 0;
           const adultCount = parseInt(document.getElementById('adultCount').value) || 1;
           const totalKwhNeeded = (distKm / 100) * selectedCar.consumption * driveFactor * acFactor * rainFactor * elevationFactor;
