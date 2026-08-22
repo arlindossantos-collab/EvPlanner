@@ -52,20 +52,18 @@
       background-color: #1e3a8a;
       color: #34d399;
     }
-    .ev-pin {
+    .abrp-charger-pin {
       display: flex;
-      flex-direction: column;
       align-items: center;
       justify-content: center;
-      background-color: #0f172a;
+      background-color: #091a4a;
       border: 2px solid #34d399;
-      border-radius: 8px;
-      padding: 2px 5px;
+      border-radius: 50%;
+      width: 28px;
+      height: 28px;
       color: #34d399;
-      font-weight: bold;
-      font-size: 10px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.8);
-      white-space: nowrap;
+      font-size: 12px;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.7);
     }
     .pdf-page-break {
       page-break-before: always;
@@ -78,13 +76,6 @@
     }
     .animate-progress {
       animation: pulse-progress 2.5s ease-in-out infinite;
-    }
-    .drag-handle {
-      cursor: grab;
-      touch-action: none;
-    }
-    .drag-handle:active {
-      cursor: grabbing;
     }
     .leaflet-bottom.leaflet-left {
       z-index: 1000;
@@ -897,7 +888,7 @@
     function getMinDistanceToRouteInKm(lat, lng, routeCoords) {
       let minDistance = Infinity;
       let closestPointIndex = 0;
-      for (let i = 0; i < routeCoords.length - 1; i += 2) {
+      for (let i = 0; i < routeCoords.length - 1; i += 3) {
         const d = L.latLng(lat, lng).distanceTo(L.latLng(routeCoords[i][1], routeCoords[i][0])) / 1000;
         if (d < minDistance) { minDistance = d; closestPointIndex = i; }
       }
@@ -905,13 +896,12 @@
     }
 
     async function fetchRouteStationsFromOSM(bbox, routeGeometry) {
-      document.getElementById('stationsCount').innerText = "Mapeando eletropostos...";
-      const buffer = 0.45; 
-      const query = `[out:json][timeout:20];
+      document.getElementById('stationsCount').innerText = "Buscando eletropostos na rota...";
+      const buffer = 0.35; 
+      const query = `[out:json][timeout:10];
       (
         node["amenity"="charging_station"](${bbox[0]-buffer},${bbox[1]-buffer},${bbox[2]+buffer},${bbox[3]+buffer});
         way["amenity"="charging_station"](${bbox[0]-buffer},${bbox[1]-buffer},${bbox[2]+buffer},${bbox[3]+buffer});
-        node["man_made"="charge_point"](${bbox[0]-buffer},${bbox[1]-buffer},${bbox[2]+buffer},${bbox[3]+buffer});
         node["amenity"="ev_charging"](${bbox[0]-buffer},${bbox[1]-buffer},${bbox[2]+buffer},${bbox[3]+buffer});
       );
       out body center;`;
@@ -929,7 +919,7 @@
 
       manualStationsDatabase.forEach((mStation, idx) => {
         const routeMatch = getMinDistanceToRouteInKm(mStation.lat, mStation.lng, routeCoords);
-        if (routeMatch.minDistance <= 35) {
+        if (routeMatch.minDistance <= 25) {
           uniqueMap.set(`${mStation.lat.toFixed(4)}_${mStation.lng.toFixed(4)}`, {
             id: `manual_${idx}`, name: mStation.name, cityState: mStation.cityState,
             lat: mStation.lat, lng: mStation.lng, power: mStation.power, type: mStation.type,
@@ -951,7 +941,7 @@
           const isDC = tags['socket:ccs'] || tags['socket:type2_combo'] || (tags.description && tags.description.toLowerCase().includes('dc'));
           
           const routeMatch = getMinDistanceToRouteInKm(lat, lng, routeCoords);
-          if (routeMatch.minDistance <= 30) {
+          if (routeMatch.minDistance <= 20) {
             uniqueMap.set(key, {
               id: item.id || idx, name: name, cityState: null, lat: lat, lng: lng,
               power: isDC ? 'CCS2 Ultra-Rápido DC (50-150kW)' : 'AC Wallbox (7-22kW)',
@@ -981,8 +971,15 @@
         return;
       }
 
+      const abrpIcon = L.divIcon({
+        className: 'custom-abrp-pin',
+        html: `<div class="abrp-charger-pin"><i class="fa-solid fa-bolt"></i></div>`,
+        iconSize: [28, 28],
+        iconAnchor: [14, 14]
+      });
+
       fetchedStations.forEach((station, index) => {
-        const marker = L.marker([station.lat, station.lng]).addTo(map).bindPopup(`<b>#${index + 1} ⚡ ${station.name}</b><br>${station.cityState || 'Localidade na Rota'}`);
+        const marker = L.marker([station.lat, station.lng], { icon: abrpIcon }).addTo(map).bindPopup(`<b>#${index + 1} ⚡ ${station.name}</b><br>${station.cityState || 'Localidade na Rota'}`);
         stationMarkers.push(marker);
 
         const tr = document.createElement('tr');
