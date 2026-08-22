@@ -89,7 +89,7 @@
     <!-- Cabeçalho -->
     <header class="flex flex-col items-center justify-center border-b border-blue-900/60 pb-4 gap-2 text-center relative">
       <div class="absolute top-0 right-0 bg-blue-900/40 border border-blue-800 text-blue-300 text-[10px] px-2 py-0.5 rounded shadow">
-        Versão 1.08
+        Versão 1.09
       </div>
 
       <div class="flex flex-col items-center gap-1.5">
@@ -939,10 +939,10 @@
       const routeCoords = routeGeometry.coordinates;
       const uniqueMap = new Map();
 
-      // 1. Processa a base estendida de carregadores de referência interestaduais
+      // 1. Processa a base de referência estendida
       for (const mStation of manualStationsDatabase) {
         const routeMatch = getMinDistanceToRouteInKm(mStation.lat, mStation.lng, routeCoords);
-        if (routeMatch.minDistance <= 50) { // Tolerância estendida para grandes rodovias
+        if (routeMatch.minDistance <= 50) {
           uniqueMap.set(`${mStation.lat.toFixed(3)}_${mStation.lng.toFixed(3)}`, {
             id: `manual_${Math.random()}`, name: mStation.name, cityState: mStation.cityState,
             lat: mStation.lat, lng: mStation.lng, power: mStation.power, type: mStation.type,
@@ -951,54 +951,52 @@
         }
       }
 
-      // 2. Fragmenta rotas longas em sub-segmentos a cada ~300km para consultar a API Overpass por blocos sem timeout
-      const chunkStep = Math.max(1, Math.floor(routeCoords.length / 8));
-      for (let i = 0; i < routeCoords.length; i += chunkStep) {
-        const pt = routeCoords[i];
-        const lat = pt[1];
-        const lng = pt[0];
+      // 2. Consulta única otimizada (pega o ponto médio da rota principal para cobrir rotas longas rapidamente sem timeouts)
+      const midIdx = Math.floor(routeCoords.length / 2);
+      const midPt = routeCoords[midIdx] || routeCoords[0];
+      const lat = midPt[1];
+      const lng = midPt[0];
 
-        const query = `[out:json][timeout:10];
-        (
-          node["amenity"="charging_station"](approx.${lat},${lng},80000);
-          way["amenity"="charging_station"](approx.${lat},${lng},80000);
-          node["amenity"="ev_charging"](approx.${lat},${lng},80000);
-        );
-        out body center;`;
+      const query = `[out:json][timeout:8];
+      (
+        node["amenity"="charging_station"](approx.${lat},${lng},400000);
+        way["amenity"="charging_station"](approx.${lat},${lng},400000);
+        node["amenity"="ev_charging"](approx.${lat},${lng},400000);
+      );
+      out body center;`;
 
-        try {
-          let data = null;
-          for (let url of ['https://overpass-api.de/api/interpreter', 'https://overpass.private.coffee/api/interpreter']) {
-            const res = await fetch(url, { method: 'POST', body: query });
-            if (res.ok) { data = await res.json(); if (data && data.elements) break; }
-          }
+      try {
+        let data = null;
+        for (let url of ['https://overpass-api.de/api/interpreter', 'https://overpass.private.coffee/api/interpreter']) {
+          const res = await fetch(url, { method: 'POST', body: query });
+          if (res.ok) { data = await res.json(); if (data && data.elements) break; }
+        }
 
-          if (data && data.elements) {
-            for (const item of data.elements) {
-              const elLat = item.lat || (item.center ? item.center.lat : null);
-              const elLng = item.lon || (item.center ? item.center.lon : null);
-              if (!elLat || !elLng) continue;
-              const key = `${elLat.toFixed(4)}_${elLng.toFixed(4)}`;
-              if (uniqueMap.has(key)) continue;
+        if (data && data.elements) {
+          for (const item of data.elements) {
+            const elLat = item.lat || (item.center ? item.center.lat : null);
+            const elLng = item.lon || (item.center ? item.center.lon : null);
+            if (!elLat || !elLng) continue;
+            const key = `${elLat.toFixed(4)}_${elLng.toFixed(4)}`;
+            if (uniqueMap.has(key)) continue;
 
-              const tags = item.tags || {};
-              const name = tags.name || tags.operator || tags.brand || `Eletroposto Rota`;
-              const isDC = tags['socket:ccs'] || tags['socket:type2_combo'] || (tags.description && tags.description.toLowerCase().includes('dc'));
-              
-              const routeMatch = getMinDistanceToRouteInKm(elLat, elLng, routeCoords);
-              if (routeMatch.minDistance <= 35) {
-                const resolvedCityState = await fetchCityStateFromCoords(elLat, elLng);
-                uniqueMap.set(key, {
-                  id: item.id, name: name, cityState: resolvedCityState, lat: elLat, lng: elLng,
-                  power: isDC ? 'CCS2 Ultra-Rápido DC (50-150kW)' : 'AC Wallbox (7-22kW)',
-                  type: isDC ? 'DC' : 'AC', distToRoute: routeMatch.minDistance, routeKm: routeMatch.routeKm,
-                  operationalStatus: "Disponível"
-                });
-              }
+            const tags = item.tags || {};
+            const name = tags.name || tags.operator || tags.brand || `Eletroposto Rota`;
+            const isDC = tags['socket:ccs'] || tags['socket:type2_combo'] || (tags.description && tags.description.toLowerCase().includes('dc'));
+            
+            const routeMatch = getMinDistanceToRouteInKm(elLat, elLng, routeCoords);
+            if (routeMatch.minDistance <= 35) {
+              const resolvedCityState = await fetchCityStateFromCoords(elLat, elLng);
+              uniqueMap.set(key, {
+                id: item.id, name: name, cityState: resolvedCityState, lat: elLat, lng: elLng,
+                power: isDC ? 'CCS2 Ultra-Rápido DC (50-150kW)' : 'AC Wallbox (7-22kW)',
+                type: isDC ? 'DC' : 'AC', distToRoute: routeMatch.minDistance, routeKm: routeMatch.routeKm,
+                operationalStatus: "Disponível"
+              });
             }
           }
-        } catch (err) {}
-      }
+        }
+      } catch (err) {}
 
       const rawStations = Array.from(uniqueMap.values());
       rawStations.sort((a, b) => a.routeKm - b.routeKm);
