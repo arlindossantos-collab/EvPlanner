@@ -102,7 +102,7 @@
         <h1 class="text-lg md:text-2xl font-extrabold text-emerald-400 tracking-wide uppercase mt-1">
           EV Planner Pro - Viagens & Telemetria Avançada
         </h1>
-        <p class="text-xs md:text-sm text-blue-200">Planejamento de Rota Inteligente com Isócronas, Relevo, Curva de Recarga e Métricas ESG</p>
+        <p class="text-xs md:text-sm text-blue-200">Planejamento de Rota Inteligente com Isócronas, Relevo, Clima, Curva de Recarga e Métricas ESG</p>
       </div>
       
       <div class="flex items-center gap-2 w-full justify-center mt-1 flex-wrap">
@@ -190,7 +190,7 @@
               </select>
             </div>
 
-            <div id="routeWaypointsContainer" class="space-y-2 max-h-[190px] overflow-y-auto pr-1">
+            <div id="routeWaypointsContainer" class="space-y-2 max-h-[170px] overflow-y-auto pr-1">
               <!-- Renderizado via JS -->
             </div>
 
@@ -198,7 +198,19 @@
               <i class="fa-solid fa-circle-plus"></i> + Adicionar Parada Intermediária
             </button>
 
+            <!-- NOVO BLOCO: DATA E HORA DE PARTIDA -->
             <div class="grid grid-cols-2 gap-2 pt-1 border-t border-blue-900/60">
+              <div>
+                <label class="block text-[10px] text-blue-300 mb-0.5"><i class="fa-regular fa-calendar"></i> Data Partida</label>
+                <input type="date" id="departureDate" class="w-full bg-[#031038] border border-blue-800 rounded p-1 text-xs text-white text-center">
+              </div>
+              <div>
+                <label class="block text-[10px] text-blue-300 mb-0.5"><i class="fa-regular fa-clock"></i> Hora Partida</label>
+                <input type="time" id="departureTime" value="08:00" class="w-full bg-[#031038] border border-blue-800 rounded p-1 text-xs text-white text-center">
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2 pt-1">
               <div>
                 <label class="block text-[10px] text-blue-300 mb-0.5">Modo Condução</label>
                 <select id="driveMode" class="w-full bg-[#031038] border border-blue-800 rounded p-1 text-xs text-white">
@@ -224,6 +236,12 @@
                 <input type="checkbox" id="elevationMode" checked class="rounded text-emerald-500">
                 <span>⛰️ Relevo/Serra (+8%)</span>
               </label>
+            </div>
+            
+            <!-- ALERTA DE PREVISÃO DO TEMPO AUTOMÁTICA -->
+            <div id="weatherAlertBox" class="hidden bg-sky-950/60 border border-sky-500/70 p-2 rounded text-[11px] text-sky-300 flex items-center justify-between">
+              <span id="weatherAlertText">🌤️ Verificando clima na partida...</span>
+              <span id="weatherTempBadge" class="font-bold bg-sky-900 px-1.5 py-0.5 rounded text-white">--°C</span>
             </div>
           </div>
         </div>
@@ -477,18 +495,19 @@
     <div id="pdfPage1" style="padding-bottom: 20px;">
       <div style="text-align: center; border-bottom: 2px solid #1e3a8a; padding-bottom: 10px; margin-bottom: 15px;">
         <h1 style="color: #34d399; font-size: 22px; font-weight: bold; margin: 0; text-transform: uppercase;">Relatório Executivo Multipontos - EV Planner Pro</h1>
-        <p style="color: #93c5fd; font-size: 12px; margin: 5px 0 0 0;">Planejamento de Rota com Múltiplas Etapas</p>
+        <p style="color: #93c5fd; font-size: 12px; margin: 5px 0 0 0;">Planejamento de Rota com Múltiplas Etapas & Clima</p>
       </div>
 
       <table style="width: 100%; border-collapse: collapse; margin-bottom: 15px; font-size: 12px;">
         <tr>
           <td style="width: 50%; vertical-align: top; padding-right: 10px;">
             <div style="background-color: #091a4a; border: 1px solid #1e3a8a; border-radius: 8px; padding: 12px;">
-              <h3 style="color: #34d399; border-bottom: 1px solid #1e3a8a; padding-bottom: 5px; margin-top: 0; font-size: 14px;">📍 Itinerário & Veículo</h3>
+              <h3 style="color: #34d399; border-bottom: 1px solid #1e3a8a; padding-bottom: 5px; margin-top: 0; font-size: 14px;">📍 Itinerário, Clima & Veículo</h3>
               <p style="margin: 4px 0;"><b>Itinerário:</b> <span id="pdfItinerary" style="color:#ffffff;">-</span></p>
+              <p style="margin: 4px 0;"><b>Data/Hora Partida:</b> <span id="pdfDepartureDateTime" style="color:#fbbf24;">-</span></p>
+              <p style="margin: 4px 0;"><b>Previsão do Tempo:</b> <span id="pdfWeatherInfo" style="color:#34d399;">-</span></p>
               <p style="margin: 4px 0;"><b>Veículo Selecionado:</b> <span id="pdfCarModel">-</span></p>
               <p style="margin: 4px 0;"><b>Bateria Útil:</b> <span id="pdfCarBattery">-</span> | <b>Autonomia Base:</b> <span id="pdfCarRange">-</span></p>
-              <p style="margin: 4px 0;"><b>Condições:</b> <span id="pdfDriveConditions">-</span></p>
             </div>
           </td>
           <td style="width: 50%; vertical-align: top; padding-left: 10px;">
@@ -670,6 +689,7 @@
     let activeRouteData = null;
     let pendingAddressForModal = "";
     let mapOverlayControl = null;
+    let currentWeatherDescription = "Sem dados de clima";
 
     async function initMap() {
       map = L.map('map').setView([-8.0476, -34.8770], 8);
@@ -686,6 +706,7 @@
       initBatteryInputValidation();
       initSortableWaypoints();
       initEsgDashboard();
+      initDefaultDepartureDate();
 
       waypoints = [
         { address: "Recife, PE, Brasil", coords: null },
@@ -695,6 +716,11 @@
       ];
 
       renderWaypointsInputs();
+    }
+
+    function initDefaultDepartureDate() {
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('departureDate').value = today;
     }
 
     function setupMapOverlayControl() {
@@ -716,7 +742,6 @@
       mapOverlayControl.addTo(map);
     }
 
-    // VALIDAÇÃO ESTRITA DE BATERIA (0 A 100%)
     function initBatteryInputValidation() {
       const batteryInput = document.getElementById('startBattery');
       
@@ -1083,6 +1108,72 @@
         console.warn("Falha no geocodificador reverso:", e);
       }
       return null;
+    }
+
+    // BUSCA DE PREVISÃO DO TEMPO (OPEN-METEO) BASEADA NA ORIGEM E DATA/HORA
+    async function fetchWeatherForecast(lat, lng, dateStr, timeStr) {
+      const box = document.getElementById('weatherAlertBox');
+      const textElem = document.getElementById('weatherAlertText');
+      const badgeElem = document.getElementById('weatherTempBadge');
+
+      box.classList.remove('hidden');
+      textElem.innerHTML = "Buscando previsão do tempo...";
+      badgeElem.innerHTML = "--°C";
+
+      try {
+        // Exemplo Open-Meteo API (gratuita e sem chave de API necessária)
+        const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&hourly=temperature_2m,precipitation_probability,weathercode&timezone=auto`;
+        const res = await fetch(url);
+        const data = await res.json();
+
+        if (data && data.hourly && data.hourly.time) {
+          const times = data.hourly.time;
+          const targetDateTimeStr = `${dateStr}T${timeStr.split(':')[0]}:00`;
+          
+          // Encontra o índice mais próximo da hora selecionada
+          let targetIdx = 0;
+          for (let i = 0; i < times.length; i++) {
+            if (times[i] >= targetDateTimeStr) {
+              targetIdx = i;
+              break;
+            }
+          }
+
+          const temp = data.hourly.temperature_2m[targetIdx];
+          const precipProb = data.hourly.precipitation_probability[targetIdx] || 0;
+          const weatherCode = data.hourly.weathercode[targetIdx] || 0;
+
+          let conditionDesc = "Clima Limpo / Bom";
+          let isRaining = false;
+
+          // Códigos WMO Weather interpretation
+          if (precipProb > 40 || (weatherCode >= 50 && weatherCode <= 67) || (weatherCode >= 80 && weatherCode <= 99)) {
+            conditionDesc = `Chuva prevista (${precipProb}% de chance)`;
+            isRaining = true;
+          } else if (weatherCode >= 1 && weatherCode <= 3) {
+            conditionDesc = "Parcialmente Nublado";
+          } else {
+            conditionDesc = "Ensolarado / Bom";
+          }
+
+          currentWeatherDescription = `${conditionDesc}, ${temp}°C`;
+          textElem.innerHTML = `🌤️ ${conditionDesc}`;
+          badgeElem.innerHTML = `${temp}°C`;
+
+          // Se houver chuva prevista, ativa automaticamente a opção de chuva na pista
+          const rainCheckbox = document.getElementById('rainMode');
+          if (isRaining) {
+            rainCheckbox.checked = true;
+            textElem.innerHTML = `🌧️ Alerta: ${conditionDesc} (Pista Molhada Ativada)`;
+          } else {
+            rainCheckbox.checked = false;
+          }
+        }
+      } catch (e) {
+        console.warn("Erro ao buscar clima:", e);
+        textElem.innerHTML = "🌤️ Clima indisponível no momento";
+        badgeElem.innerHTML = "--°C";
+      }
     }
 
     async function updateWaypointMarkers() {
@@ -1527,6 +1618,13 @@
           return;
         }
 
+        // Consulta a previsão do tempo com base no ponto de origem e data/hora selecionados
+        if (waypoints[0] && waypoints[0].coords) {
+          const dateVal = document.getElementById('departureDate').value;
+          const timeVal = document.getElementById('departureTime').value || "08:00";
+          await fetchWeatherForecast(waypoints[0].coords[0], waypoints[0].coords[1], dateVal, timeVal);
+        }
+
         const coordString = validCoords.join(';');
         const url = `https://router.project-osrm.org/route/v1/driving/${coordString}?overview=full&geometries=geojson`;
 
@@ -1653,11 +1751,15 @@
 
           recordEsgTripData(distKm, savings);
 
+          const departureDateVal = document.getElementById('departureDate').value;
+          const departureTimeVal = document.getElementById('departureTime').value;
+
           document.getElementById('pdfItinerary').innerText = itineraryText;
+          document.getElementById('pdfDepartureDateTime').innerText = `${departureDateVal} às ${departureTimeVal}`;
+          document.getElementById('pdfWeatherInfo').innerText = currentWeatherDescription;
           document.getElementById('pdfCarModel').innerText = `${selectedCar.model} (${selectedCar.type})`;
           document.getElementById('pdfCarBattery').innerText = `${selectedCar.battery} kWh`;
           document.getElementById('pdfCarRange').innerText = `${selectedCar.range} km`;
-          document.getElementById('pdfDriveConditions').innerText = `Modo: ${driveFactor > 1 ? 'Sport' : 'Eco'} | AC: ${acFactor > 1 ? 'Sim' : 'Não'} | Chuva: ${rainFactor > 1 ? 'Sim' : 'Não'} | Relevo: ${elevationFactor > 1 ? 'Sim' : 'Não'}`;
           document.getElementById('pdfDistance').innerText = `${distKm} km`;
           document.getElementById('pdfTime').innerText = travelTimeStr;
           document.getElementById('pdfBatteryState').innerText = `${startPercent}% / Est. Chegada ${remainingPercent}%`;
@@ -1823,4 +1925,4 @@
     window.onload = initMap;
   </script>
 </body>
-</html>
+    </html>
