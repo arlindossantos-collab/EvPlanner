@@ -269,12 +269,12 @@
             
             <div class="grid grid-cols-2 gap-2">
               <div class="bg-emerald-950/60 border border-emerald-500/80 p-2 rounded-lg">
-                <label class="block text-[10px] font-bold text-emerald-300 uppercase mb-0.5">⚡ Bateria Inicial (%)</label>
+                <label class="block text-[10px] font-bold text-emerald-300 uppercase mb-0.5">⚡ Bateria (%)</label>
                 <input type="number" id="startBattery" value="80" min="0" max="100" step="1" 
                        class="w-full bg-[#031038] border border-emerald-400 rounded p-1 text-emerald-300 font-black text-center text-sm outline-none">
               </div>
               <div id="fuelContainer" class="hidden bg-amber-950/60 border border-amber-500/80 p-2 rounded-lg">
-                <label class="block text-[10px] font-bold text-amber-300 uppercase mb-0.5">⛽ Combustível (Litros)</label>
+                <label class="block text-[10px] font-bold text-amber-300 uppercase mb-0.5">⛽ Combustível (L)</label>
                 <input type="number" id="startFuelLiters" value="40" min="0" max="100" step="1" 
                        class="w-full bg-[#031038] border border-amber-400 rounded p-1 text-amber-300 font-black text-center text-sm outline-none">
               </div>
@@ -512,16 +512,112 @@
 
     const evDatabase = {
       "BYD": [
+        { model: 'Dolphin Mini (4 Lugares)', type: 'BEV (100% Elétrico)', battery: 38.0, range: 280, consumption: 13.5, isHybrid: false },
+        { model: 'Dolphin Mini (5 Lugares)', type: 'BEV (100% Elétrico)', battery: 38.0, range: 280, consumption: 13.5, isHybrid: false },
         { model: 'Dolphin GS', type: 'BEV (100% Elétrico)', battery: 44.9, range: 291, consumption: 15.4, isHybrid: false },
         { model: 'Dolphin Plus', type: 'BEV (100% Elétrico)', battery: 60.4, range: 330, consumption: 18.3, isHybrid: false },
+        { model: 'Atto 2 / Yuan Up', type: 'BEV (100% Elétrico)', battery: 45.1, range: 260, consumption: 17.3, isHybrid: false },
+        { model: 'Yuan Pro', type: 'BEV (100% Elétrico)', battery: 45.1, range: 250, consumption: 18.0, isHybrid: false },
+        { model: 'Yuan Plus EV500', type: 'BEV (100% Elétrico)', battery: 60.5, range: 294, consumption: 20.5, isHybrid: false },
+        { model: 'Seal AWD Performance', type: 'BEV (100% Elétrico)', battery: 82.5, range: 372, consumption: 22.1, isHybrid: false },
+        { model: 'Sealion 7 AWD', type: 'BEV (100% Elétrico)', battery: 82.5, range: 380, consumption: 21.7, isHybrid: false },
+        { model: 'King DM-i GL', type: 'PHEV (Híbrido Plug-in)', battery: 8.3, range: 55, consumption: 15.1, isHybrid: true, gasKm: 25.6, ethanolKm: 18.0 },
+        { model: 'King DM-i GS', type: 'PHEV (Híbrido Plug-in)', battery: 18.3, range: 120, consumption: 15.2, isHybrid: true, gasKm: 25.6, ethanolKm: 18.0 },
+        { model: 'Song Pro DM-i GL', type: 'PHEV (Híbrido Plug-in)', battery: 12.9, range: 71, consumption: 18.1, isHybrid: true, gasKm: 22.7, ethanolKm: 15.8 },
+        { model: 'Song Pro DM-i GS', type: 'PHEV (Híbrido Plug-in)', battery: 18.3, range: 110, consumption: 16.6, isHybrid: true, gasKm: 22.7, ethanolKm: 15.8 },
         { model: 'Song Plus DM-i', type: 'PHEV (Híbrido Plug-in)', battery: 18.3, range: 105, consumption: 17.4, isHybrid: true, gasKm: 21.5, ethanolKm: 15.1 },
-        { model: 'King DM-i GS', type: 'PHEV (Híbrido Plug-in)', battery: 18.3, range: 120, consumption: 15.2, isHybrid: true, gasKm: 25.6, ethanolKm: 18.0 }
+        { model: 'Han EV AWD', type: 'BEV (100% Elétrico)', battery: 85.4, range: 349, consumption: 24.4, isHybrid: false },
+        { model: 'Tan EV AWD', type: 'BEV (100% Elétrico)', battery: 108.8, range: 430, consumption: 25.3, isHybrid: false },
+        { model: 'Shark Pickup', type: 'PHEV (Híbrido Plug-in)', battery: 29.5, range: 100, consumption: 29.5, isHybrid: true, gasKm: 14.2, ethanolKm: 9.8 }
       ],
       "Leapmotor": [
+        { model: 'T03 Hatch', type: 'BEV (100% Elétrico)', battery: 37.3, range: 265, consumption: 14.1, isHybrid: false },
+        { model: 'B10 EV Pure', type: 'BEV (100% Elétrico)', battery: 56.2, range: 288, consumption: 16.3, isHybrid: false },
+        { model: 'B10 REEV Extensor', type: 'REEV (Ultra-híbrido)', battery: 28.4, range: 140, consumption: 20.2, isHybrid: true, gasKm: 18.5, ethanolKm: 13.0 },
+        { model: 'C10 EV Pure', type: 'BEV (100% Elétrico)', battery: 69.9, range: 338, consumption: 16.8, isHybrid: false },
         { model: 'C10 REEV Ultra-híbrido', type: 'REEV (Ultra-híbrido)', battery: 28.4, range: 140, consumption: 20.2, isHybrid: true, gasKm: 18.5, ethanolKm: 13.0 }
       ],
       "GWM & Ora": [
-        { model: 'Haval H6 PHEV34', type: 'PHEV (Híbrido Plug-in)', battery: 34.0, range: 170, consumption: 20.0, isHybrid: true, gasKm: 28.7, ethanolKm: 20.1 }
+        { model: 'Ora 03 Skin', type: 'BEV (100% Elétrico)', battery: 48.0, range: 232, consumption: 20.6, isHybrid: false },
+        { model: 'Ora 03 GT', type: 'BEV (100% Elétrico)', battery: 63.0, range: 319, consumption: 19.7, isHybrid: false },
+        { model: 'Haval H6 HEV', type: 'HEV (Híbrido Convencional)', battery: 1.6, range: 25, consumption: 6.4, isHybrid: true, gasKm: 13.8, ethanolKm: 9.8 },
+        { model: 'Haval H6 PHEV19', type: 'PHEV (Híbrido Plug-in)', battery: 19.0, range: 115, consumption: 16.5, isHybrid: true, gasKm: 28.7, ethanolKm: 20.1 },
+        { model: 'Haval H6 PHEV34', type: 'PHEV (Híbrido Plug-in)', battery: 34.0, range: 170, consumption: 20.0, isHybrid: true, gasKm: 28.7, ethanolKm: 20.1 },
+        { model: 'Haval H6 GT PHEV', type: 'PHEV (Híbrido Plug-in)', battery: 34.0, range: 170, consumption: 20.0, isHybrid: true, gasKm: 27.4, ethanolKm: 19.2 },
+        { model: 'Tank 300 PHEV', type: 'PHEV (Híbrido Plug-in)', battery: 37.1, range: 105, consumption: 35.3, isHybrid: true, gasKm: 11.2, ethanolKm: 7.8 }
+      ],
+      "Geely": [
+        { model: 'Geely EX2 Pro', type: 'BEV (100% Elétrico)', battery: 39.4, range: 260, consumption: 15.1, isHybrid: false },
+        { model: 'Geely EX5 EM-i MAX', type: 'PHEV (Híbrido Plug-in)', battery: 18.4, range: 100, consumption: 18.4, isHybrid: true, gasKm: 22.1, ethanolKm: 15.5 }
+      ],
+      "Omoda & Jaecoo": [
+        { model: 'Omoda 5 MHEV 48V', type: 'MHEV (Ultrahíbrido Leve)', battery: 0.9, range: 10, consumption: 8.0, isHybrid: true, gasKm: 12.8, ethanolKm: 9.0 },
+        { model: 'Omoda 5 HEV Luxury', type: 'HEV (Híbrido Convencional)', battery: 1.8, range: 20, consumption: 7.2, isHybrid: true, gasKm: 16.5, ethanolKm: 11.5 },
+        { model: 'Omoda E5 EV', type: 'BEV (100% Elétrico)', battery: 61.0, range: 310, consumption: 19.6, isHybrid: false },
+        { model: 'Jaecoo 7 PHEV', type: 'PHEV (Híbrido Plug-in)', battery: 18.3, range: 88, consumption: 20.7, isHybrid: true, gasKm: 19.2, ethanolKm: 13.5 },
+        { model: 'Jaecoo 8 Ultra REEV', type: 'REEV (Ultra-híbrido)', battery: 34.4, range: 160, consumption: 21.5, isHybrid: true, gasKm: 17.5, ethanolKm: 12.2 }
+      ],
+      "Chevrolet": [
+        { model: 'Spark EUV', type: 'BEV (100% Elétrico)', battery: 41.9, range: 250, consumption: 16.7, isHybrid: false },
+        { model: 'Bolt EV Premier', type: 'BEV (100% Elétrico)', battery: 66.0, range: 259, consumption: 25.4, isHybrid: false },
+        { model: 'Equinox EV eAWD', type: 'BEV (100% Elétrico)', battery: 85.0, range: 443, consumption: 19.1, isHybrid: false },
+        { model: 'Blazer EV RS eAWD', type: 'BEV (100% Elétrico)', battery: 102.0, range: 481, consumption: 21.2, isHybrid: false }
+      ],
+      "Volvo": [
+        { model: 'EX30 Core Single', type: 'BEV (100% Elétrico)', battery: 51.0, range: 250, consumption: 20.4, isHybrid: false },
+        { model: 'EX30 Extended Range', type: 'BEV (100% Elétrico)', battery: 69.0, range: 340, consumption: 20.2, isHybrid: false },
+        { model: 'EX30 Twin Performance', type: 'BEV (100% Elétrico)', battery: 69.0, range: 320, consumption: 21.5, isHybrid: false },
+        { model: 'XC40 / EX40 Recharge', type: 'BEV (100% Elétrico)', battery: 78.0, range: 305, consumption: 25.5, isHybrid: false },
+        { model: 'C40 / EC40 Recharge', type: 'BEV (100% Elétrico)', battery: 78.0, range: 385, consumption: 20.2, isHybrid: false },
+        { model: 'EX90 Ultra 7L AWD', type: 'BEV (100% Elétrico)', battery: 111.0, range: 450, consumption: 24.6, isHybrid: false },
+        { model: 'XC60 Recharge T8', type: 'PHEV (Híbrido Plug-in)', battery: 18.8, range: 78, consumption: 24.1, isHybrid: true, gasKm: 26.7, ethanolKm: 18.5 },
+        { model: 'XC90 Recharge T8', type: 'PHEV (Híbrido Plug-in)', battery: 18.8, range: 71, consumption: 26.4, isHybrid: true, gasKm: 23.5, ethanolKm: 16.2 }
+      ],
+      "BMW": [
+        { model: 'iX1 eDrive20', type: 'BEV (100% Elétrico)', battery: 64.7, range: 303, consumption: 21.3, isHybrid: false },
+        { model: 'iX1 xDrive30', type: 'BEV (100% Elétrico)', battery: 64.7, range: 303, consumption: 21.3, isHybrid: false },
+        { model: 'iX2 xDrive30', type: 'BEV (100% Elétrico)', battery: 64.7, range: 300, consumption: 21.5, isHybrid: false },
+        { model: 'i4 eDrive40', type: 'BEV (100% Elétrico)', battery: 80.7, range: 420, consumption: 19.2, isHybrid: false },
+        { model: 'iX xDrive50', type: 'BEV (100% Elétrico)', battery: 105.2, range: 520, consumption: 20.2, isHybrid: false },
+        { model: '330e M Sport', type: 'PHEV (Híbrido Plug-in)', battery: 12.0, range: 37, consumption: 32.4, isHybrid: true, gasKm: 24.1, ethanolKm: 16.8 }
+      ],
+      "Porsche": [
+        { model: 'Taycan 4S', type: 'BEV (100% Elétrico)', battery: 89.0, range: 380, consumption: 23.4, isHybrid: false },
+        { model: 'Taycan Turbo S', type: 'BEV (100% Elétrico)', battery: 105.0, range: 400, consumption: 26.2, isHybrid: false },
+        { model: 'Macan EV 4 AWD', type: 'BEV (100% Elétrico)', battery: 100.0, range: 430, consumption: 23.2, isHybrid: false },
+        { model: 'Cayenne E-Hybrid', type: 'PHEV (Híbrido Plug-in)', battery: 25.9, range: 75, consumption: 34.5, isHybrid: true, gasKm: 20.2, ethanolKm: 14.1 }
+      ],
+      "Stellantis (Fiat, Jeep, Ram)": [
+        { model: 'Fiat 500e Icon', type: 'BEV (100% Elétrico)', battery: 42.0, range: 227, consumption: 18.5, isHybrid: false },
+        { model: 'Fiat Pulse Hybrid 12V', type: 'MHEV (Ultrahíbrido Leve)', battery: 0.2, range: 5, consumption: 7.5, isHybrid: true, gasKm: 13.4, ethanolKm: 9.3 },
+        { model: 'Fiat Fastback Hybrid', type: 'MHEV (Ultrahíbrido Leve)', battery: 0.2, range: 5, consumption: 7.5, isHybrid: true, gasKm: 13.1, ethanolKm: 9.1 },
+        { model: 'Jeep Compass 4xe', type: 'PHEV (Híbrido Plug-in)', battery: 11.4, range: 44, consumption: 25.9, isHybrid: true, gasKm: 25.4, ethanolKm: 17.8 },
+        { model: 'Jeep Grand Cherokee 4xe', type: 'PHEV (Híbrido Plug-in)', battery: 17.3, range: 29, consumption: 59.6, isHybrid: true, gasKm: 19.1, ethanolKm: 13.2 }
+      ],
+      "Toyota & Lexus": [
+        { model: 'Corolla Altis Hybrid Flex', type: 'HEV (Híbrido Convencional)', battery: 1.3, range: 15, consumption: 8.6, isHybrid: true, gasKm: 17.9, ethanolKm: 12.8 },
+        { model: 'Corolla Cross Hybrid Flex', type: 'HEV (Híbrido Convencional)', battery: 1.3, range: 15, consumption: 8.6, isHybrid: true, gasKm: 17.7, ethanolKm: 12.5 },
+        { model: 'RAV4 SX Hybrid AWD', type: 'HEV (Híbrido Convencional)', battery: 1.6, range: 20, consumption: 8.0, isHybrid: true, gasKm: 17.1, ethanolKm: 11.9 },
+        { model: 'RAV4 Plug-in Hybrid', type: 'PHEV (Híbrido Plug-in)', battery: 18.1, range: 75, consumption: 24.1, isHybrid: true, gasKm: 35.0, ethanolKm: 24.5 },
+        { model: 'Lexus UX 300h', type: 'HEV (Híbrido Convencional)', battery: 1.4, range: 15, consumption: 9.3, isHybrid: true, gasKm: 16.7, ethanolKm: 11.6 }
+      ],
+      "Renault & Nissan": [
+        { model: 'Kwid E-Tech', type: 'BEV (100% Elétrico)', battery: 26.8, range: 185, consumption: 14.4, isHybrid: false },
+        { model: 'Megane E-Tech', type: 'BEV (100% Elétrico)', battery: 60.0, range: 337, consumption: 17.8, isHybrid: false },
+        { model: 'Nissan Leaf Tekna', type: 'BEV (100% Elétrico)', battery: 40.0, range: 192, consumption: 20.8, isHybrid: false },
+        { model: 'Nissan X-Trail e-POWER', type: 'HEV (Gerador Elétrico)', battery: 2.1, range: 10, consumption: 12.0, isHybrid: true, gasKm: 18.2, ethanolKm: 12.7 }
+      ],
+      "Caoa Chery & Jetour": [
+        { model: 'iCar', type: 'BEV (100% Elétrico)', battery: 30.8, range: 197, consumption: 15.6, isHybrid: false },
+        { model: 'Tiggo 7 Pro PHEV', type: 'PHEV (Híbrido Plug-in)', battery: 19.3, range: 80, consumption: 24.1, isHybrid: true, gasKm: 23.8, ethanolKm: 16.5 },
+        { model: 'Tiggo 8 Pro PHEV', type: 'PHEV (Híbrido Plug-in)', battery: 19.2, range: 77, consumption: 24.9, isHybrid: true, gasKm: 22.9, ethanolKm: 15.8 },
+        { model: 'Jetour Dashing i-DM', type: 'PHEV (Híbrido Plug-in)', battery: 19.2, range: 80, consumption: 24.0, isHybrid: true, gasKm: 22.0, ethanolKm: 15.2 }
+      ],
+      "Hyundai & KIA": [
+        { model: 'Hyundai Ioniq 5', type: 'BEV (100% Elétrico)', battery: 72.6, range: 380, consumption: 19.1, isHybrid: false },
+        { model: 'Hyundai Kona EV', type: 'BEV (100% Elétrico)', battery: 39.2, range: 252, consumption: 15.5, isHybrid: false },
+        { model: 'KIA EV6 GT-Line', type: 'BEV (100% Elétrico)', battery: 77.4, range: 390, consumption: 19.8, isHybrid: false },
+        { model: 'KIA Niro HEV', type: 'HEV (Híbrido Convencional)', battery: 1.3, range: 15, consumption: 8.2, isHybrid: true, gasKm: 19.8, ethanolKm: 13.8 }
       ]
     };
 
@@ -712,8 +808,6 @@
 
     async function fetchRouteStationsFromOSM(bbox, routeGeometry) {
       document.getElementById('stationsCount').innerText = "Mapeando eletropostos...";
-      
-      // Ampliando o buffer para garantir cobertura completa em rodovias nordestinas
       const buffer = 0.45; 
       const query = `[out:json][timeout:20];
       (
@@ -735,7 +829,6 @@
       const routeCoords = routeGeometry.coordinates;
       const uniqueMap = new Map();
 
-      // Injeta postos manuais (como o Rei das Coxinhas)
       manualStationsDatabase.forEach((mStation, idx) => {
         const routeMatch = getMinDistanceToRouteInKm(mStation.lat, mStation.lng, routeCoords);
         if (routeMatch.minDistance <= 35) {
@@ -836,15 +929,14 @@
         await fetchRouteStationsFromOSM([bounds.getSouth(), bounds.getWest(), bounds.getNorth(), bounds.getEast()], activeRouteData.geometry);
         renderStationsOnMapAndTable();
 
-        // Cálculo de Híbrido com Combustível Restante
         let totalCost = 0;
         const startBatt = parseFloat(document.getElementById('startBattery').value) || 80;
         const electricRange = selectedCar.range * (startBatt / 100);
 
         if (selectedCar.isHybrid) {
           const startLiters = parseFloat(document.getElementById('startFuelLiters').value) || 40;
-          const gasKmPL = parseFloat(document.getElementById('kmPerLiterGas').value) || 15.0;
-          const ethanolKmPL = parseFloat(document.getElementById('kmPerLiterEthanol').value) || 10.5;
+          const gasKmPL = parseFloat(document.getElementById('kmPerLiterGas').value) || selectedCar.gasKm || 15.0;
+          const ethanolKmPL = parseFloat(document.getElementById('kmPerLiterEthanol').value) || selectedCar.ethanolKm || 10.5;
           const gasPrice = parseFloat(document.getElementById('costPerLiterGas').value) || 6.88;
           const ethanolPrice = parseFloat(document.getElementById('costPerLiterEthanol').value) || 5.07;
 
@@ -876,4 +968,4 @@
     window.onload = initMap;
   </script>
 </body>
-  </html>
+</html>
