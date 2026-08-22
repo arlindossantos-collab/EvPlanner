@@ -79,6 +79,7 @@
     }
     .drag-handle {
       cursor: grab;
+      touch-action: none;
     }
     .drag-handle:active {
       cursor: grabbing;
@@ -156,7 +157,7 @@
         </div>
       </div>
 
-      <!-- Card 2: Trajeto Múltiplos Destinos & Condições Climáticas -->
+      <!-- Card 2: Trajeto Múltiplos Destinos -->
       <div class="bg-blue-950/80 p-4 rounded-xl border border-blue-900 space-y-3 shadow-md flex flex-col justify-between">
         <div>
           <div class="flex justify-between items-center border-b border-blue-900 pb-1.5 mb-2.5">
@@ -188,7 +189,7 @@
               </select>
             </div>
 
-            <!-- Container dinâmico de endereços da Rota (Sortable Drag and Drop) -->
+            <!-- Container dinâmico de endereços da Rota -->
             <div id="routeWaypointsContainer" class="space-y-2 max-h-[190px] overflow-y-auto pr-1">
               <!-- Renderizado via JS -->
             </div>
@@ -251,7 +252,6 @@
           </h2>
           <div class="space-y-2.5">
             
-            <!-- Campo Bateria Inicial (COM MAIOR DESTAQUE E MÁXIMO DE 100%) -->
             <div class="bg-emerald-950/60 border-2 border-emerald-500/80 p-2.5 rounded-xl shadow-lg flex items-center justify-between gap-2">
               <label class="text-xs md:text-sm font-black text-emerald-300 flex items-center gap-2 uppercase tracking-wide">
                 <i class="fa-solid fa-battery-three-quarters text-emerald-400 text-base md:text-lg"></i> Bateria Inicial (%):
@@ -700,7 +700,6 @@
       renderWaypointsInputs();
     }
 
-    // OVERLAY FLUTUANTE DE RESUMO DIRETO NO MAPA
     function setupMapOverlayControl() {
       mapOverlayControl = L.control({ position: 'bottomleft' });
       mapOverlayControl.onAdd = function () {
@@ -720,7 +719,6 @@
       mapOverlayControl.addTo(map);
     }
 
-    // TRAVA E VALIDAÇÃO DA BATERIA INICIAL (LIMITADO A 100%)
     function initBatteryInputValidation() {
       const batteryInput = document.getElementById('startBattery');
       
@@ -734,7 +732,7 @@
       batteryInput.addEventListener('blur', enforceLimit);
     }
 
-    // DRAG AND DROP NOS WAYPOINTS COM SORTABLEJS
+    // ARRASTO DE WAYPOINTS ISOLADO APENAS NO ÍCONE DRAG-HANDLE
     function initSortableWaypoints() {
       const container = document.getElementById('routeWaypointsContainer');
       new Sortable(container, {
@@ -894,7 +892,7 @@
         div.innerHTML = `
           <div class="flex justify-between items-center text-[11px]">
             <span class="font-bold ${labelColor} flex items-center gap-1.5">
-              <i class="fa-solid fa-grip-vertical text-slate-500 drag-handle"></i> ${labelText}
+              <i class="fa-solid fa-grip-vertical text-slate-500 drag-handle px-1 py-0.5 rounded hover:bg-blue-800"></i> ${labelText}
             </span>
             <div class="flex gap-1">
               ${!isFirst ? `<button onclick="moveWaypoint(${index}, -1)" title="Mover para cima" class="text-blue-300 hover:text-white px-1">▲</button>` : ''}
@@ -911,6 +909,11 @@
         `;
 
         container.appendChild(div);
+
+        // EVITA QUE O SORTABLE BLOQUEIE O FOCO NO INPUT
+        const inputElem = document.getElementById(`wpInput_${index}`);
+        inputElem.addEventListener('mousedown', (e) => e.stopPropagation());
+        inputElem.addEventListener('touchstart', (e) => e.stopPropagation());
 
         setupFastAutocomplete(`wpInput_${index}`, `wpResults_${index}`, (coords, addressStr) => {
           waypoints[index].coords = coords;
@@ -1050,7 +1053,6 @@
       }
     }
 
-    // DESENHA A MANCHA DE ALCANCE DA BATERIA (POLÍGONO ISÓCRONA NO MAPA)
     function drawBatteryIsochronePolyline(startCoords, rangeKm) {
       if (isochronePolygon) map.removeLayer(isochronePolygon);
 
@@ -1202,7 +1204,6 @@
       fetchedStations = rawStations;
     }
 
-    // CÁLCULO REAL DA CURVA NÃO-LINEAR DE RECARGA
     function calculateRealChargingTimeMinutes(arrivalBattery, targetBattery, batteryCapacityKwh, stationPowerKw) {
       if (arrivalBattery >= targetBattery) return 0;
       
@@ -1346,7 +1347,6 @@
       map.setView([lat, lng], 14);
     }
 
-    // INICIALIZAÇÃO DOS SELETORES E FUNCIONALIDADE DE FAVORITAR VEÍCULO (CORRIGIDO)
     function initVehicleSelectors() {
       const brandSelect = document.getElementById('brandSelect');
       const modelSelect = document.getElementById('modelSelect');
@@ -1398,7 +1398,6 @@
         }
       });
 
-      // BOTÃO DE FAVORITAR VEÍCULO
       favCarBtn.addEventListener('click', () => {
         const brand = brandSelect.value;
         const index = modelSelect.value;
@@ -1413,7 +1412,6 @@
         checkCarFavoriteState();
       });
 
-      // RESTAURAR VEÍCULO FAVORITO DO LOCALSTORAGE SE EXISTIR
       const savedFav = JSON.parse(localStorage.getItem('hv_fav_car') || 'null');
       if (savedFav && evDatabase[savedFav.brand] && evDatabase[savedFav.brand][savedFav.modelIndex]) {
         brandSelect.value = savedFav.brand;
@@ -1421,7 +1419,6 @@
         modelSelect.value = savedFav.modelIndex;
         modelSelect.dispatchEvent(new Event('change'));
       } else {
-        // Padrão de fallback se não houver salvo
         brandSelect.value = "BYD";
         brandSelect.dispatchEvent(new Event('change'));
         modelSelect.value = "2";
@@ -1429,7 +1426,6 @@
       }
     }
 
-    // VERIFICA SE O VEÍCULO ATUAL É O FAVORITO E ATUALIZA A ESTRELA
     function checkCarFavoriteState() {
       const savedFav = JSON.parse(localStorage.getItem('hv_fav_car') || 'null');
       const currentBrand = document.getElementById('brandSelect').value;
