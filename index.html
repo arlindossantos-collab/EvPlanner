@@ -259,7 +259,7 @@
           </div>
 
           <div id="routeToast" class="hidden bg-emerald-950/90 border border-emerald-500 text-emerald-300 p-2 rounded-lg text-xs font-bold text-center flex items-center justify-center gap-2 shadow">
-            <i class="fa-solid fa-circle-check text-emerald-400"></i> Viagem calculada com sucesso!
+            <i class="fa-solid fa-circle-check text-emerald-400"></i> Rota calculada com sucesso!
           </div>
         </div>
       </div>
@@ -407,7 +407,7 @@
         <div class="flex flex-wrap gap-3 text-blue-200 text-xs md:text-sm">
           <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" id="filterCCS2" checked class="rounded text-emerald-500"> DC Ultra (⚡+50kW)</label>
           <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" id="filterAC" checked class="rounded text-emerald-500"> AC Wallbox (7-22kW)</label>
-          <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" id="showIsochrone" checked class="rounded text-emerald-500"> Mancha Polígono de Bateria (Isócrona)</label>
+          <label class="flex items-center gap-1.5 cursor-pointer" id="showIsochroneToggle"><input type="checkbox" id="showIsochrone" checked class="rounded text-emerald-500"> Mancha Polígono de Bateria (Isócrona)</label>
         </div>
       </div>
 
@@ -475,32 +475,6 @@
       <button id="resetEsgBtn" class="w-full bg-red-950/60 hover:bg-red-900/80 text-red-300 text-xs font-semibold py-2 rounded border border-red-800 transition">
         Zerar Histórico de Viagens
       </button>
-    </div>
-  </div>
-
-  <!-- MODAL DE SELEÇÃO DE ENDEREÇO FAVORITO -->
-  <div id="locationModal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-    <div class="bg-[#091a4a] border-2 border-blue-700 rounded-xl p-5 max-w-md w-full shadow-2xl space-y-4">
-      <h3 class="text-base md:text-lg font-bold text-emerald-400 flex items-center gap-2">
-        <i class="fa-solid fa-location-dot"></i> Onde incluir este endereço?
-      </h3>
-      <p id="modalAddressText" class="text-xs md:text-sm text-blue-100 bg-[#031038] p-3 rounded border border-blue-900 break-words font-medium"></p>
-      
-      <div class="space-y-2 pt-1" id="modalTargetOptionsContainer"></div>
-      <button id="cancelModalBtn" class="w-full text-xs text-slate-400 hover:text-white pt-1">Cancelar</button>
-    </div>
-  </div>
-
-  <!-- CONTAINER DE EXPORTAÇÃO PDF -->
-  <div id="pdfContainer" style="display: none; background-color: #031038; color: #f8fafc; font-family: sans-serif; width: 1000px; padding: 20px;">
-    <div id="pdfPage1" style="padding-bottom: 20px;">
-      <div style="text-align: center; border-bottom: 2px solid #1e3a8a; padding-bottom: 10px; margin-bottom: 15px;">
-        <h1 style="color: #34d399; font-size: 22px; font-weight: bold; margin: 0; text-transform: uppercase;">Relatório Executivo Multipontos - EV Planner Pro</h1>
-      </div>
-      <div style="background-color: #091a4a; border: 1px solid #1e3a8a; border-radius: 8px; padding: 10px;">
-        <h3 style="color: #34d399; margin-top: 0; font-size: 14px; margin-bottom: 8px;">🗺️ Trajeto no Mapa e Pontos de Recarga</h3>
-        <div id="pdfMapImageContainer" style="width: 100%; height: 380px; border-radius: 6px; overflow: hidden; background-color: #031038;"></div>
-      </div>
     </div>
   </div>
 
@@ -663,13 +637,18 @@
       initVehicleSelectors();
       initUserFavorites();
       initRouteControls();
+      initDefaultDepartureDate();
 
-      // Inicializa com Origem e Destino 1 padrão
       waypoints = [
         { address: "", coords: null, type: "origin", label: "Origem" },
         { address: "", coords: null, type: "destination", label: "Destino 1" }
       ];
       renderWaypointsInputs();
+    }
+
+    function initDefaultDepartureDate() {
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('departureDate').value = today;
     }
 
     function initVehicleSelectors() {
@@ -744,6 +723,8 @@
         waypoints.push({ address: "", coords: null, type: "stop", label: `Parada Programada ${stopCount}` });
         renderWaypointsInputs();
       });
+
+      document.getElementById('calcBtn').addEventListener('click', calculateMultiRoute);
     }
 
     function askTargetWaypointAndSet(addressStr) {
@@ -837,6 +818,80 @@
         if (!waypoints[i].coords && waypoints[i].address) waypoints[i].coords = await geocodeFast(waypoints[i].address);
         if (waypoints[i].coords) waypointMarkers.push(L.marker(waypoints[i].coords).addTo(map));
       }
+    }
+
+    async function fetchWeatherForecast(lat, lng, dateStr, timeStr) {
+      const box = document.getElementById('weatherAlertBox');
+      const textElem = document.getElementById('weatherAlertText');
+      const badgeElem = document.getElementById('weatherTempBadge');
+
+      box.classList.remove('hidden');
+      textElem.innerHTML = "Buscando previsão do tempo...";
+      badgeElem.innerHTML = "--°C";
+
+      try {
+        const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&hourly=temperature_2m,precipitation_probability,weathercode&timezone=auto`;
+        const res = await fetch(url);
+        const data = await res.json();
+
+        if (data && data.hourly && data.hourly.time) {
+          const times = data.hourly.time;
+          const targetDateTimeStr = `${dateStr}T${timeStr.split(':')[0]}:00`;
+          let targetIdx = 0;
+          for (let i = 0; i < times.length; i++) {
+            if (times[i] >= targetDateTimeStr) { targetIdx = i; break; }
+          }
+          const temp = data.hourly.temperature_2m[targetIdx];
+          const precipProb = data.hourly.precipitation_probability[targetIdx] || 0;
+          const weatherCode = data.hourly.weathercode[targetIdx] || 0;
+
+          let conditionDesc = "Clima Limpo / Bom";
+          let isRaining = false;
+
+          if (precipProb > 40 || (weatherCode >= 50 && weatherCode <= 67) || (weatherCode >= 80 && weatherCode <= 99)) {
+            conditionDesc = `Chuva prevista (${precipProb}% de chance)`;
+            isRaining = true;
+          } else if (weatherCode >= 1 && weatherCode <= 3) {
+            conditionDesc = "Parcialmente Nublado";
+          } else {
+            conditionDesc = "Ensolarado / Bom";
+          }
+
+          textElem.innerHTML = `🌤️ ${conditionDesc}`;
+          badgeElem.innerHTML = `${temp}°C`;
+
+          if (isRaining) {
+            document.getElementById('rainMode').checked = true;
+            textElem.innerHTML = `🌧️ Alerta: ${conditionDesc} (Pista Molhada Ativada)`;
+          } else {
+            document.getElementById('rainMode').checked = false;
+          }
+        }
+      } catch (e) {
+        textElem.innerHTML = "🌤️ Clima indisponível no momento";
+        badgeElem.innerHTML = "--°C";
+      }
+    }
+
+    function drawBatteryIsochronePolyline(startCoords, rangeKm) {
+      if (isochronePolygon) map.removeLayer(isochronePolygon);
+      if (!document.getElementById('showIsochrone').checked || !startCoords) return;
+
+      const points = [];
+      const numPoints = 32;
+      const lat = startCoords[0];
+      const lng = startCoords[1];
+      const latRadius = rangeKm / 111.0;
+      const lngRadius = rangeKm / (111.0 * Math.cos(lat * Math.PI / 180));
+
+      for (let i = 0; i < numPoints; i++) {
+        const angle = (i / numPoints) * (2 * Math.PI);
+        points.push([lat + (latRadius * Math.sin(angle)), lng + (lngRadius * Math.cos(angle))]);
+      }
+
+      isochronePolygon = L.polygon(points, {
+        color: '#10b981', fillColor: '#34d399', fillOpacity: 0.12, weight: 2, dashArray: '5, 5'
+      }).addTo(map).bindPopup(`<b>Raio Elétrico Inicial</b><br>Autonomia da bateria: ${Math.round(rangeKm)} km.`);
     }
 
     function getMinDistanceToRouteInKm(lat, lng, routeCoords) {
@@ -947,67 +1002,94 @@
     }
 
     async function calculateMultiRoute() {
-      for (let i = 0; i < waypoints.length; i++) {
-        const val = document.getElementById(`wpInput_${i}`)?.value;
-        if (val) waypoints[i].address = val;
-        if (waypoints[i].address && !waypoints[i].coords) waypoints[i].coords = await geocodeFast(waypoints[i].address);
-      }
+      const calcBtn = document.getElementById('calcBtn');
+      const calcBtnText = document.getElementById('calcBtnText');
+      const calcBtnIcon = document.getElementById('calcBtnIcon');
+      const progressBar = document.getElementById('calcProgressBar');
+      const toast = document.getElementById('routeToast');
 
-      const validCoords = waypoints.filter(w => w.coords).map(w => `${w.coords[1]},${w.coords[0]}`);
-      if (validCoords.length < 2) { alert("Informe pelo menos a Origem e um Destino."); return; }
+      calcBtn.disabled = true;
+      calcBtnText.innerText = "Calculando rota...";
+      calcBtnIcon.className = "fa-solid fa-spinner fa-spin";
+      progressBar.classList.remove('hidden');
 
-      const res = await fetch(`https://router.project-osrm.org/route/v1/driving/${validCoords.join(';')}?overview=full&geometries=geojson`);
-      const data = await res.json();
-
-      if (data.routes && data.routes.length > 0) {
-        activeRouteData = data.routes[0];
-        if (currentPolyline) map.removeLayer(currentPolyline);
-        currentPolyline = L.geoJSON(activeRouteData.geometry, { style: { color: '#10b981', weight: 6 } }).addTo(map);
-        map.fitBounds(currentPolyline.getBounds(), { padding: [30, 30] });
-
-        const distKm = Math.round(activeRouteData.distance / 1000);
-        document.getElementById('totalDistance').innerText = `${distKm} km`;
-
-        const bounds = currentPolyline.getBounds();
-        await fetchRouteStationsFromOSM([bounds.getSouth(), bounds.getWest(), bounds.getNorth(), bounds.getEast()], activeRouteData.geometry);
-        renderStationsOnMapAndTable();
-
-        let totalCost = 0;
-        const startBatt = parseFloat(document.getElementById('startBattery').value) || 80;
-        const electricRange = selectedCar.range * (startBatt / 100);
-
-        if (selectedCar.isHybrid) {
-          const startLiters = parseFloat(document.getElementById('startFuelLiters').value) || 40;
-          const gasKmPL = parseFloat(document.getElementById('kmPerLiterGas').value) || selectedCar.gasKm || 15.0;
-          const ethanolKmPL = parseFloat(document.getElementById('kmPerLiterEthanol').value) || selectedCar.ethanolKm || 10.5;
-          const gasPrice = parseFloat(document.getElementById('costPerLiterGas').value) || 6.88;
-          const ethanolPrice = parseFloat(document.getElementById('costPerLiterEthanol').value) || 5.07;
-
-          const bestKmPL = (ethanolPrice / ethanolKmPL < gasPrice / gasKmPL) ? ethanolKmPL : gasKmPL;
-          const fuelRange = startLiters * bestKmPL;
-
-          const electricUsed = Math.min(distKm, electricRange);
-          const fuelUsed = Math.min(Math.max(0, distKm - electricRange), fuelRange);
-
-          const electricCost = (electricUsed / 100) * selectedCar.consumption * (parseFloat(document.getElementById('costPerKwh').value) || 2.39);
-          const fuelCost = (fuelUsed / bestKmPL) * (bestKmPL === ethanolKmPL ? ethanolPrice : gasPrice);
-          totalCost = electricCost + fuelCost;
-
-          document.getElementById('rechargeDistanceAlert').innerText = `Híbrido: ${Math.round(electricUsed)}km elétrico + ${Math.round(fuelUsed)}km combustível`;
-          document.getElementById('targetBatteryNeeded').innerText = `Tanque cobre o restante (0 paradas obrigatórias)`;
-        } else {
-          const kwhCost = parseFloat(document.getElementById('costPerKwh').value) || 2.39;
-          totalCost = ((distKm / 100) * selectedCar.consumption) * kwhCost;
-          document.getElementById('rechargeDistanceAlert').innerText = distKm > electricRange ? "Parada de recarga necessária" : "Autonomia elétrica suficiente";
+      try {
+        for (let i = 0; i < waypoints.length; i++) {
+          const val = document.getElementById(`wpInput_${i}`)?.value;
+          if (val) waypoints[i].address = val;
+          if (waypoints[i].address && !waypoints[i].coords) {
+            waypoints[i].coords = await geocodeFast(waypoints[i].address);
+          }
         }
 
-        document.getElementById('totalCost').innerText = `R$ ${totalCost.toFixed(2)}`;
-        document.getElementById('overlayDist').innerText = `${distKm} km`;
-        document.getElementById('overlayCost').innerText = `R$ ${totalCost.toFixed(2)}`;
+        await updateWaypointMarkers();
+        const validCoords = waypoints.filter(w => w.coords).map(w => `${w.coords[1]},${w.coords[0]}`);
+        if (validCoords.length < 2) { alert("Informe pelo menos a Origem e um Destino."); return; }
+
+        if (waypoints[0] && waypoints[0].coords) {
+          await fetchWeatherForecast(waypoints[0].coords[0], waypoints[0].coords[1], document.getElementById('departureDate').value, document.getElementById('departureTime').value || "08:00");
+        }
+
+        const res = await fetch(`https://router.project-osrm.org/route/v1/driving/${validCoords.join(';')}?overview=full&geometries=geojson`);
+        const data = await res.json();
+
+        if (data.routes && data.routes.length > 0) {
+          activeRouteData = data.routes[0];
+          if (currentPolyline) map.removeLayer(currentPolyline);
+          currentPolyline = L.geoJSON(activeRouteData.geometry, { style: { color: '#10b981', weight: 6 } }).addTo(map);
+          map.fitBounds(currentPolyline.getBounds(), { padding: [30, 30] });
+
+          const distKm = Math.round(activeRouteData.distance / 1000);
+          document.getElementById('totalDistance').innerText = `${distKm} km`;
+
+          const bounds = currentPolyline.getBounds();
+          await fetchRouteStationsFromOSM([bounds.getSouth(), bounds.getWest(), bounds.getNorth(), bounds.getEast()], activeRouteData.geometry);
+          renderStationsOnMapAndTable();
+
+          const startBatt = parseFloat(document.getElementById('startBattery').value) || 80;
+          const electricRange = selectedCar.range * (startBatt / 100);
+          drawBatteryIsochronePolyline(waypoints[0].coords, electricRange);
+
+          let totalCost = 0;
+          if (selectedCar.isHybrid) {
+            const startLiters = parseFloat(document.getElementById('startFuelLiters').value) || 40;
+            const gasKmPL = parseFloat(document.getElementById('kmPerLiterGas').value) || selectedCar.gasKm || 15.0;
+            const ethanolKmPL = parseFloat(document.getElementById('kmPerLiterEthanol').value) || selectedCar.ethanolKm || 10.5;
+            const gasPrice = parseFloat(document.getElementById('costPerLiterGas').value) || 6.88;
+            const ethanolPrice = parseFloat(document.getElementById('costPerLiterEthanol').value) || 5.07;
+
+            const bestKmPL = (ethanolPrice / ethanolKmPL < gasPrice / gasKmPL) ? ethanolKmPL : gasKmPL;
+            const fuelRange = startLiters * bestKmPL;
+
+            const electricUsed = Math.min(distKm, electricRange);
+            const fuelUsed = Math.min(Math.max(0, distKm - electricRange), fuelRange);
+
+            const electricCost = (electricUsed / 100) * selectedCar.consumption * (parseFloat(document.getElementById('costPerKwh').value) || 2.39);
+            const fuelCost = (fuelUsed / bestKmPL) * (bestKmPL === ethanolKmPL ? ethanolPrice : gasPrice);
+            totalCost = electricCost + fuelCost;
+
+            document.getElementById('rechargeDistanceAlert').innerText = `Híbrido: ${Math.round(electricUsed)}km elétrico + ${Math.round(fuelUsed)}km combustível`;
+            document.getElementById('targetBatteryNeeded').innerText = `Tanque cobre o restante (0 paradas obrigatórias)`;
+          } else {
+            const kwhCost = parseFloat(document.getElementById('costPerKwh').value) || 2.39;
+            totalCost = ((distKm / 100) * selectedCar.consumption) * kwhCost;
+            document.getElementById('rechargeDistanceAlert').innerText = distKm > electricRange ? "Parada de recarga necessária" : "Autonomia elétrica suficiente";
+          }
+
+          document.getElementById('totalCost').innerText = `R$ ${totalCost.toFixed(2)}`;
+          toast.classList.remove('hidden');
+          setTimeout(() => toast.classList.add('hidden'), 4000);
+        }
+      } catch (e) {
+        console.error(e);
+      } finally {
+        calcBtn.disabled = false;
+        calcBtnText.innerText = "Calcular Rota Completa";
+        calcBtnIcon.className = "fa-solid fa-calculator";
+        progressBar.classList.add('hidden');
       }
     }
 
-    document.getElementById('calcBtn').addEventListener('click', calculateMultiRoute);
     window.onload = initMap;
   </script>
 </body>
