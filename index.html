@@ -194,9 +194,14 @@
               <!-- Renderizado via JS -->
             </div>
 
-            <button id="addWaypointBtn" class="w-full bg-blue-900/80 hover:bg-blue-800 text-emerald-300 font-semibold py-1.5 px-2 rounded border border-blue-700 text-xs flex items-center justify-center gap-1.5 transition">
-              <i class="fa-solid fa-circle-plus"></i> + Adicionar Parada Programada
-            </button>
+            <div class="flex gap-1.5">
+              <button id="addDestinationBtn" class="w-1/2 bg-blue-900/80 hover:bg-blue-800 text-emerald-300 font-semibold py-1.5 px-2 rounded border border-blue-700 text-xs flex items-center justify-center gap-1 transition">
+                <i class="fa-solid fa-circle-plus"></i> + Destino
+              </button>
+              <button id="addWaypointBtn" class="w-1/2 bg-amber-950/80 hover:bg-amber-900 text-amber-300 font-semibold py-1.5 px-2 rounded border border-amber-700 text-xs flex items-center justify-center gap-1 transition">
+                <i class="fa-solid fa-map-pin"></i> + Parada
+              </button>
+            </div>
 
             <div class="grid grid-cols-2 gap-2 pt-1 border-t border-blue-900/60">
               <div>
@@ -657,14 +662,12 @@
 
       initVehicleSelectors();
       initUserFavorites();
-      initSortableWaypoints();
+      initRouteControls();
 
-      // Estrutura inicial exata: Origem, Destino 1, Destino 2, Destino 3
+      // Inicializa com Origem e Destino 1 padrão
       waypoints = [
-        { address: "", coords: null, label: "Origem" },
-        { address: "", coords: null, label: "Destino 1" },
-        { address: "", coords: null, label: "Destino 2" },
-        { address: "", coords: null, label: "Destino 3" }
+        { address: "", coords: null, type: "origin", label: "Origem" },
+        { address: "", coords: null, type: "destination", label: "Destino 1" }
       ];
       renderWaypointsInputs();
     }
@@ -727,17 +730,28 @@
           if (newHome) { localStorage.setItem('hv_home_address', newHome); askTargetWaypointAndSet(newHome); }
         } else askTargetWaypointAndSet(home);
       });
+    }
+
+    function initRouteControls() {
+      document.getElementById('addDestinationBtn').addEventListener('click', () => {
+        const destCount = waypoints.filter(w => w.type === 'destination').length + 1;
+        waypoints.push({ address: "", coords: null, type: "destination", label: `Destino ${destCount}` });
+        renderWaypointsInputs();
+      });
 
       document.getElementById('addWaypointBtn').addEventListener('click', () => {
-        waypoints.push({ address: "", coords: null, label: `Parada Programada #${waypoints.filter(w => w.label.includes('Parada')).length + 1}` });
+        const stopCount = waypoints.filter(w => w.type === 'stop').length + 1;
+        waypoints.push({ address: "", coords: null, type: "stop", label: `Parada Programada ${stopCount}` });
         renderWaypointsInputs();
       });
     }
 
     function askTargetWaypointAndSet(addressStr) {
-      waypoints[0].address = addressStr;
-      renderWaypointsInputs();
-      geocodeFast(addressStr).then(c => { waypoints[0].coords = c; updateWaypointMarkers(); });
+      if (waypoints.length > 0) {
+        waypoints[0].address = addressStr;
+        renderWaypointsInputs();
+        geocodeFast(addressStr).then(c => { waypoints[0].coords = c; updateWaypointMarkers(); });
+      }
     }
 
     function renderWaypointsInputs() {
@@ -745,19 +759,17 @@
       container.innerHTML = '';
       
       waypoints.forEach((wp, index) => {
-        let labelText = wp.label;
-        if (!labelText) {
-          if (index === 0) labelText = "Origem";
-          else if (index === waypoints.length - 1 && !waypoints[index].label.includes('Parada')) labelText = `Destino ${index}`;
-          else labelText = `Parada Programada`;
-        }
-
         const div = document.createElement('div');
         div.className = "waypoint-item relative bg-[#020b29] p-2 rounded-lg border border-blue-900 space-y-1";
+        
+        let badgeColor = "text-emerald-400";
+        if (wp.type === 'destination') badgeColor = "text-sky-400";
+        if (wp.type === 'stop') badgeColor = "text-amber-400";
+
         div.innerHTML = `
           <div class="flex justify-between items-center text-[11px] mb-1">
-            <span class="font-bold text-emerald-300">${labelText}</span>
-            ${index > 3 ? `<button onclick="removeWaypoint(${index})" class="text-red-400 hover:text-red-300 font-bold px-1">✕ Remover</button>` : ''}
+            <span class="font-bold ${badgeColor}">${wp.label}</span>
+            ${index > 0 ? `<button onclick="removeWaypoint(${index})" class="text-red-400 hover:text-red-300 font-bold px-1">✕ Remover</button>` : ''}
           </div>
           <input type="text" id="wpInput_${index}" value="${wp.address}" 
                  class="w-full bg-[#031038] border border-blue-800 rounded p-1.5 text-white text-xs outline-none" 
@@ -774,7 +786,7 @@
     }
 
     function removeWaypoint(index) {
-      if (index > 3) {
+      if (index > 0) {
         waypoints.splice(index, 1);
         renderWaypointsInputs();
         updateWaypointMarkers();
