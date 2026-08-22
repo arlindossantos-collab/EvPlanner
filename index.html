@@ -198,7 +198,6 @@
               <i class="fa-solid fa-circle-plus"></i> + Adicionar Parada Intermediária
             </button>
 
-            <!-- NOVO BLOCO: DATA E HORA DE PARTIDA -->
             <div class="grid grid-cols-2 gap-2 pt-1 border-t border-blue-900/60">
               <div>
                 <label class="block text-[10px] text-blue-300 mb-0.5"><i class="fa-regular fa-calendar"></i> Data Partida</label>
@@ -238,7 +237,6 @@
               </label>
             </div>
             
-            <!-- ALERTA DE PREVISÃO DO TEMPO AUTOMÁTICA -->
             <div id="weatherAlertBox" class="hidden bg-sky-950/60 border border-sky-500/70 p-2 rounded text-[11px] text-sky-300 flex items-center justify-between">
               <span id="weatherAlertText">🌤️ Verificando clima na partida...</span>
               <span id="weatherTempBadge" class="font-bold bg-sky-900 px-1.5 py-0.5 rounded text-white">--°C</span>
@@ -708,11 +706,10 @@
       initEsgDashboard();
       initDefaultDepartureDate();
 
+      // Endereços iniciam vazios
       waypoints = [
-        { address: "Recife, PE, Brasil", coords: null },
-        { address: "João Pessoa, PB, Brasil", coords: null },
-        { address: "Pipa, Tibau do Sul - RN, Brasil", coords: null },
-        { address: "Natal, RN, Brasil", coords: null }
+        { address: "", coords: null },
+        { address: "", coords: null }
       ];
 
       renderWaypointsInputs();
@@ -804,8 +801,8 @@
       });
 
       document.getElementById('addFavPlaceBtn').addEventListener('click', () => {
-        const lastAddress = waypoints[waypoints.length - 1].address || "Recife, PE";
-        const name = prompt("Nome do local favorito:", lastAddress.split(',')[0]);
+        const lastAddress = waypoints[waypoints.length - 1].address || "";
+        const name = prompt("Nome do local favorito:", lastAddress ? lastAddress.split(',')[0] : "Local");
         if (name && lastAddress) {
           let favs = JSON.parse(localStorage.getItem('hv_fav_places') || '[]');
           favs.push({ name: name, address: lastAddress });
@@ -821,7 +818,7 @@
       document.getElementById('roundTripBtn').addEventListener('click', () => {
         if (waypoints.length >= 2) {
           const originAddress = waypoints[0].address;
-          if (waypoints[waypoints.length - 1].address !== originAddress) {
+          if (originAddress && waypoints[waypoints.length - 1].address !== originAddress) {
             waypoints.push({ address: originAddress, coords: waypoints[0].coords });
             renderWaypointsInputs();
             updateWaypointMarkers();
@@ -1110,7 +1107,6 @@
       return null;
     }
 
-    // BUSCA DE PREVISÃO DO TEMPO (OPEN-METEO) BASEADA NA ORIGEM E DATA/HORA
     async function fetchWeatherForecast(lat, lng, dateStr, timeStr) {
       const box = document.getElementById('weatherAlertBox');
       const textElem = document.getElementById('weatherAlertText');
@@ -1121,7 +1117,6 @@
       badgeElem.innerHTML = "--°C";
 
       try {
-        // Exemplo Open-Meteo API (gratuita e sem chave de API necessária)
         const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&hourly=temperature_2m,precipitation_probability,weathercode&timezone=auto`;
         const res = await fetch(url);
         const data = await res.json();
@@ -1130,7 +1125,6 @@
           const times = data.hourly.time;
           const targetDateTimeStr = `${dateStr}T${timeStr.split(':')[0]}:00`;
           
-          // Encontra o índice mais próximo da hora selecionada
           let targetIdx = 0;
           for (let i = 0; i < times.length; i++) {
             if (times[i] >= targetDateTimeStr) {
@@ -1146,7 +1140,6 @@
           let conditionDesc = "Clima Limpo / Bom";
           let isRaining = false;
 
-          // Códigos WMO Weather interpretation
           if (precipProb > 40 || (weatherCode >= 50 && weatherCode <= 67) || (weatherCode >= 80 && weatherCode <= 99)) {
             conditionDesc = `Chuva prevista (${precipProb}% de chance)`;
             isRaining = true;
@@ -1160,7 +1153,6 @@
           textElem.innerHTML = `🌤️ ${conditionDesc}`;
           badgeElem.innerHTML = `${temp}°C`;
 
-          // Se houver chuva prevista, ativa automaticamente a opção de chuva na pista
           const rainCheckbox = document.getElementById('rainMode');
           if (isRaining) {
             rainCheckbox.checked = true;
@@ -1618,7 +1610,6 @@
           return;
         }
 
-        // Consulta a previsão do tempo com base no ponto de origem e data/hora selecionados
         if (waypoints[0] && waypoints[0].coords) {
           const dateVal = document.getElementById('departureDate').value;
           const timeVal = document.getElementById('departureTime').value || "08:00";
@@ -1925,4 +1916,4 @@
     window.onload = initMap;
   </script>
 </body>
-    </html>
+</html>
