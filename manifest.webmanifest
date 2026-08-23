@@ -1,0 +1,3 @@
+{
+  "name":"EV Planner Pro 3.0","short_name":"EV Planner","start_url":"./index.html","display":"standalone","background_color":"#050d20","theme_color":"#07152f","lang":"pt-BR","description":"Planejador de viagens para veículos elétricos, híbridos, plug-in e REEV.","icons":[{"src":"icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}]
+}

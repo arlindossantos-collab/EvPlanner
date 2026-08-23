@@ -1,0 +1,14 @@
+window.EV_CONFIG = {
+  version: '3.0.0',
+  reservePercent: 15,
+  stationRadiusKm: 25,
+  geocodeDebounce: 400,
+  co2KgPerLiter: 2.31,
+  defaults: { kwhPrice: 0.75, gasPrice: 6.88, ethanolPrice: 5.07, startBattery: 80, startFuel: 40 },
+  services: {
+    geocode: 'https://photon.komoot.io/api/',
+    route: 'https://router.project-osrm.org/route/v1/driving/',
+    weather: 'https://api.open-meteo.com/v1/forecast',
+    overpass: ['https://overpass-api.de/api/interpreter','https://overpass.private.coffee/api/interpreter']
+  }
+};
