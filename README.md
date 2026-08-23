@@ -1,42 +1,31 @@
-# EV Planner Pro 3.0
+# EV Planner Pro 3.1
 
-Versão evoluída do EV Planner Pro, reorganizada como aplicação web estática e PWA.
+Atualização da versão 3.0 com foco em legibilidade, bateria inicial, veículos com combustível e gestão de eletropostos.
+
+## Principais melhorias
+- Logo fornecida pelo usuário aplicada à interface e ao PWA.
+- Tipografia maior e layout inspirado no dashboard visual de referência.
+- Bateria inicial limitada de 0 a 100, com campo destacado, botões +/- e slider.
+- Campo de combustível aparece somente para veículos que não são 100% elétricos.
+- Busca ampliada de eletropostos ao longo da rota, com múltiplas amostras e fontes Overpass.
+- Cadastro manual de eletropostos com nome, marca, modelo, tipo, potência, preço, quantidade de pontos, cidade, conector, coordenadas e observações.
+- Pontos manuais ficam salvos no navegador e podem ser usados em viagens futuras.
+- Mensagem visual e toast "Cálculo concluído" após o cálculo da rota.
+- Backup inclui os pontos manuais.
 
 ## Arquivos
-- `index.html` — interface.
-- `styles.css` — visual responsivo.
-- `app.js` — lógica de rota, energia, custos, clima, eletropostos, ESG, favoritos e backup.
-- `config.js` — parâmetros e endpoints externos.
-- `vehicles.js` — base de veículos incorporada ao projeto.
-- `vehicles.json` — base em JSON para integração futura.
-- `manifest.webmanifest` + `sw.js` + `icon.svg` — instalação como PWA/cache básico.
+- index.html
+- styles.css
+- app.js
+- config.js
+- vehicles.js
+- vehicles.json
+- manifest.webmanifest
+- sw.js
+- icon.svg
+- logo.png
 
-## Recursos 3.0
-- Base de veículos por marca/modelo/versão.
-- BEV, HEV, PHEV, MHEV e REEV.
-- Autocomplete de endereços.
-- Múltiplas paradas/destinos e ordenação por arrastar.
-- Ida e volta.
-- Rota via OSRM + Leaflet/OpenStreetMap.
-- Estimativa energética com modo de condução, ar-condicionado, chuva e relevo.
-- Custos de eletricidade, gasolina e etanol.
-- Alcance inicial no mapa.
-- Eletropostos próximos à rota via base manual + OpenStreetMap/Overpass.
-- Clima via Open-Meteo.
-- Favoritos, Casa/Trabalho, veículo favorito.
-- Backup/importação em JSON.
-- PDF e cópia do resumo.
-- Histórico ESG local.
-- PWA instalável quando servido por HTTPS/localhost.
+## Execução
+Abra `index.html` ou, para PWA/service worker, execute `python -m http.server 8080` e acesse `http://localhost:8080`.
 
-## Como executar
-Para uso simples, abra `index.html`. Para habilitar PWA/service worker, execute um servidor local na pasta, por exemplo:
-
-`python -m http.server 8080`
-
-Depois abra `http://localhost:8080`.
-
-## Observação importante
-A base de veículos foi gerada a partir da planilha de referência do projeto. Campos sem informação permanecem como não informados. Quando o consumo elétrico não existe, o planejador calcula uma estimativa matemática a partir de bateria/autonomia e sinaliza isso na interface.
-
-Os serviços de geocodificação, roteamento, clima e eletropostos são serviços públicos externos e podem impor limites, indisponibilidade ou alterações de API.
+Os serviços de geocodificação, roteamento, clima e eletropostos são públicos e dependem de internet e disponibilidade das APIs.
