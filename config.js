@@ -1,6 +1,7 @@
 window.EV_CONFIG = {
-  version: '3.6.0',
+  version: '3.7.0',
   versionHistory: [
+    {version:'3.7',date:'24/08/2026',description:'Versão única no topo, autonomia INMETRO + referência do painel, horário de retorno, rota de volta em azul com lógica energética própria e estratégia automática de parada por nível de bateria.'},
     {version:'3.6',date:'24/08/2026',description:'Dados de autonomia priorizando INMETRO/PBEV, compatibilidade real de recarga por veículo (AC/DC), bloqueio de carregadores incompatíveis e rastreabilidade da fonte dos dados.'},
     {version:'3.5',date:'24/08/2026',description:'Distribuição inteligente de eletropostos ao longo de toda a rota, busca reforçada no trecho final/destino e versão centralizada em uma única fonte.'},
     {version:'3.4',date:'24/08/2026',description:'Planejamento inteligente: viabilidade, paradas recomendadas, custo/tempo, nível de segurança, rota colorida por energia/combustível e pontos de abastecimento.'},
@@ -10,6 +11,7 @@ window.EV_CONFIG = {
     {version:'3.0',date:'23/08/2026',description:'Nova base do EV Planner Pro com planejamento de rotas, energia, custos, mapa, eletropostos, PDF, backup e PWA.'}
   ],
   reservePercent: 15,
+  stopBatteryPercent: 20,
   stationRadiusKm: 18,
   stationWideRadiusKm: 40,
   stationSamplePoints: 18,

@@ -1,9 +1,15 @@
-# Controle de versões
+# Controle de versões — EV Planner Pro
 
-1. Edite o código normalmente.
-2. Antes de publicar uma alteração do `index.html`, incremente `EV_CONFIG.version` em `config.js`.
-3. Acrescente uma entrada no início de `versionHistory` com versão, data e descrição.
-4. O `index.html` não deve conter números de versão hardcoded.
-5. O Service Worker e o manifesto devem acompanhar a versão de release.
+## Fonte única
+A versão canônica fica em `config.js`, em `EV_CONFIG.version`. O `index.html` não contém números de versão hardcoded.
 
-A interface lê a versão exclusivamente de `config.js`, evitando duplicidade.
+## Regra 3.x
+- **Alterou `index.html`**: abrir uma nova versão minor: `3.7.0` → `3.8.0`.
+- **Alterou somente arquivos auxiliares** (`app.js`, `styles.css`, `vehicles.js`, etc.): incrementar o patch: `3.7.0` → `3.7.1` → `3.7.2`.
+- Se uma release alterar `index.html` e outros arquivos ao mesmo tempo, prevalece a nova minor (ex.: `3.7.0`).
+
+## Histórico
+Sempre acrescente a nova entrada no início de `versionHistory` em `config.js`.
+
+## Script
+`node scripts/release-version.mjs 3.7 24/08/2026 "Descrição"` atualiza a versão de release e os metadados associados. Para patches, informe a versão completa no fluxo de release e mantenha a mesma regra de histórico.

@@ -34,7 +34,6 @@
           <div id="versionHistoryList"></div>
         </div>
       </details>
-      <span id="versionBadge" class="version-badge">PRO —</span>
       <button id="installBtn" class="btn ghost hidden"><i class="fa-solid fa-download"></i> Instalar</button>
       <button id="importBtn" class="btn ghost"><i class="fa-solid fa-upload"></i> Importar</button>
       <button id="exportBtn" class="btn ghost"><i class="fa-solid fa-file-export"></i> Backup</button>
@@ -52,7 +51,12 @@
         <label>Marca</label><select id="brandSelect"></select>
         <label>Modelo / versão</label><select id="modelSelect" disabled></select>
         <div id="carSpecs" class="spec-grid"></div>
-        <div id="dataQuality" class="hint"></div><div class="hint">Autonomia usada nos cálculos: somente INMETRO/PBEV. Valores CLTC/WLTP/NEDC de catálogo não são usados como fallback.</div>
+        <div id="dataQuality" class="hint"></div>
+        <div class="range-reference">
+          <div><span>Autonomia INMETRO/PBEV</span><b id="inmetroRangeValue">—</b></div>
+          <div><span>Autonomia indicada no painel</span><div class="range-panel-edit"><input id="panelRangeInput" type="number" min="0" max="2000" step="1" placeholder="Ex.: 380"><b>km</b></div></div>
+          <small>O INMETRO continua sendo a referência oficial usada nos cálculos. A autonomia do painel é uma referência complementar personalizada.</small>
+        </div>
       </article>
 
       <article class="card energy-card compact-card">
@@ -65,6 +69,7 @@
           <p>Valor limitado automaticamente entre 0% e 100%.</p>
         </div>
         <div id="fuelBox" class="fuel-box hidden"><div class="fuel-title"><i class="fa-solid fa-gas-pump"></i> Combustível inicial</div><label>Litros no início da viagem</label><input id="startFuel" type="number" min="0" step="0.1" inputmode="decimal" placeholder="Ex.: 35"><small id="fuelHint">Informe a quantidade disponível.</small></div>
+        <div class="strategy-box"><label>Parar para recarregar abaixo de</label><div class="strategy-input"><input id="stopBatteryThreshold" type="number" min="5" max="80" step="1" value="20"><strong>%</strong></div><small>O sistema procurará um ponto compatível próximo desse nível de bateria.</small></div>
         <div class="three price-grid"><div><label>R$/kWh</label><input id="kwhPrice" type="number" min="0" step="0.01"></div><div><label>Gasolina</label><input id="gasPrice" type="number" min="0" step="0.01"></div><div><label>Etanol</label><input id="ethanolPrice" type="number" min="0" step="0.01"></div></div>
         <div class="three"><div><label>Adultos</label><select id="adults"><option>1</option><option selected>2</option><option>3</option><option>4</option><option>5</option></select></div><div><label>Crianças</label><select id="children"><option selected>0</option><option>1</option><option>2</option><option>3</option></select></div><div><label>Pets</label><select id="pets"><option selected>0</option><option>1</option><option>2</option></select></div></div>
       </article>
@@ -85,6 +90,7 @@
         <div id="waypoints" class="stack"></div>
         <div class="two"><button id="addDestinationBtn" class="btn secondary">+ Adicionar destino</button><button id="addStopBtn" class="btn warning">+ Adicionar parada</button></div>
         <div class="two route-options"><div><label>Data da viagem</label><input id="departureDate" type="date"></div><div><label>Hora de saída</label><input id="departureTime" type="time" value="08:00"></div></div>
+        <div id="returnTimeRow" class="two route-options hidden"><div><label>Hora de saída da volta</label><input id="returnDepartureTime" type="time" value="14:00"></div><div class="return-time-note">🔵 A rota de volta será diferenciada visualmente e seguirá a mesma lógica energética.</div></div>
         <div class="two route-options"><div><label>Modo de condução</label><select id="driveMode"><option value="1">Eco</option><option value="1.08" selected>Normal</option><option value="1.15">Sport</option></select></div><div><label>Climatização</label><select id="acMode"><option value="1">Desligado</option><option value="1.10" selected>Ligado</option><option value="1.18">Máximo</option></select></div></div>
         <div class="checks"><label><input id="rainMode" type="checkbox"> 🌧️ Chuva</label><label><input id="elevationMode" type="checkbox" checked> ⛰️ Relevo / serra</label><label><input id="trafficMode" type="checkbox" checked> 🚗 Trânsito</label></div>
         <div id="weatherBox" class="weather hidden"></div>
@@ -110,7 +116,7 @@
     <section class="right-column">
       <section class="card map-card">
         <div class="section-head"><h2><i class="fa-solid fa-map-location-dot"></i> MAPA DA ROTA</h2><div class="checks map-filters"><label><input id="filterDC" type="checkbox" checked> ⚡ DC</label><label><input id="filterAC" type="checkbox" checked> 🔌 AC</label><label><input id="showRange" type="checkbox" checked> 🔋 Alcance</label></div></div>
-        <div id="map"></div><div class="route-legend"><span><i class="legend-dot route-safe"></i> Dentro da autonomia</span><span><i class="legend-dot route-warning"></i> Reserva / recarga recomendada</span><span><i class="legend-dot route-fuel"></i> Trecho com combustível</span><span><i class="legend-dot route-danger"></i> Autonomia insuficiente</span></div>
+        <div id="map"></div><div class="route-legend"><span><i class="legend-dot route-safe"></i> Ida segura</span><span><i class="legend-dot route-warning"></i> Reserva / recarga</span><span><i class="legend-dot route-return"></i> Volta</span><span><i class="legend-dot route-fuel"></i> Trecho com combustível</span><span><i class="legend-dot route-danger"></i> Autonomia insuficiente</span></div>
         <div id="mapPickerHint" class="map-picker-hint hidden">📍 Modo de seleção ativo: clique no mapa para escolher o endereço do ponto.</div>
       </section>
 
