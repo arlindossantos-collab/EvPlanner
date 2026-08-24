@@ -1,6 +1,6 @@
 /* ==========================================================================
    EV PLANNER PRO - CORE ENGINE (app.js)
-   Restaurado: Leitura Integral do vehicles.json Original + PlugShare/ABRP
+   Foco em Cobertura do Destino + Margem de Segurança (Fidelidade Integral ao vehicles.json)
    ========================================================================== */
 
 const ufMap = {
@@ -13,9 +13,8 @@ const ufMap = {
   "Sergipe": "SE", "Tocantins": "TO"
 };
 
-// Eletropostos Reais do Corredor BR-101 e Principais Rodovias (Inspirado no PlugShare)
+// Base Real e Detalhada de Apoio (PlugShare)
 const manualStationsDatabase = [
-  // Recife / Igarassu / Goiana / Caaporã / Conde / João Pessoa (BR-101)
   { name: "Shell Recharge - Posto Milagres", network: "Shell Recharge", cityState: "Recife / PE", lat: -8.0321, lng: -34.9125, powerKw: 150, plugType: "CCS2 High Power", power: "CCS2 Ultra-Rápido DC (150kW)", type: "DC", operationalStatus: "Disponível" },
   { name: "Volvo Recharge - Shopping Tacaruna", network: "Volvo Recharge", cityState: "Recife / PE", lat: -8.0382, lng: -34.8724, powerKw: 50, plugType: "CCS2 / Type 2", power: "CCS2 Rápido DC (50kW)", type: "DC", operationalStatus: "Disponível" },
   { name: "Neoenergia - Posto Pichilau BR-101", network: "Neoenergia Corredor", cityState: "Igarassu / PE", lat: -7.8341, lng: -34.9082, powerKw: 50, plugType: "CCS2 / CHAdeMO", power: "CCS2 Rápido DC (50kW)", type: "DC", operationalStatus: "Disponível" },
@@ -26,8 +25,6 @@ const manualStationsDatabase = [
   { name: "Shell Recharge - Posto Via Sul BR-101", network: "Shell Recharge", cityState: "Conde / PB", lat: -7.2581, lng: -34.8912, powerKw: 150, plugType: "CCS2 High Power", power: "CCS2 Ultra-Rápido DC (150kW)", type: "DC", operationalStatus: "Disponível" },
   { name: "Manaíra Shopping - Hub Zletric", network: "Zletric", cityState: "João Pessoa / PB", lat: -7.0984, lng: -34.8391, powerKw: 60, plugType: "CCS2 / Type 2", power: "CCS2 Ultra-Rápido DC (60kW)", type: "DC", operationalStatus: "Disponível" },
   { name: "Volvo Recharge - Mangabeira Shopping", network: "Volvo Recharge", cityState: "João Pessoa / PB", lat: -7.1610, lng: -34.8361, powerKw: 50, plugType: "CCS2", power: "CCS2 Rápido DC (50kW)", type: "DC", operationalStatus: "Disponível" },
-  
-  // Gravatá / Maceió / Aracaju / Salvador / SP
   { name: "Planeta Charger - Rei das Coxinhas", network: "Planeta Charger", cityState: "Gravatá / PE", lat: -8.1888, lng: -35.5069, powerKw: 120, plugType: "CCS2 / Type 2", power: "CCS2 Ultra-Rápido DC (120kW)", type: "DC", operationalStatus: "Disponível" },
   { name: "Eletroposto BR-101", network: "Eletrobras", cityState: "Maceió / AL", lat: -9.6658, lng: -35.7353, powerKw: 50, plugType: "CCS2 / CHAdeMO", power: "CCS2 Rápido DC (50kW)", type: "DC", operationalStatus: "Disponível" },
   { name: "Shell Recharge Center", network: "Shell Recharge", cityState: "Aracaju / SE", lat: -10.9472, lng: -37.0731, powerKw: 150, plugType: "CCS2 High Power", power: "CCS2 Ultra-Rápido DC (150kW)", type: "DC", operationalStatus: "Disponível" },
@@ -54,7 +51,6 @@ let currentTripStats = {
   tripsCount: 0
 };
 
-// Inicialização Principal
 async function initMap() {
   map = L.map('map').setView([-8.0476, -34.8770], 8);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
@@ -74,11 +70,11 @@ async function initMap() {
   renderWaypointsInputs();
 }
 
-// Carregamento Fiel do seu arquivo vehicles.json
+// Carregamento Estrito do Arquivo vehicles.json
 async function loadVehicles() {
   try {
     const response = await fetch('vehicles.json');
-    if (!response.ok) throw new Error("Não foi possível carregar vehicles.json");
+    if (!response.ok) throw new Error("Não foi possível acessar o vehicles.json");
     evDatabase = await response.json();
     initVehicleSelectors();
   } catch (error) {
@@ -124,13 +120,12 @@ function initVehicleSelectors() {
     }
   });
 
-  // Seleção Padrão Se Existir a Marca BYD
   const brands = Object.keys(evDatabase);
   if (brands.length > 0) {
-    const firstBrand = brands.includes("BYD") ? "BYD" : brands[0];
-    brandSelect.value = firstBrand;
+    const defaultBrand = brands.includes("BYD") ? "BYD" : brands[0];
+    brandSelect.value = defaultBrand;
     brandSelect.dispatchEvent(new Event('change'));
-    if (evDatabase[firstBrand] && evDatabase[firstBrand].length > 0) {
+    if (evDatabase[defaultBrand] && evDatabase[defaultBrand].length > 0) {
       modelSelect.value = "0";
       modelSelect.dispatchEvent(new Event('change'));
     }
@@ -359,14 +354,15 @@ function getMinDistanceToRouteInKm(lat, lng, routeCoords) {
   return { minDistance, routeKm: Math.round(closestPointIndex) };
 }
 
+// Busca Balanceada: Foco no Trajeto + Área do Destino
 async function fetchRouteStationsFromOSM(routeGeometry) {
   const countLabel = document.getElementById('stationsCount');
-  if (countLabel) countLabel.innerText = "Mapeando eletropostos (PlugShare / ABRP)...";
+  if (countLabel) countLabel.innerText = "Mapeando eletropostos no trajeto e destino...";
   
   const routeCoords = routeGeometry.coordinates;
   const uniqueMap = new Map();
 
-  // 1. Postos manuais de rodovia de alta prioridade
+  // 1. Postos manuais conhecidos
   for (const mStation of manualStationsDatabase) {
     const routeMatch = getMinDistanceToRouteInKm(mStation.lat, mStation.lng, routeCoords);
     if (routeMatch.minDistance <= 35) {
@@ -388,7 +384,7 @@ async function fetchRouteStationsFromOSM(routeGeometry) {
     }
   }
 
-  // 2. Coleta direcionada por amostras do trajeto
+  // 2. Amostragem ao longo da rota + Ponto Final (Destino) obrigatório
   const samplePoints = [];
   const numSamples = Math.min(8, Math.max(2, Math.floor(routeCoords.length / 150)));
   const step = Math.floor(routeCoords.length / numSamples);
@@ -396,11 +392,19 @@ async function fetchRouteStationsFromOSM(routeGeometry) {
   for (let i = 0; i < routeCoords.length; i += step) {
     samplePoints.push(routeCoords[i]);
   }
+  
+  // Inclui garantidamente o ponto de chegada (Destino)
+  if (routeCoords.length > 0) {
+    samplePoints.push(routeCoords[routeCoords.length - 1]);
+  }
 
-  const queryPromises = samplePoints.map(async (pt) => {
+  const queryPromises = samplePoints.map(async (pt, index) => {
     const lat = pt[1];
     const lng = pt[0];
-    const bbox = `${lat - 0.6},${lng - 0.6},${lat + 0.6},${lng + 0.6}`;
+    const isDestinationPoint = (index === samplePoints.length - 1);
+    const searchRadius = isDestinationPoint ? 0.8 : 0.6; // Raio estendido no destino
+
+    const bbox = `${lat - searchRadius},${lng - searchRadius},${lat + searchRadius},${lng + searchRadius}`;
 
     const query = `[out:json][timeout:6];
     (
@@ -422,9 +426,12 @@ async function fetchRouteStationsFromOSM(routeGeometry) {
             if (uniqueMap.has(key)) continue;
 
             const routeMatch = getMinDistanceToRouteInKm(elLat, elLng, routeCoords);
-            if (routeMatch.minDistance <= 20) {
+            // Tolerância de distância maior para postos na cidade de destino
+            const maxAllowedDist = isDestinationPoint ? 25 : 20;
+
+            if (routeMatch.minDistance <= maxAllowedDist) {
               const tags = item.tags || {};
-              const name = tags.name || tags.operator || tags.brand || `Eletroposto BR-101`;
+              const name = tags.name || tags.operator || tags.brand || `Eletroposto ${isDestinationPoint ? 'Destino' : 'Rota'}`;
               const network = tags.operator || tags.brand || "Rede Aberta";
               const isDC = tags['socket:ccs'] || tags['socket:type2_combo'] || (tags.description && tags.description.toLowerCase().includes('dc'));
               const powerKw = isDC ? 60 : 22;
@@ -433,7 +440,7 @@ async function fetchRouteStationsFromOSM(routeGeometry) {
                 id: item.id,
                 name: name,
                 network: network,
-                cityState: `Rodovia BR (${elLat.toFixed(2)}, ${elLng.toFixed(2)})`,
+                cityState: isDestinationPoint ? 'Área de Chegada (Destino)' : `Rodovia BR (${elLat.toFixed(2)}, ${elLng.toFixed(2)})`,
                 lat: elLat,
                 lng: elLng,
                 powerKw: powerKw,
@@ -458,6 +465,7 @@ async function fetchRouteStationsFromOSM(routeGeometry) {
   fetchedStations = rawStations;
 }
 
+// Renderização com Margem de Segurança (Buffer de 15% a 20%)
 function renderStationsOnMapAndTable(totalDistKm, initialRangeKm) {
   stationMarkers.forEach(m => map.removeLayer(m));
   stationMarkers = [];
@@ -467,7 +475,7 @@ function renderStationsOnMapAndTable(totalDistKm, initialRangeKm) {
   tbody.innerHTML = '';
 
   const countLabel = document.getElementById('stationsCount');
-  if (countLabel) countLabel.innerText = `${fetchedStations.length} eletropostos mapeados`;
+  if (countLabel) countLabel.innerText = `${fetchedStations.length} eletropostos encontrados`;
 
   if (fetchedStations.length === 0) {
     tbody.innerHTML = `<tr><td colspan="8" class="p-3 text-center text-slate-400">Nenhum eletroposto encontrado ao longo desta rota.</td></tr>`;
@@ -489,12 +497,13 @@ function renderStationsOnMapAndTable(totalDistKm, initialRangeKm) {
     let abrpPlanMsg = "Ponto de Passagem";
     let chargeTimeMinutes = 0;
     
+    // Alerta de recarga acionado pela margem de segurança (<20% de reserva)
     if (station.routeKm > initialRangeKm || battAtArrival < 20) {
       const targetPct = 80;
       const neededPct = Math.min(80, Math.max(20, targetPct - battAtArrival));
       const energyNeededKwh = (neededPct / 100) * carBatteryCapacity;
       chargeTimeMinutes = Math.round((energyNeededKwh / (station.powerKw || 50)) * 60) + 5;
-      abrpPlanMsg = `⚡ Recarregar +${neededPct}% (~${chargeTimeMinutes} min)`;
+      abrpPlanMsg = `⚠️ Recarregar +${neededPct}% (~${chargeTimeMinutes} min) - Margem Segurança`;
     }
 
     const popupContent = `
@@ -519,10 +528,10 @@ function renderStationsOnMapAndTable(totalDistKm, initialRangeKm) {
       <td class="p-2 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-950 text-emerald-400 border border-emerald-600">🟢 ${station.network}</span></td>
       <td class="p-2 font-semibold text-white whitespace-nowrap"><i class="fa-solid fa-charging-station text-yellow-400 mr-1"></i> ${station.name} (Km ${station.routeKm})</td>
       <td class="p-2 text-emerald-300 font-bold whitespace-nowrap">${station.cityState}</td>
-      <td class="p-2 text-center whitespace-nowrap font-bold ${battAtArrival > 15 ? 'text-emerald-400' : 'text-red-400'}">${battAtArrival}%</td>
+      <td class="p-2 text-center whitespace-nowrap font-bold ${battAtArrival > 20 ? 'text-emerald-400' : 'text-red-400'}">${battAtArrival}%</td>
       <td class="p-2 text-center whitespace-nowrap font-bold text-amber-300">${abrpPlanMsg}</td>
       <td class="p-2 whitespace-nowrap"><span class="bg-blue-900 text-blue-100 px-2 py-0.5 rounded border border-blue-700 text-xs">${station.power}</span></td>
-      <td class="p-2 text-right whitespace-nowrap"><button onclick="map.setView([${station.lat}], 14)" class="bg-blue-600 text-white font-bold px-2.5 py-1 rounded text-xs">Ver</button></td>
+      <td class="p-2 text-right whitespace-nowrap"><button onclick="map.setView([${station.lat}, ${station.lng}], 14)" class="bg-blue-600 text-white font-bold px-2.5 py-1 rounded text-xs">Ver</button></td>
     `;
     tbody.appendChild(tr);
   });
