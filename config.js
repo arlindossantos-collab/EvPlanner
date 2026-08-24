@@ -1,6 +1,7 @@
 window.EV_CONFIG = {
-  version: '3.8.1',
+  version: '3.8.2',
   versionHistory: [
+    {version:'3.8.2',date:'24/08/2026',description:'Eletropostos também mapeados na rota de volta e estratégia inteligente de parada/recarga para a volta, mantendo a bateria acima da reserva de segurança.'},
     {version:'3.8.1',date:'24/08/2026',description:'Correção do cálculo energético da rota de ida e volta e carregamento confiável do segundo mapa da volta.'},
     {version:'3.8',date:'24/08/2026',description:'Ida e volta com data e horário independentes para o retorno e dois mapas separados: ida e volta, mantendo a coloração energética e a rota de retorno em azul.'},
     {version:'3.7',date:'24/08/2026',description:'Versão única no topo, autonomia INMETRO + referência do painel, horário de retorno, rota de volta em azul com lógica energética própria e estratégia automática de parada por nível de bateria.'},

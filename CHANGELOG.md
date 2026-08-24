@@ -1,3 +1,15 @@
+## 3.8.2 — 24/08/2026
+- Eletropostos mapeados também no mapa da volta.
+- Busca ampliada de carregadores na rota de retorno.
+- Sugestão automática de parada para recarga na volta, considerando reserva de bateria e compatibilidade AC/DC.
+- Lista de pontos da volta com distância, potência e tipo.
+
+## 3.8.2 — 24/08/2026
+- Eletropostos mapeados também no mapa da volta.
+- Busca ampliada de carregadores na rota de retorno.
+- Sugestão automática de parada para recarga na volta, considerando reserva de bateria e compatibilidade AC/DC.
+- Lista de pontos da volta com distância, potência e tipo.
+
 # EV Planner Pro — Histórico de versões
 
 ## 3.8.0 — 24/08/2026
