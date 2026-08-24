@@ -4,10 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#07152f">
-<meta name="description" content="EV Planner Pro 3.3 — planejamento inteligente de viagens para veículos elétricos, híbridos, plug-in e REEV.">
+<meta name="description" content="EV Planner Pro 3.4 — planejamento inteligente de viagens para veículos elétricos, híbridos, plug-in e REEV.">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="logo.png" type="image/png">
-<title>EV Planner Pro 3.3</title>
+<title>EV Planner Pro 3.4</title>
 <link rel="preconnect" href="https://unpkg.com"><link rel="preconnect" href="https://cdnjs.cloudflare.com"><link rel="preconnect" href="https://cdn.tailwindcss.com">
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
@@ -28,16 +28,16 @@
     </div>
     <div class="top-actions">
       <details class="version-history">
-        <summary><span class="version-dot"></span> v3.3</summary>
+        <summary><span class="version-dot"></span> v3.4</summary>
         <div class="version-history-panel">
           <div class="version-history-title"><i class="fa-solid fa-clock-rotate-left"></i> Histórico de versões</div>
-          <div class="version-entry current"><b>3.3</b><span>24/08/2026</span><p>Performance aprimorada, cache inteligente de buscas, rotas recentes, validação, gerenciamento de pontos manuais, filtros de carregamento e atualização do PWA.</p></div>
+          <div class="version-entry current"><b>3.4</b><span>24/08/2026</span><p>Planejamento inteligente: viabilidade, paradas recomendadas, custo/tempo, nível de segurança, rota colorida por energia/combustível e pontos de abastecimento.</p></div><div class="version-entry current"><b>3.3</b><span>24/08/2026</span><p>Performance aprimorada, cache inteligente de buscas, rotas recentes, validação, gerenciamento de pontos manuais, filtros de carregamento e atualização do PWA.</p></div>
           <div class="version-entry"><b>3.2</b><span>23/08/2026</span><p>Favoritos de veículo e rota, escolha de origem/destino, resumo detalhado, busca de pontos no mapa, otimização de desempenho e interface mobile mais compacta.</p></div>
           <div class="version-entry"><b>3.1</b><span>23/08/2026</span><p>Logo da aplicação, bateria 0–100%, combustível condicional, busca ampliada de eletropostos, cadastro manual e mensagem de cálculo concluído.</p></div>
           <div class="version-entry"><b>3.0</b><span>23/08/2026</span><p>Nova base do EV Planner Pro com planejamento de rotas, energia, custos, mapa, eletropostos, PDF, backup e PWA.</p></div>
         </div>
       </details>
-      <span class="version-badge">PRO 3.3</span>
+      <span class="version-badge">PRO 3.4</span>
       <button id="installBtn" class="btn ghost hidden"><i class="fa-solid fa-download"></i> Instalar</button>
       <button id="importBtn" class="btn ghost"><i class="fa-solid fa-upload"></i> Importar</button>
       <button id="exportBtn" class="btn ghost"><i class="fa-solid fa-file-export"></i> Backup</button>
@@ -100,6 +100,8 @@
         <div id="recentTripsList" class="recent-trips"><div class="empty">As viagens calculadas aparecerão aqui.</div></div>
       </section>
 
+      <section id="smartPlan" class="card smart-plan-card"><div class="section-head"><h2><i class="fa-solid fa-route"></i> PLANO INTELIGENTE DA VIAGEM</h2><span id="smartPlanBadge" class="status neutral">Aguardando</span></div><div id="smartPlanContent" class="smart-plan-grid"><div class="empty">Calcule a viagem para descobrir se ela é viável, onde parar, quanto gastar e qual estratégia é mais segura e econômica.</div></div></section>
+
       <section id="tripSummary" class="card summary-card">
         <div class="section-head"><h2><i class="fa-solid fa-clipboard-check"></i> RESUMO DETALHADO DA VIAGEM</h2><button id="copySummaryBtn" class="btn ghost no-print"><i class="fa-regular fa-copy"></i> Copiar</button></div>
         <div id="summaryGrid" class="summary-grid"></div>
@@ -111,7 +113,7 @@
     <section class="right-column">
       <section class="card map-card">
         <div class="section-head"><h2><i class="fa-solid fa-map-location-dot"></i> MAPA DA ROTA</h2><div class="checks map-filters"><label><input id="filterDC" type="checkbox" checked> ⚡ DC</label><label><input id="filterAC" type="checkbox" checked> 🔌 AC</label><label><input id="showRange" type="checkbox" checked> 🔋 Alcance</label></div></div>
-        <div id="map"></div>
+        <div id="map"></div><div class="route-legend"><span><i class="legend-dot route-safe"></i> Dentro da autonomia</span><span><i class="legend-dot route-warning"></i> Reserva / recarga recomendada</span><span><i class="legend-dot route-fuel"></i> Trecho com combustível</span><span><i class="legend-dot route-danger"></i> Autonomia insuficiente</span></div>
         <div id="mapPickerHint" class="map-picker-hint hidden">📍 Modo de seleção ativo: clique no mapa para escolher o endereço do ponto.</div>
       </section>
 
@@ -124,7 +126,7 @@
       </section>
     </section>
   </main>
-  <footer class="footer no-print">EV Planner Pro 3.3 • Performance, cache inteligente, rotas recentes e gestão de eletropostos.</footer>
+  <footer class="footer no-print">EV Planner Pro 3.4 • Planejamento inteligente, energia, custos, paradas e segurança.</footer>
 </div>
 
 <div id="stationModal" class="modal hidden"><div class="modal-box station-modal">
@@ -163,7 +165,7 @@
 </div></div>
 
 <div id="esgModal" class="modal hidden"><div class="modal-box"><div class="section-head"><h2>🌱 Dashboard ESG</h2><button id="closeEsg" class="icon-btn">×</button></div><div id="esgGrid" class="summary-grid"></div><button id="resetEsg" class="btn danger full">Zerar histórico</button></div></div>
-<div id="helpModal" class="modal hidden"><div class="modal-box"><div class="section-head"><h2>Como usar</h2><button id="closeHelp" class="icon-btn">×</button></div><div class="help"><p>1. Escolha a marca e o modelo/versão.</p><p>2. Informe origem, destino e, se quiser, paradas extras.</p><p>3. Ajuste a bateria inicial entre 0% e 100%.</p><p>4. Em veículos com motor a combustão, informe também os litros iniciais.</p><p>5. Use Casa/Trabalho para inserir favoritos na origem ou em qualquer destino.</p><p>6. Em Adicionar ponto, digite o endereço ou selecione a posição no mapa.</p><p>7. Use <b>Meus pontos</b> para editar ou excluir eletropostos cadastrados.</p><p>8. Viagens calculadas ficam em <b>Viagens recentes</b> para restauração rápida.</p><p>9. O sistema usa cache e timeout nas buscas para reduzir espera e evitar requisições presas.</p><p>10. Clique em <b>Calcular viagem</b>. O sistema exibirá <b>Cálculo concluído</b> e um resumo detalhado.</p></div></div></div>
+<div id="helpModal" class="modal hidden"><div class="modal-box"><div class="section-head"><h2>Como usar</h2><button id="closeHelp" class="icon-btn">×</button></div><div class="help"><p>1. Escolha a marca e o modelo/versão.</p><p>2. Informe origem, destino e, se quiser, paradas extras.</p><p>3. Ajuste a bateria inicial entre 0% e 100%.</p><p>4. Em veículos com motor a combustão, informe também os litros iniciais.</p><p>5. Use Casa/Trabalho para inserir favoritos na origem ou em qualquer destino.</p><p>6. Em Adicionar ponto, digite o endereço ou selecione a posição no mapa.</p><p>7. Use <b>Meus pontos</b> para editar ou excluir eletropostos cadastrados.</p><p>8. Viagens calculadas ficam em <b>Viagens recentes</b> para restauração rápida.</p><p>9. O sistema usa cache e timeout nas buscas para reduzir espera e evitar requisições presas.</p><p>10. Clique em <b>Calcular viagem</b>. O sistema exibirá <b>Cálculo concluído</b>, colorirá o trajeto conforme a energia disponível e apresentará o Plano Inteligente.</p><p>11. Verde indica autonomia segura; amarelo, reserva/parada preventiva; laranja, trecho com combustível; vermelho, autonomia insuficiente.</p></div></div></div>
 <script src="app.js"></script>
 </body>
 </html>
