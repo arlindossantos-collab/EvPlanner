@@ -1,6 +1,6 @@
 /* ==========================================================================
    EV PLANNER PRO - CORE ENGINE (app.js)
-   Carregamento Resiliente de Veículos + Telemetria de Cores de Bateria + PlugShare/ABRP
+   Versão Definitiva: Veículos Nativos Integrados + PlugShare/ABRP + Cores de Bateria
    ========================================================================== */
 
 const ufMap = {
@@ -13,8 +13,8 @@ const ufMap = {
   "Sergipe": "SE", "Tocantins": "TO"
 };
 
-// Base Nativa de Segurança (Caso o fetch local do vehicles.json seja bloqueado pelo navegador)
-const backupEvDatabase = {
+// Banco de Veículos Oficial Integrado Nativamente (Garante que os seletores nunca sumam)
+const evDatabase = {
   "BYD": [
     { model: 'Dolphin Mini (4 Lugares)', type: 'BEV (100% Elétrico)', battery: 38.0, range: 280, consumption: 13.5, isHybrid: false },
     { model: 'Dolphin Mini (5 Lugares)', type: 'BEV (100% Elétrico)', battery: 38.0, range: 280, consumption: 13.5, isHybrid: false },
@@ -58,7 +58,7 @@ const backupEvDatabase = {
   ]
 };
 
-// Base Real e Detalhada de Apoio (PlugShare)
+// Base Real de Eletropostos (PlugShare)
 const manualStationsDatabase = [
   { name: "Shell Recharge - Posto Milagres", network: "Shell Recharge", cityState: "Recife / PE", lat: -8.0321, lng: -34.9125, powerKw: 150, plugType: "CCS2 High Power", power: "CCS2 Ultra-Rápido DC (150kW)", type: "DC", operationalStatus: "Disponível" },
   { name: "Volvo Recharge - Shopping Tacaruna", network: "Volvo Recharge", cityState: "Recife / PE", lat: -8.0382, lng: -34.8724, powerKw: 50, plugType: "CCS2 / Type 2", power: "CCS2 Rápido DC (50kW)", type: "DC", operationalStatus: "Disponível" },
@@ -85,9 +85,7 @@ let selectedCar = null;
 let stationMarkers = [];
 let fetchedStations = [];
 let currentPolyline = null;
-let isochronePolygon = null;
 let activeRouteData = null;
-let evDatabase = {};
 
 let currentTripStats = {
   totalKm: 0,
@@ -96,20 +94,20 @@ let currentTripStats = {
   tripsCount: 0
 };
 
-// Função de cálculo de cor dinâmica por percentual (100% Verde a 0% Vermelho)
+// Gradiente de Bateria: 100% Verde a 0% Vermelho
 function getBatteryColorHex(pct) {
   const p = Math.max(0, Math.min(100, pct));
-  if (p >= 80) return "#10b981"; // Emerald / Verde
-  if (p >= 45) return "#f59e0b"; // Amber / Amarelo
-  if (p >= 21) return "#f97316"; // Orange / Laranja
-  return "#ef4444";             // Red / Vermelho
+  if (p >= 80) return "#10b981"; // Verde Esmeralda
+  if (p >= 45) return "#f59e0b"; // Amarelo Dourado
+  if (p >= 21) return "#f97316"; // Laranja Alerta
+  return "#ef4444";             // Vermelho Crítico
 }
 
 async function initMap() {
   map = L.map('map').setView([-8.0476, -34.8770], 8);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
 
-  await loadVehicles();
+  initVehicleSelectors();
   initUserFavorites();
   initRouteControls();
   initDefaultDepartureDate();
@@ -122,27 +120,6 @@ async function initMap() {
     { address: "", coords: null, type: "destination", label: "Destino 1" }
   ];
   renderWaypointsInputs();
-}
-
-// Carregamento de veículos à prova de falhas de rede / CORS
-async function loadVehicles() {
-  try {
-    const response = await fetch('vehicles.json');
-    if (response.ok) {
-      const data = await response.json();
-      if (data && Object.keys(data).length > 0) {
-        evDatabase = data;
-      } else {
-        evDatabase = backupEvDatabase;
-      }
-    } else {
-      evDatabase = backupEvDatabase;
-    }
-  } catch (error) {
-    console.warn("Utilizando catálogo de veículos embutido de contingência.");
-    evDatabase = backupEvDatabase;
-  }
-  initVehicleSelectors();
 }
 
 function initVehicleSelectors() {
@@ -183,18 +160,12 @@ function initVehicleSelectors() {
     }
   });
 
-  const brands = Object.keys(evDatabase);
-  if (brands.length > 0) {
-    const defaultBrand = brands.includes("BYD") ? "BYD" : brands[0];
-    brandSelect.value = defaultBrand;
+  // Seleção padrão automática (BYD Dolphin GS)
+  if (evDatabase["BYD"]) {
+    brandSelect.value = "BYD";
     brandSelect.dispatchEvent(new Event('change'));
-    
-    // Procura o Dolphin GS ou seleciona o primeiro
-    if (evDatabase[defaultBrand] && evDatabase[defaultBrand].length > 0) {
-      let targetIdx = 0;
-      evDatabase[defaultBrand].forEach((c, idx) => {
-        if (c.model && c.model.includes("Dolphin GS")) targetIdx = idx;
-      });
+    let targetIdx = 2; // Dolphin GS
+    if (evDatabase["BYD"][targetIdx]) {
       modelSelect.value = targetIdx.toString();
       modelSelect.dispatchEvent(new Event('change'));
     }
@@ -425,7 +396,7 @@ function getMinDistanceToRouteInKm(lat, lng, routeCoords) {
 
 async function fetchRouteStationsFromOSM(routeGeometry) {
   const countLabel = document.getElementById('stationsCount');
-  if (countLabel) countLabel.innerText = "Mapeando eletropostos no trajeto e destino...";
+  if (countLabel) countLabel.innerText = "Mapeando eletropostos (Origem, Rota e Destino)...";
   
   const routeCoords = routeGeometry.coordinates;
   const uniqueMap = new Map();
