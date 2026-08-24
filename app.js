@@ -1,6 +1,6 @@
 /* ==========================================================================
    EV PLANNER PRO - CORE ENGINE (app.js)
-   Foco em Cobertura do Destino + Margem de Segurança (Fidelidade Integral ao vehicles.json)
+   Carregamento Resiliente de Veículos + Telemetria de Cores de Bateria + PlugShare/ABRP
    ========================================================================== */
 
 const ufMap = {
@@ -11,6 +11,51 @@ const ufMap = {
   "Rio de Janeiro": "RJ", "Rio Grande do Norte": "RN", "Rio Grande do Sul": "RS",
   "Rondônia": "RO", "Roraima": "RR", "Santa Catarina": "SC", "São Paulo": "SP",
   "Sergipe": "SE", "Tocantins": "TO"
+};
+
+// Base Nativa de Segurança (Caso o fetch local do vehicles.json seja bloqueado pelo navegador)
+const backupEvDatabase = {
+  "BYD": [
+    { model: 'Dolphin Mini (4 Lugares)', type: 'BEV (100% Elétrico)', battery: 38.0, range: 280, consumption: 13.5, isHybrid: false },
+    { model: 'Dolphin Mini (5 Lugares)', type: 'BEV (100% Elétrico)', battery: 38.0, range: 280, consumption: 13.5, isHybrid: false },
+    { model: 'Dolphin GS', type: 'BEV (100% Elétrico)', battery: 44.9, range: 291, consumption: 15.4, isHybrid: false },
+    { model: 'Dolphin Plus', type: 'BEV (100% Elétrico)', battery: 60.4, range: 330, consumption: 18.3, isHybrid: false },
+    { model: 'Atto 2 / Yuan Up', type: 'BEV (100% Elétrico)', battery: 45.1, range: 260, consumption: 17.3, isHybrid: false },
+    { model: 'Yuan Pro', type: 'BEV (100% Elétrico)', battery: 45.1, range: 250, consumption: 18.0, isHybrid: false },
+    { model: 'Yuan Plus EV500', type: 'BEV (100% Elétrico)', battery: 60.5, range: 294, consumption: 20.5, isHybrid: false },
+    { model: 'Seal AWD Performance', type: 'BEV (100% Elétrico)', battery: 82.5, range: 372, consumption: 22.1, isHybrid: false },
+    { model: 'Sealion 7 AWD', type: 'BEV (100% Elétrico)', battery: 82.5, range: 380, consumption: 21.7, isHybrid: false },
+    { model: 'King DM-i GL', type: 'PHEV (Híbrido Plug-in)', battery: 8.3, range: 55, consumption: 15.1, isHybrid: true, gasKm: 25.6, ethanolKm: 18.0 },
+    { model: 'King DM-i GS', type: 'PHEV (Híbrido Plug-in)', battery: 18.3, range: 120, consumption: 15.2, isHybrid: true, gasKm: 25.6, ethanolKm: 18.0 },
+    { model: 'Song Pro DM-i GL', type: 'PHEV (Híbrido Plug-in)', battery: 12.9, range: 71, consumption: 18.1, isHybrid: true, gasKm: 22.7, ethanolKm: 15.8 },
+    { model: 'Song Pro DM-i GS', type: 'PHEV (Híbrido Plug-in)', battery: 18.3, range: 110, consumption: 16.6, isHybrid: true, gasKm: 22.7, ethanolKm: 15.8 },
+    { model: 'Song Plus DM-i', type: 'PHEV (Híbrido Plug-in)', battery: 18.3, range: 105, consumption: 17.4, isHybrid: true, gasKm: 21.5, ethanolKm: 15.1 },
+    { model: 'Han EV AWD', type: 'BEV (100% Elétrico)', battery: 85.4, range: 349, consumption: 24.4, isHybrid: false },
+    { model: 'Tan EV AWD', type: 'BEV (100% Elétrico)', battery: 108.8, range: 430, consumption: 25.3, isHybrid: false },
+    { model: 'Shark Pickup', type: 'PHEV (Híbrido Plug-in)', battery: 29.5, range: 100, consumption: 29.5, isHybrid: true, gasKm: 14.2, ethanolKm: 9.8 }
+  ],
+  "GWM & Ora": [
+    { model: 'Ora 03 Skin', type: 'BEV (100% Elétrico)', battery: 48.0, range: 232, consumption: 20.6, isHybrid: false },
+    { model: 'Ora 03 GT', type: 'BEV (100% Elétrico)', battery: 63.0, range: 319, consumption: 19.7, isHybrid: false },
+    { model: 'Haval H6 HEV', type: 'HEV (Híbrido Convencional)', battery: 1.6, range: 25, consumption: 6.4, isHybrid: true, gasKm: 13.8, ethanolKm: 9.8 },
+    { model: 'Haval H6 PHEV19', type: 'PHEV (Híbrido Plug-in)', battery: 19.0, range: 115, consumption: 16.5, isHybrid: true, gasKm: 28.7, ethanolKm: 20.1 },
+    { model: 'Haval H6 PHEV34', type: 'PHEV (Híbrido Plug-in)', battery: 34.0, range: 170, consumption: 20.0, isHybrid: true, gasKm: 28.7, ethanolKm: 20.1 }
+  ],
+  "Volvo": [
+    { model: 'EX30 Core Single', type: 'BEV (100% Elétrico)', battery: 51.0, range: 250, consumption: 20.4, isHybrid: false },
+    { model: 'EX30 Extended Range', type: 'BEV (100% Elétrico)', battery: 69.0, range: 340, consumption: 20.2, isHybrid: false },
+    { model: 'XC40 Recharge', type: 'BEV (100% Elétrico)', battery: 78.0, range: 305, consumption: 25.5, isHybrid: false },
+    { model: 'XC60 Recharge T8', type: 'PHEV (Híbrido Plug-in)', battery: 18.8, range: 78, consumption: 24.1, isHybrid: true, gasKm: 26.7, ethanolKm: 18.5 }
+  ],
+  "BMW": [
+    { model: 'iX1 eDrive20', type: 'BEV (100% Elétrico)', battery: 64.7, range: 303, consumption: 21.3, isHybrid: false },
+    { model: 'i4 eDrive40', type: 'BEV (100% Elétrico)', battery: 80.7, range: 420, consumption: 19.2, isHybrid: false },
+    { model: 'iX xDrive50', type: 'BEV (100% Elétrico)', battery: 105.2, range: 520, consumption: 20.2, isHybrid: false }
+  ],
+  "Porsche": [
+    { model: 'Taycan 4S', type: 'BEV (100% Elétrico)', battery: 89.0, range: 380, consumption: 23.4, isHybrid: false },
+    { model: 'Macan EV 4 AWD', type: 'BEV (100% Elétrico)', battery: 100.0, range: 430, consumption: 23.2, isHybrid: false }
+  ]
 };
 
 // Base Real e Detalhada de Apoio (PlugShare)
@@ -51,6 +96,15 @@ let currentTripStats = {
   tripsCount: 0
 };
 
+// Função de cálculo de cor dinâmica por percentual (100% Verde a 0% Vermelho)
+function getBatteryColorHex(pct) {
+  const p = Math.max(0, Math.min(100, pct));
+  if (p >= 80) return "#10b981"; // Emerald / Verde
+  if (p >= 45) return "#f59e0b"; // Amber / Amarelo
+  if (p >= 21) return "#f97316"; // Orange / Laranja
+  return "#ef4444";             // Red / Vermelho
+}
+
 async function initMap() {
   map = L.map('map').setView([-8.0476, -34.8770], 8);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
@@ -70,16 +124,25 @@ async function initMap() {
   renderWaypointsInputs();
 }
 
-// Carregamento Estrito do Arquivo vehicles.json
+// Carregamento de veículos à prova de falhas de rede / CORS
 async function loadVehicles() {
   try {
     const response = await fetch('vehicles.json');
-    if (!response.ok) throw new Error("Não foi possível acessar o vehicles.json");
-    evDatabase = await response.json();
-    initVehicleSelectors();
+    if (response.ok) {
+      const data = await response.json();
+      if (data && Object.keys(data).length > 0) {
+        evDatabase = data;
+      } else {
+        evDatabase = backupEvDatabase;
+      }
+    } else {
+      evDatabase = backupEvDatabase;
+    }
   } catch (error) {
-    console.error("Erro ao carregar o arquivo vehicles.json:", error);
+    console.warn("Utilizando catálogo de veículos embutido de contingência.");
+    evDatabase = backupEvDatabase;
   }
+  initVehicleSelectors();
 }
 
 function initVehicleSelectors() {
@@ -125,8 +188,14 @@ function initVehicleSelectors() {
     const defaultBrand = brands.includes("BYD") ? "BYD" : brands[0];
     brandSelect.value = defaultBrand;
     brandSelect.dispatchEvent(new Event('change'));
+    
+    // Procura o Dolphin GS ou seleciona o primeiro
     if (evDatabase[defaultBrand] && evDatabase[defaultBrand].length > 0) {
-      modelSelect.value = "0";
+      let targetIdx = 0;
+      evDatabase[defaultBrand].forEach((c, idx) => {
+        if (c.model && c.model.includes("Dolphin GS")) targetIdx = idx;
+      });
+      modelSelect.value = targetIdx.toString();
       modelSelect.dispatchEvent(new Event('change'));
     }
   }
@@ -354,7 +423,6 @@ function getMinDistanceToRouteInKm(lat, lng, routeCoords) {
   return { minDistance, routeKm: Math.round(closestPointIndex) };
 }
 
-// Busca Balanceada: Foco no Trajeto + Área do Destino
 async function fetchRouteStationsFromOSM(routeGeometry) {
   const countLabel = document.getElementById('stationsCount');
   if (countLabel) countLabel.innerText = "Mapeando eletropostos no trajeto e destino...";
@@ -362,7 +430,6 @@ async function fetchRouteStationsFromOSM(routeGeometry) {
   const routeCoords = routeGeometry.coordinates;
   const uniqueMap = new Map();
 
-  // 1. Postos manuais conhecidos
   for (const mStation of manualStationsDatabase) {
     const routeMatch = getMinDistanceToRouteInKm(mStation.lat, mStation.lng, routeCoords);
     if (routeMatch.minDistance <= 35) {
@@ -384,7 +451,6 @@ async function fetchRouteStationsFromOSM(routeGeometry) {
     }
   }
 
-  // 2. Amostragem ao longo da rota + Ponto Final (Destino) obrigatório
   const samplePoints = [];
   const numSamples = Math.min(8, Math.max(2, Math.floor(routeCoords.length / 150)));
   const step = Math.floor(routeCoords.length / numSamples);
@@ -392,17 +458,13 @@ async function fetchRouteStationsFromOSM(routeGeometry) {
   for (let i = 0; i < routeCoords.length; i += step) {
     samplePoints.push(routeCoords[i]);
   }
-  
-  // Inclui garantidamente o ponto de chegada (Destino)
-  if (routeCoords.length > 0) {
-    samplePoints.push(routeCoords[routeCoords.length - 1]);
-  }
+  if (routeCoords.length > 0) samplePoints.push(routeCoords[routeCoords.length - 1]);
 
   const queryPromises = samplePoints.map(async (pt, index) => {
     const lat = pt[1];
     const lng = pt[0];
     const isDestinationPoint = (index === samplePoints.length - 1);
-    const searchRadius = isDestinationPoint ? 0.8 : 0.6; // Raio estendido no destino
+    const searchRadius = isDestinationPoint ? 0.8 : 0.6;
 
     const bbox = `${lat - searchRadius},${lng - searchRadius},${lat + searchRadius},${lng + searchRadius}`;
 
@@ -426,7 +488,6 @@ async function fetchRouteStationsFromOSM(routeGeometry) {
             if (uniqueMap.has(key)) continue;
 
             const routeMatch = getMinDistanceToRouteInKm(elLat, elLng, routeCoords);
-            // Tolerância de distância maior para postos na cidade de destino
             const maxAllowedDist = isDestinationPoint ? 25 : 20;
 
             if (routeMatch.minDistance <= maxAllowedDist) {
@@ -465,7 +526,6 @@ async function fetchRouteStationsFromOSM(routeGeometry) {
   fetchedStations = rawStations;
 }
 
-// Renderização com Margem de Segurança (Buffer de 15% a 20%)
 function renderStationsOnMapAndTable(totalDistKm, initialRangeKm) {
   stationMarkers.forEach(m => map.removeLayer(m));
   stationMarkers = [];
@@ -493,11 +553,11 @@ function renderStationsOnMapAndTable(totalDistKm, initialRangeKm) {
 
   fetchedStations.forEach((station, index) => {
     let battAtArrival = Math.max(0, 100 - Math.round((station.routeKm / initialRangeKm) * 100));
-    
+    let colorHex = getBatteryColorHex(battAtArrival);
+
     let abrpPlanMsg = "Ponto de Passagem";
     let chargeTimeMinutes = 0;
     
-    // Alerta de recarga acionado pela margem de segurança (<20% de reserva)
     if (station.routeKm > initialRangeKm || battAtArrival < 20) {
       const targetPct = 80;
       const neededPct = Math.min(80, Math.max(20, targetPct - battAtArrival));
@@ -513,7 +573,7 @@ function renderStationsOnMapAndTable(totalDistKm, initialRangeKm) {
         <b>Plugue:</b> ${station.plugType} (${station.powerKw} kW)<br>
         <b>Local:</b> Km ${station.routeKm} da rota<br>
         <hr style="margin:4px 0;">
-        <b>Telemetria ABRP:</b> Chegada em <b>${battAtArrival}%</b><br>
+        <b>Telemetria ABRP:</b> Chegada em <b style="color:${colorHex}; font-size:13px;">${battAtArrival}%</b><br>
         <span style="color:#d97706; font-weight:bold;">${abrpPlanMsg}</span>
       </div>
     `;
@@ -528,7 +588,7 @@ function renderStationsOnMapAndTable(totalDistKm, initialRangeKm) {
       <td class="p-2 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-950 text-emerald-400 border border-emerald-600">🟢 ${station.network}</span></td>
       <td class="p-2 font-semibold text-white whitespace-nowrap"><i class="fa-solid fa-charging-station text-yellow-400 mr-1"></i> ${station.name} (Km ${station.routeKm})</td>
       <td class="p-2 text-emerald-300 font-bold whitespace-nowrap">${station.cityState}</td>
-      <td class="p-2 text-center whitespace-nowrap font-bold ${battAtArrival > 20 ? 'text-emerald-400' : 'text-red-400'}">${battAtArrival}%</td>
+      <td class="p-2 text-center whitespace-nowrap font-bold" style="color:${colorHex}">${battAtArrival}%</td>
       <td class="p-2 text-center whitespace-nowrap font-bold text-amber-300">${abrpPlanMsg}</td>
       <td class="p-2 whitespace-nowrap"><span class="bg-blue-900 text-blue-100 px-2 py-0.5 rounded border border-blue-700 text-xs">${station.power}</span></td>
       <td class="p-2 text-right whitespace-nowrap"><button onclick="map.setView([${station.lat}, ${station.lng}], 14)" class="bg-blue-600 text-white font-bold px-2.5 py-1 rounded text-xs">Ver</button></td>
@@ -607,8 +667,13 @@ async function calculateMultiRoute() {
           const arrivalBattPct = Math.max(0, Math.round((remainingRange / selectedCar.range) * 100));
           const tripElectricUsed = Math.min(distKm, electricRange);
           const tripCost = (tripElectricUsed / 100) * selectedCar.consumption * kwhCost;
+          const targetColor = getBatteryColorHex(arrivalBattPct);
+
           if (alertBox) alertBox.innerText = `Chegada com ${arrivalBattPct}% de bateria (Custo elétrico R$ ${tripCost.toFixed(2)})`;
-          if (targetBox) targetBox.innerText = `Chegada com ${arrivalBattPct}% restante`;
+          if (targetBox) {
+            targetBox.innerText = `Chegada com ${arrivalBattPct}% restante`;
+            targetBox.style.color = targetColor;
+          }
         }
 
         const electricUsed = Math.min(distKm, electricRange);
@@ -625,12 +690,20 @@ async function calculateMultiRoute() {
           const deficitKm = distKm - electricRange;
           const neededRecharge = Math.min(100, Math.ceil((deficitKm / selectedCar.range) * 100));
           if (alertBox) alertBox.innerText = `Autonomia insuficiente. Carregar +${neededRecharge}% no eletroposto`;
-          if (targetBox) targetBox.innerText = `Recarga de +${neededRecharge}% necessária`;
+          if (targetBox) {
+            targetBox.innerText = `Recarga de +${neededRecharge}% necessária`;
+            targetBox.style.color = "#ef4444";
+          }
         } else {
           const remainingKm = electricRange - distKm;
           const arrivalBattPct = Math.max(0, Math.round((remainingKm / selectedCar.range) * 100));
+          const targetColor = getBatteryColorHex(arrivalBattPct);
+
           if (alertBox) alertBox.innerText = `Chegada com ${arrivalBattPct}% de bateria (Valor R$ ${totalCost.toFixed(2)})`;
-          if (targetBox) targetBox.innerText = `Chegada com ${arrivalBattPct}% restante`;
+          if (targetBox) {
+            targetBox.innerText = `Chegada com ${arrivalBattPct}% restante`;
+            targetBox.style.color = targetColor;
+          }
         }
       }
 
