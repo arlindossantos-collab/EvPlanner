@@ -1,6 +1,6 @@
 /* ==========================================================================
    EV PLANNER PRO - CORE ENGINE (app.js)
-   Integrado com Inteligência PlugShare & Telemetria ABRP
+   Restauração Garantida de Veículos + PlugShare & Telemetria ABRP
    ========================================================================== */
 
 const ufMap = {
@@ -13,7 +13,52 @@ const ufMap = {
   "Sergipe": "SE", "Tocantins": "TO"
 };
 
-// Base estendida com atributos inspirados no PlugShare (Rede, Plugs, Potência kW)
+// Banco de Veículos Integrado Nativamente para Garantir Renderização Instantânea dos Seletores
+const defaultEvDatabase = {
+  "BYD": [
+    { model: 'Dolphin Mini (4 Lugares)', type: 'BEV (100% Elétrico)', battery: 38.0, range: 280, consumption: 13.5, isHybrid: false },
+    { model: 'Dolphin Mini (5 Lugares)', type: 'BEV (100% Elétrico)', battery: 38.0, range: 280, consumption: 13.5, isHybrid: false },
+    { model: 'Dolphin GS', type: 'BEV (100% Elétrico)', battery: 44.9, range: 291, consumption: 15.4, isHybrid: false },
+    { model: 'Dolphin Plus', type: 'BEV (100% Elétrico)', battery: 60.4, range: 330, consumption: 18.3, isHybrid: false },
+    { model: 'Atto 2 / Yuan Up', type: 'BEV (100% Elétrico)', battery: 45.1, range: 260, consumption: 17.3, isHybrid: false },
+    { model: 'Yuan Pro', type: 'BEV (100% Elétrico)', battery: 45.1, range: 250, consumption: 18.0, isHybrid: false },
+    { model: 'Yuan Plus EV500', type: 'BEV (100% Elétrico)', battery: 60.5, range: 294, consumption: 20.5, isHybrid: false },
+    { model: 'Seal AWD Performance', type: 'BEV (100% Elétrico)', battery: 82.5, range: 372, consumption: 22.1, isHybrid: false },
+    { model: 'Sealion 7 AWD', type: 'BEV (100% Elétrico)', battery: 82.5, range: 380, consumption: 21.7, isHybrid: false },
+    { model: 'King DM-i GL', type: 'PHEV (Híbrido Plug-in)', battery: 8.3, range: 55, consumption: 15.1, isHybrid: true, gasKm: 25.6, ethanolKm: 18.0 },
+    { model: 'King DM-i GS', type: 'PHEV (Híbrido Plug-in)', battery: 18.3, range: 120, consumption: 15.2, isHybrid: true, gasKm: 25.6, ethanolKm: 18.0 },
+    { model: 'Song Pro DM-i GL', type: 'PHEV (Híbrido Plug-in)', battery: 12.9, range: 71, consumption: 18.1, isHybrid: true, gasKm: 22.7, ethanolKm: 15.8 },
+    { model: 'Song Pro DM-i GS', type: 'PHEV (Híbrido Plug-in)', battery: 18.3, range: 110, consumption: 16.6, isHybrid: true, gasKm: 22.7, ethanolKm: 15.8 },
+    { model: 'Song Plus DM-i', type: 'PHEV (Híbrido Plug-in)', battery: 18.3, range: 105, consumption: 17.4, isHybrid: true, gasKm: 21.5, ethanolKm: 15.1 },
+    { model: 'Han EV AWD', type: 'BEV (100% Elétrico)', battery: 85.4, range: 349, consumption: 24.4, isHybrid: false },
+    { model: 'Tan EV AWD', type: 'BEV (100% Elétrico)', battery: 108.8, range: 430, consumption: 25.3, isHybrid: false },
+    { model: 'Shark Pickup', type: 'PHEV (Híbrido Plug-in)', battery: 29.5, range: 100, consumption: 29.5, isHybrid: true, gasKm: 14.2, ethanolKm: 9.8 }
+  ],
+  "GWM & Ora": [
+    { model: 'Ora 03 Skin', type: 'BEV (100% Elétrico)', battery: 48.0, range: 232, consumption: 20.6, isHybrid: false },
+    { model: 'Ora 03 GT', type: 'BEV (100% Elétrico)', battery: 63.0, range: 319, consumption: 19.7, isHybrid: false },
+    { model: 'Haval H6 HEV', type: 'HEV (Híbrido Convencional)', battery: 1.6, range: 25, consumption: 6.4, isHybrid: true, gasKm: 13.8, ethanolKm: 9.8 },
+    { model: 'Haval H6 PHEV19', type: 'PHEV (Híbrido Plug-in)', battery: 19.0, range: 115, consumption: 16.5, isHybrid: true, gasKm: 28.7, ethanolKm: 20.1 },
+    { model: 'Haval H6 PHEV34', type: 'PHEV (Híbrido Plug-in)', battery: 34.0, range: 170, consumption: 20.0, isHybrid: true, gasKm: 28.7, ethanolKm: 20.1 }
+  ],
+  "Volvo": [
+    { model: 'EX30 Core Single', type: 'BEV (100% Elétrico)', battery: 51.0, range: 250, consumption: 20.4, isHybrid: false },
+    { model: 'EX30 Extended Range', type: 'BEV (100% Elétrico)', battery: 69.0, range: 340, consumption: 20.2, isHybrid: false },
+    { model: 'XC40 Recharge', type: 'BEV (100% Elétrico)', battery: 78.0, range: 305, consumption: 25.5, isHybrid: false },
+    { model: 'XC60 Recharge T8', type: 'PHEV (Híbrido Plug-in)', battery: 18.8, range: 78, consumption: 24.1, isHybrid: true, gasKm: 26.7, ethanolKm: 18.5 }
+  ],
+  "BMW": [
+    { model: 'iX1 eDrive20', type: 'BEV (100% Elétrico)', battery: 64.7, range: 303, consumption: 21.3, isHybrid: false },
+    { model: 'i4 eDrive40', type: 'BEV (100% Elétrico)', battery: 80.7, range: 420, consumption: 19.2, isHybrid: false },
+    { model: 'iX xDrive50', type: 'BEV (100% Elétrico)', battery: 105.2, range: 520, consumption: 20.2, isHybrid: false }
+  ],
+  "Porsche": [
+    { model: 'Taycan 4S', type: 'BEV (100% Elétrico)', battery: 89.0, range: 380, consumption: 23.4, isHybrid: false },
+    { model: 'Macan EV 4 AWD', type: 'BEV (100% Elétrico)', battery: 100.0, range: 430, consumption: 23.2, isHybrid: false }
+  ]
+};
+
+// Base Estendida de Eletropostos Interestaduais (PlugShare / ABRP)
 const manualStationsDatabase = [
   { name: "Planeta Charger - Rei das Coxinhas", network: "Planeta Charger", cityState: "Pedras de Fogo / PB", lat: -7.3957, lng: -34.9552, powerKw: 60, plugType: "CCS2 / Type 2", power: "CCS2 Ultra-Rápido DC (60kW)", type: "DC", operationalStatus: "Disponível" },
   { name: "Planeta Charger - Rei das Coxinhas", network: "Planeta Charger", cityState: "Gravatá / PE", lat: -8.1888, lng: -35.5069, powerKw: 120, plugType: "CCS2 / Type 2", power: "CCS2 Ultra-Rápido DC (120kW)", type: "DC", operationalStatus: "Disponível" },
@@ -38,7 +83,7 @@ let fetchedStations = [];
 let currentPolyline = null;
 let isochronePolygon = null;
 let activeRouteData = null;
-let evDatabase = {};
+let evDatabase = defaultEvDatabase;
 
 let currentTripStats = {
   totalKm: 0,
@@ -66,13 +111,20 @@ async function initMap() {
   renderWaypointsInputs();
 }
 
+// Carregamento resiliente de veículos
 async function loadVehicles() {
   try {
     const response = await fetch('vehicles.json');
-    evDatabase = await response.json();
-    initVehicleSelectors();
+    if (response.ok) {
+      const externalData = await response.json();
+      if (externalData && Object.keys(externalData).length > 0) {
+        evDatabase = externalData;
+      }
+    }
   } catch (error) {
-    console.error("Erro ao carregar veículos:", error);
+    console.warn("Utilizando banco de veículos nativo.");
+  } finally {
+    initVehicleSelectors();
   }
 }
 
@@ -114,6 +166,7 @@ function initVehicleSelectors() {
     }
   });
 
+  // Padrão BYD Dolphin GS
   if (evDatabase["BYD"]) {
     brandSelect.value = "BYD";
     brandSelect.dispatchEvent(new Event('change'));
@@ -344,7 +397,7 @@ function getMinDistanceToRouteInKm(lat, lng, routeCoords) {
   return { minDistance, routeKm: Math.round(closestPointIndex) };
 }
 
-// Busca rápida em lote sem causar estouro de tempo/timeout
+// Mapeamento de Eletropostos Otimizado
 async function fetchRouteStationsFromOSM(routeGeometry) {
   const countLabel = document.getElementById('stationsCount');
   if (countLabel) countLabel.innerText = "Mapeando eletropostos (PlugShare / ABRP)...";
@@ -442,7 +495,6 @@ async function fetchRouteStationsFromOSM(routeGeometry) {
   fetchedStations = rawStations;
 }
 
-// Renderização enriquecida (PlugShare + Telemetria ABRP)
 function renderStationsOnMapAndTable(totalDistKm, initialRangeKm) {
   stationMarkers.forEach(m => map.removeLayer(m));
   stationMarkers = [];
@@ -471,7 +523,6 @@ function renderStationsOnMapAndTable(totalDistKm, initialRangeKm) {
   fetchedStations.forEach((station, index) => {
     let battAtArrival = Math.max(0, 100 - Math.round((station.routeKm / initialRangeKm) * 100));
     
-    // Cálculo de Telemetria no modelo ABRP (Recarga e Tempo Estimado)
     let abrpPlanMsg = "Ponto de Passagem";
     let chargeTimeMinutes = 0;
     
@@ -479,11 +530,10 @@ function renderStationsOnMapAndTable(totalDistKm, initialRangeKm) {
       const targetPct = 80;
       const neededPct = Math.min(80, Math.max(20, targetPct - battAtArrival));
       const energyNeededKwh = (neededPct / 100) * carBatteryCapacity;
-      chargeTimeMinutes = Math.round((energyNeededKwh / (station.powerKw || 50)) * 60) + 5; // +5min overhead
+      chargeTimeMinutes = Math.round((energyNeededKwh / (station.powerKw || 50)) * 60) + 5;
       abrpPlanMsg = `⚡ Recarregar +${neededPct}% (~${chargeTimeMinutes} min)`;
     }
 
-    // Popup estilo PlugShare
     const popupContent = `
       <div style="font-size:12px; font-family:sans-serif; color:#0f172a;">
         <strong style="color:#059669; font-size:13px;">#${index + 1} ${station.name}</strong><br>
@@ -509,7 +559,7 @@ function renderStationsOnMapAndTable(totalDistKm, initialRangeKm) {
       <td class="p-2 text-center whitespace-nowrap font-bold ${battAtArrival > 15 ? 'text-emerald-400' : 'text-red-400'}">${battAtArrival}%</td>
       <td class="p-2 text-center whitespace-nowrap font-bold text-amber-300">${abrpPlanMsg}</td>
       <td class="p-2 whitespace-nowrap"><span class="bg-blue-900 text-blue-100 px-2 py-0.5 rounded border border-blue-700 text-xs">${station.power}</span></td>
-      <td class="p-2 text-right whitespace-nowrap"><button onclick="map.setView([${station.lat}], 14)" class="bg-blue-600 text-white font-bold px-2.5 py-1 rounded text-xs">Ver</button></td>
+      <td class="p-2 text-right whitespace-nowrap"><button onclick="map.setView([${station.lat}, ${station.lng}], 14)" class="bg-blue-600 text-white font-bold px-2.5 py-1 rounded text-xs">Ver</button></td>
     `;
     tbody.appendChild(tr);
   });
