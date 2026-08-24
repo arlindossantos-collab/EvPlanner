@@ -10,6 +10,12 @@
 
 # EV Planner Pro — Changelog
 
+## 3.8.1 — 24/08/2026
+- Corrigida a referência ausente `routeEnergyLimits`, que causava o erro ao calcular viagens de ida e volta.
+- Corrigido o fluxo de renderização do segundo mapa, garantindo `invalidateSize()` após o card da volta ficar visível.
+- A rota de volta passa a ser desenhada somente após o mapa estar dimensionado, evitando mapa vazio ou tiles incorretamente renderizados.
+
+
 ## 3.6 — 24/08/2026
 - Autonomia de planejamento passa a aceitar somente dados identificados como INMETRO/PBEV.
 - Valores de catálogo sem confirmação no PBEV são preservados em `catalogRange`, mas não entram nos cálculos.

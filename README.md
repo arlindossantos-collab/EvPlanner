@@ -1,4 +1,4 @@
-# EV Planner Pro 3.8
+# EV Planner Pro 3.8.1
 
 Planejador de viagens para veículos elétricos, híbridos, plug-in e REEV.
 
@@ -13,7 +13,7 @@ A compatibilidade AC/DC é armazenada por veículo. PHEV/PHEV Flex são AC-only 
 ## Versão
 A única fonte do número da versão é `config.js`. O histórico também fica no `versionHistory` desse arquivo. O `index.html` apenas exibe a versão carregada em runtime.
 
-## Novidades da 3.8
+## Novidades da 3.8.1
 - Uma única indicação visual de versão no topo, alimentada por `config.js`.
 - Regra de versionamento minor/patch documentada para alterações no `index.html` e nos arquivos auxiliares.
 - Ícones de data e horário com contraste reforçado.
@@ -24,7 +24,7 @@ A única fonte do número da versão é `config.js`. O histórico também fica n
 - Estratégia de parada configurável por percentual de bateria, com indicação do ponto compatível recomendado próximo do gatilho.
 
 
-## 3.8 — Ida e volta com mapas separados
+## 3.8.1 — Ida e volta com mapas separados
 - Ao ativar “Ida e volta”, o sistema solicita **data e horário da volta**.
 - A ida e a volta são calculadas como rotas independentes para visualização.
 - O painel passa a exibir **dois mapas**, um para a ida e outro para a volta.

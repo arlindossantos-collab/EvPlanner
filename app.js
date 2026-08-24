@@ -19,6 +19,21 @@ const panelRanges=JSON.parse(localStorage.getItem('evp3_panel_ranges')||'{}');
 function carKey(car=selectedCar){return car?`${car.brand}|${car.model}|${car.version||''}`:''}
 function getPanelRange(car=selectedCar){const v=Number(panelRanges[carKey(car)]);return Number.isFinite(v)&&v>0?v:null}
 function getStopThreshold(){const v=Number($('stopBatteryThreshold')?.value);return Number.isFinite(v)?Math.min(80,Math.max(5,v)):Number(C.stopBatteryPercent||20)}
+function routeEnergyLimits(){
+ const car=selectedCar||{};
+ const km=Number(route?.distance||0)/1000;
+ const start=clampBattery($('startBattery')?.value);
+ const reserve=Math.min(80,Math.max(5,Number(C.reservePercent||15)));
+ const battery=Number(car.battery)||0;
+ const baseElectricRange=Number(getRange(car)||0);
+ const electricRange=baseElectricRange*start/100;
+ const electricReserveRange=baseElectricRange*Math.max(0,start-reserve)/100;
+ const fuelStart=Math.max(0,Number($('startFuel')?.value)||0);
+ const kpl=Number(car.fuelConsumption)||Number(car.gasKm)||15;
+ const fuelRange=fuelStart*kpl;
+ const fuelReserveRange=Math.max(0,fuelRange*(1-reserve/100));
+ return {km,start,reserve,battery,electricRange,electricReserveRange,fuelStart,kpl,fuelRange,fuelReserveRange};
+}
 function getRange(car=selectedCar){const r=Number(car?.inmetroRange||car?.range);return Number.isFinite(r)&&r>0?r:null}
 function chargingProfile(car=selectedCar){if(!car)return {ac:false,dc:false,acOnly:false,label:'Não informado'};if(car.charging)return car.charging;const t=car.type;if(t==='HEV'||t==='MHEV')return {ac:false,dc:false,acOnly:false,label:'Não recarrega externamente'};if(t==='PHEV'||t==='PHEV Flex')return {ac:true,dc:false,acOnly:true,label:'Somente AC'};if(t==='REEV')return {ac:true,dc:true,acOnly:false,label:'AC + DC'};return {ac:true,dc:true,acOnly:false,label:'AC + DC'}}
 function stationCompatible(s){const p=chargingProfile();if(s.type==='DC')return !!p.dc;if(s.type==='AC')return !!p.ac;return false}
@@ -180,7 +195,7 @@ function drawRouteLayer(targetMap,obj,layerRef,forceReturn=false,distanceOffset=
 function drawRoute(){
  if(routeLayer)map.removeLayer(routeLayer);
  routeLayer=drawRouteLayer(map,routeOut||route,false,false,0);
- if(roundTrip&&routeBack){$('returnMapCard').classList.remove('hidden');if(returnRouteLayer)mapReturn.removeLayer(returnRouteLayer);returnRouteLayer=drawRouteLayer(mapReturn,routeBack,null,true,routeOut?.distance?routeOut.distance/1000:0);setTimeout(()=>mapReturn.invalidateSize(),50)}else{clearReturnMap();$('returnMapCard').classList.add('hidden')}
+ if(roundTrip&&routeBack){$('returnMapCard').classList.remove('hidden');if(returnRouteLayer)mapReturn.removeLayer(returnRouteLayer);setTimeout(()=>{mapReturn.invalidateSize();returnRouteLayer=drawRouteLayer(mapReturn,routeBack,null,true,routeOut?.distance?routeOut.distance/1000:0);mapReturn.invalidateSize()},80)}else{clearReturnMap();$('returnMapCard').classList.add('hidden')}
 }
 function buildEnergySegmentsFor(obj,forceReturn=false,distanceOffset=0){
  const cs=obj.geometry.coordinates,lim=routeEnergyLimits(),out=[];let acc=distanceOffset;
