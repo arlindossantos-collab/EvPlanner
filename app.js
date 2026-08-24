@@ -1,6 +1,6 @@
 /* ==========================================================================
    EV PLANNER PRO - CORE ENGINE (app.js)
-   Base Enriquecida de Eletropostos Reais (Corredor BR-101 Recife/JP)
+   Restaurado: Leitura Integral do vehicles.json Original + PlugShare/ABRP
    ========================================================================== */
 
 const ufMap = {
@@ -13,50 +13,9 @@ const ufMap = {
   "Sergipe": "SE", "Tocantins": "TO"
 };
 
-// Banco de Veículos NATIVO
-const defaultEvDatabase = {
-  "BYD": [
-    { model: 'Dolphin Mini (4 Lugares)', type: 'BEV (100% Elétrico)', battery: 38.0, range: 280, consumption: 13.5, isHybrid: false },
-    { model: 'Dolphin Mini (5 Lugares)', type: 'BEV (100% Elétrico)', battery: 38.0, range: 280, consumption: 13.5, isHybrid: false },
-    { model: 'Dolphin GS', type: 'BEV (100% Elétrico)', battery: 44.9, range: 291, consumption: 15.4, isHybrid: false },
-    { model: 'Dolphin Plus', type: 'BEV (100% Elétrico)', battery: 60.4, range: 330, consumption: 18.3, isHybrid: false },
-    { model: 'Atto 2 / Yuan Up', type: 'BEV (100% Elétrico)', battery: 45.1, range: 260, consumption: 17.3, isHybrid: false },
-    { model: 'Yuan Pro', type: 'BEV (100% Elétrico)', battery: 45.1, range: 250, consumption: 18.0, isHybrid: false },
-    { model: 'Yuan Plus EV500', type: 'BEV (100% Elétrico)', battery: 60.5, range: 294, consumption: 20.5, isHybrid: false },
-    { model: 'Seal AWD Performance', type: 'BEV (100% Elétrico)', battery: 82.5, range: 372, consumption: 22.1, isHybrid: false },
-    { model: 'Sealion 7 AWD', type: 'BEV (100% Elétrico)', battery: 82.5, range: 380, consumption: 21.7, isHybrid: false },
-    { model: 'King DM-i GL', type: 'PHEV (Híbrido Plug-in)', battery: 8.3, range: 55, consumption: 15.1, isHybrid: true, gasKm: 25.6, ethanolKm: 18.0 },
-    { model: 'King DM-i GS', type: 'PHEV (Híbrido Plug-in)', battery: 18.3, range: 120, consumption: 15.2, isHybrid: true, gasKm: 25.6, ethanolKm: 18.0 },
-    { model: 'Song Pro DM-i GL', type: 'PHEV (Híbrido Plug-in)', battery: 12.9, range: 71, consumption: 18.1, isHybrid: true, gasKm: 22.7, ethanolKm: 15.8 },
-    { model: 'Song Pro DM-i GS', type: 'PHEV (Híbrido Plug-in)', battery: 18.3, range: 110, consumption: 16.6, isHybrid: true, gasKm: 22.7, ethanolKm: 15.8 },
-    { model: 'Song Plus DM-i', type: 'PHEV (Híbrido Plug-in)', battery: 18.3, range: 105, consumption: 17.4, isHybrid: true, gasKm: 21.5, ethanolKm: 15.1 },
-    { model: 'Han EV AWD', type: 'BEV (100% Elétrico)', battery: 85.4, range: 349, consumption: 24.4, isHybrid: false },
-    { model: 'Tan EV AWD', type: 'BEV (100% Elétrico)', battery: 108.8, range: 430, consumption: 25.3, isHybrid: false },
-    { model: 'Shark Pickup', type: 'PHEV (Híbrido Plug-in)', battery: 29.5, range: 100, consumption: 29.5, isHybrid: true, gasKm: 14.2, ethanolKm: 9.8 }
-  ],
-  "GWM & Ora": [
-    { model: 'Ora 03 Skin', type: 'BEV (100% Elétrico)', battery: 48.0, range: 232, consumption: 20.6, isHybrid: false },
-    { model: 'Ora 03 GT', type: 'BEV (100% Elétrico)', battery: 63.0, range: 319, consumption: 19.7, isHybrid: false },
-    { model: 'Haval H6 HEV', type: 'HEV (Híbrido Convencional)', battery: 1.6, range: 25, consumption: 6.4, isHybrid: true, gasKm: 13.8, ethanolKm: 9.8 },
-    { model: 'Haval H6 PHEV19', type: 'PHEV (Híbrido Plug-in)', battery: 19.0, range: 115, consumption: 16.5, isHybrid: true, gasKm: 28.7, ethanolKm: 20.1 },
-    { model: 'Haval H6 PHEV34', type: 'PHEV (Híbrido Plug-in)', battery: 34.0, range: 170, consumption: 20.0, isHybrid: true, gasKm: 28.7, ethanolKm: 20.1 }
-  ],
-  "Volvo": [
-    { model: 'EX30 Core Single', type: 'BEV (100% Elétrico)', battery: 51.0, range: 250, consumption: 20.4, isHybrid: false },
-    { model: 'EX30 Extended Range', type: 'BEV (100% Elétrico)', battery: 69.0, range: 340, consumption: 20.2, isHybrid: false },
-    { model: 'XC40 Recharge', type: 'BEV (100% Elétrico)', battery: 78.0, range: 305, consumption: 25.5, isHybrid: false },
-    { model: 'XC60 Recharge T8', type: 'PHEV (Híbrido Plug-in)', battery: 18.8, range: 78, consumption: 24.1, isHybrid: true, gasKm: 26.7, ethanolKm: 18.5 }
-  ],
-  "BMW": [
-    { model: 'iX1 eDrive20', type: 'BEV (100% Elétrico)', battery: 64.7, range: 303, consumption: 21.3, isHybrid: false },
-    { model: 'i4 eDrive40', type: 'BEV (100% Elétrico)', battery: 80.7, range: 420, consumption: 19.2, isHybrid: false },
-    { model: 'iX xDrive50', type: 'BEV (100% Elétrico)', battery: 105.2, range: 520, consumption: 20.2, isHybrid: false }
-  ]
-};
-
-// Base Real e Detalhada dos Eletropostos (Enfoque BR-101 PE/PB + Principais Rodovias)
+// Eletropostos Reais do Corredor BR-101 e Principais Rodovias (Inspirado no PlugShare)
 const manualStationsDatabase = [
-  // --- Trecho Recife / Igarassu / Goiana / Pedras de Fogo / João Pessoa (BR-101 Norte) ---
+  // Recife / Igarassu / Goiana / Caaporã / Conde / João Pessoa (BR-101)
   { name: "Shell Recharge - Posto Milagres", network: "Shell Recharge", cityState: "Recife / PE", lat: -8.0321, lng: -34.9125, powerKw: 150, plugType: "CCS2 High Power", power: "CCS2 Ultra-Rápido DC (150kW)", type: "DC", operationalStatus: "Disponível" },
   { name: "Volvo Recharge - Shopping Tacaruna", network: "Volvo Recharge", cityState: "Recife / PE", lat: -8.0382, lng: -34.8724, powerKw: 50, plugType: "CCS2 / Type 2", power: "CCS2 Rápido DC (50kW)", type: "DC", operationalStatus: "Disponível" },
   { name: "Neoenergia - Posto Pichilau BR-101", network: "Neoenergia Corredor", cityState: "Igarassu / PE", lat: -7.8341, lng: -34.9082, powerKw: 50, plugType: "CCS2 / CHAdeMO", power: "CCS2 Rápido DC (50kW)", type: "DC", operationalStatus: "Disponível" },
@@ -68,13 +27,11 @@ const manualStationsDatabase = [
   { name: "Manaíra Shopping - Hub Zletric", network: "Zletric", cityState: "João Pessoa / PB", lat: -7.0984, lng: -34.8391, powerKw: 60, plugType: "CCS2 / Type 2", power: "CCS2 Ultra-Rápido DC (60kW)", type: "DC", operationalStatus: "Disponível" },
   { name: "Volvo Recharge - Mangabeira Shopping", network: "Volvo Recharge", cityState: "João Pessoa / PB", lat: -7.1610, lng: -34.8361, powerKw: 50, plugType: "CCS2", power: "CCS2 Rápido DC (50kW)", type: "DC", operationalStatus: "Disponível" },
   
-  // --- Trecho Gravatá / Caruaru / Maceió / Aracaju / Salvador / SP ---
+  // Gravatá / Maceió / Aracaju / Salvador / SP
   { name: "Planeta Charger - Rei das Coxinhas", network: "Planeta Charger", cityState: "Gravatá / PE", lat: -8.1888, lng: -35.5069, powerKw: 120, plugType: "CCS2 / Type 2", power: "CCS2 Ultra-Rápido DC (120kW)", type: "DC", operationalStatus: "Disponível" },
   { name: "Eletroposto BR-101", network: "Eletrobras", cityState: "Maceió / AL", lat: -9.6658, lng: -35.7353, powerKw: 50, plugType: "CCS2 / CHAdeMO", power: "CCS2 Rápido DC (50kW)", type: "DC", operationalStatus: "Disponível" },
   { name: "Shell Recharge Center", network: "Shell Recharge", cityState: "Aracaju / SE", lat: -10.9472, lng: -37.0731, powerKw: 150, plugType: "CCS2 High Power", power: "CCS2 Ultra-Rápido DC (150kW)", type: "DC", operationalStatus: "Disponível" },
   { name: "Eletroposto BR-324", network: "EZVolt", cityState: "Salvador / BA", lat: -12.9714, lng: -38.5014, powerKw: 150, plugType: "CCS2", power: "CCS2 Ultra-Rápido DC (150kW)", type: "DC", operationalStatus: "Disponível" },
-  { name: "Eletroposto BR-116", network: "Zletric", cityState: "Feira de Santana / BA", lat: -12.2664, lng: -38.9663, powerKw: 50, plugType: "CCS2", power: "CCS2 Rápido DC (50kW)", type: "DC", operationalStatus: "Disponível" },
-  { name: "Hub Vitória da Conquista", network: "Raízen Power", cityState: "Vitória da Conquista / BA", lat: -14.8661, lng: -40.8394, powerKw: 120, plugType: "CCS2 Ultra", power: "CCS2 Ultra-Rápido DC (120kW)", type: "DC", operationalStatus: "Disponível" },
   { name: "Hub Fernão Dias / BR-381", network: "Zletric", cityState: "Belo Horizonte / MG", lat: -19.9167, lng: -43.9345, powerKw: 150, plugType: "CCS2", power: "CCS2 Ultra-Rápido DC (150kW)", type: "DC", operationalStatus: "Disponível" },
   { name: "Graal 56 Anhanguera", network: "Graal / EDP", cityState: "Jundiaí / SP", lat: -23.1864, lng: -46.8842, powerKw: 150, plugType: "CCS2 Ultra Fast", power: "CCS2 Ultra-Rápido DC (150kW)", type: "DC", operationalStatus: "Disponível" }
 ];
@@ -88,7 +45,7 @@ let fetchedStations = [];
 let currentPolyline = null;
 let isochronePolygon = null;
 let activeRouteData = null;
-let evDatabase = defaultEvDatabase;
+let evDatabase = {};
 
 let currentTripStats = {
   totalKm: 0,
@@ -97,6 +54,7 @@ let currentTripStats = {
   tripsCount: 0
 };
 
+// Inicialização Principal
 async function initMap() {
   map = L.map('map').setView([-8.0476, -34.8770], 8);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
@@ -116,19 +74,15 @@ async function initMap() {
   renderWaypointsInputs();
 }
 
+// Carregamento Fiel do seu arquivo vehicles.json
 async function loadVehicles() {
   try {
     const response = await fetch('vehicles.json');
-    if (response.ok) {
-      const externalData = await response.json();
-      if (externalData && Object.keys(externalData).length > 0) {
-        evDatabase = externalData;
-      }
-    }
-  } catch (error) {
-    console.warn("Utilizando banco de veículos nativo.");
-  } finally {
+    if (!response.ok) throw new Error("Não foi possível carregar vehicles.json");
+    evDatabase = await response.json();
     initVehicleSelectors();
+  } catch (error) {
+    console.error("Erro ao carregar o arquivo vehicles.json:", error);
   }
 }
 
@@ -170,11 +124,16 @@ function initVehicleSelectors() {
     }
   });
 
-  if (evDatabase["BYD"]) {
-    brandSelect.value = "BYD";
+  // Seleção Padrão Se Existir a Marca BYD
+  const brands = Object.keys(evDatabase);
+  if (brands.length > 0) {
+    const firstBrand = brands.includes("BYD") ? "BYD" : brands[0];
+    brandSelect.value = firstBrand;
     brandSelect.dispatchEvent(new Event('change'));
-    modelSelect.value = "2";
-    modelSelect.dispatchEvent(new Event('change'));
+    if (evDatabase[firstBrand] && evDatabase[firstBrand].length > 0) {
+      modelSelect.value = "0";
+      modelSelect.dispatchEvent(new Event('change'));
+    }
   }
 }
 
@@ -407,7 +366,7 @@ async function fetchRouteStationsFromOSM(routeGeometry) {
   const routeCoords = routeGeometry.coordinates;
   const uniqueMap = new Map();
 
-  // 1. Postos manuais de rodovia de alta prioridade (Corredor BR-101 e adicionais)
+  // 1. Postos manuais de rodovia de alta prioridade
   for (const mStation of manualStationsDatabase) {
     const routeMatch = getMinDistanceToRouteInKm(mStation.lat, mStation.lng, routeCoords);
     if (routeMatch.minDistance <= 35) {
@@ -429,7 +388,7 @@ async function fetchRouteStationsFromOSM(routeGeometry) {
     }
   }
 
-  // 2. Coleta direcionada por amostra com filtro ampliado no OSM
+  // 2. Coleta direcionada por amostras do trajeto
   const samplePoints = [];
   const numSamples = Math.min(8, Math.max(2, Math.floor(routeCoords.length / 150)));
   const step = Math.floor(routeCoords.length / numSamples);
@@ -563,7 +522,7 @@ function renderStationsOnMapAndTable(totalDistKm, initialRangeKm) {
       <td class="p-2 text-center whitespace-nowrap font-bold ${battAtArrival > 15 ? 'text-emerald-400' : 'text-red-400'}">${battAtArrival}%</td>
       <td class="p-2 text-center whitespace-nowrap font-bold text-amber-300">${abrpPlanMsg}</td>
       <td class="p-2 whitespace-nowrap"><span class="bg-blue-900 text-blue-100 px-2 py-0.5 rounded border border-blue-700 text-xs">${station.power}</span></td>
-      <td class="p-2 text-right whitespace-nowrap"><button onclick="map.setView([${station.lat}, ${station.lng}], 14)" class="bg-blue-600 text-white font-bold px-2.5 py-1 rounded text-xs">Ver</button></td>
+      <td class="p-2 text-right whitespace-nowrap"><button onclick="map.setView([${station.lat}], 14)" class="bg-blue-600 text-white font-bold px-2.5 py-1 rounded text-xs">Ver</button></td>
     `;
     tbody.appendChild(tr);
   });
