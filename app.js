@@ -1,280 +1,651 @@
-(() => {
-'use strict';
-const C=window.EV_CONFIG||{}; const DB=window.EV_VEHICLES||[];
-const $=id=>document.getElementById(id);
-let map,routeLayer,rangeLayer,stations=[],stationMarkers=[],fuelStations=[],fuelMarkers=[],waypointMarkers=[],route=null,selectedCar=null,roundTrip=false,deferredPrompt=null;
-let waypoints=[{type:'origin',label:'Origem',address:'',coords:null},{type:'destination',label:'Destino 1',address:'',coords:null}];
-let favorites=JSON.parse(localStorage.getItem('evp3_places')||'[]');
-let savedPlaces=JSON.parse(localStorage.getItem('evp3_saved_places')||'{}');
-let manualStations=JSON.parse(localStorage.getItem('evp3_stations')||'[]');
-let esg=JSON.parse(localStorage.getItem('evp3_esg')||'{"trips":0,"km":0,"savings":0,"co2":0}');
-let lastEnergy=null,lastWeather=null,geocodeCache=new Map(),geocodeControllers=new Map(),stationCache=new Map(),stationSearchRadius=C.stationRadiusKm,mapPicking=false,pendingFavoriteType=null,defaultsBound=false,editingStationId=null,routeRequestToken=0;
-let recentTrips=JSON.parse(localStorage.getItem('evp3_recent_trips')||'[]');
-const money=v=>Number(v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
-const num=v=>Number(v||0).toLocaleString('pt-BR',{maximumFractionDigits:1});
-const safe=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
-const typeName=t=>({BEV:'100% elétrico',PHEV:'híbrido plug-in',REEV:'REEV / extensor',HEV:'híbrido',MHEV:'híbrido leve'}[t]||t||'não informado');
-const isFuelCar=()=>['PHEV','REEV','HEV','MHEV'].includes(selectedCar?.type);
-function toast(msg){const e=$('toast');e.textContent=msg;e.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.remove('show'),3000)}
-function withTimeout(ms){const c=new AbortController();const t=setTimeout(()=>c.abort(),ms||9000);return {signal:c.signal,done:()=>clearTimeout(t)}}
-function cacheRead(key,ttl){try{const d=JSON.parse(localStorage.getItem(key)||'null');if(!d||Date.now()-d.t>(ttl||0))return null;return d.v}catch{return null}}
-function cacheWrite(key,value){try{localStorage.setItem(key,JSON.stringify({t:Date.now(),v:value}))}catch{}}
-function routeCacheKey(){return JSON.stringify({v:C.version,w:waypoints.map(w=>[w.type,w.address,w.coords]),roundTrip,mode:$('driveMode')?.value,ac:$('acMode')?.value,rain:$('rainMode')?.checked,elev:$('elevationMode')?.checked,traffic:$('trafficMode')?.checked})}
-function persistRecentTrip(){if(!route||!selectedCar)return;const item={id:Date.now(),date:new Date().toISOString(),vehicle:{brand:selectedCar.brand,model:selectedCar.model,version:selectedCar.version||'',type:selectedCar.type},waypoints:waypoints.filter(w=>w.type!=='return').map(w=>({type:w.type,label:w.label,address:w.address,coords:w.coords})),distance:lastEnergy?.km||0,duration:route.duration||0};recentTrips=[item,...recentTrips.filter(x=>JSON.stringify(x.waypoints)!==JSON.stringify(item.waypoints))].slice(0,C.recentTripsLimit||8);localStorage.setItem('evp3_recent_trips',JSON.stringify(recentTrips));renderRecentTrips()}
-function renderRecentTrips(){const box=$('recentTripsList');if(!box)return;box.innerHTML=recentTrips.length?recentTrips.map((t,i)=>`<div class="recent-trip"><div><b>${safe(t.vehicle.brand)} ${safe(t.vehicle.model)}</b><span>${safe(t.waypoints?.[0]?.address||'Origem')} → ${safe(t.waypoints?.[t.waypoints.length-1]?.address||'Destino')}</span><small>${num(t.distance)} km · ${formatTime(t.duration)}</small></div><button class="btn secondary" onclick="window.__restoreTrip(${i})">Usar</button></div>`).join(''):'<div class="empty">As viagens calculadas aparecerão aqui.</div>'}
-window.__restoreTrip=i=>{const t=recentTrips[i];if(!t)return;waypoints=t.waypoints.map(w=>({...w,coords:w.coords?[...w.coords]:null}));relabel();renderWaypoints();if(t.vehicle){const ci=DB.findIndex(c=>c.brand===t.vehicle.brand&&c.model===t.vehicle.model&&c.version===t.vehicle.version);if(ci>=0){$('brandSelect').value=t.vehicle.brand;$('brandSelect').dispatchEvent(new Event('change'));const cars=DB.filter(c=>c.brand===t.vehicle.brand);$('modelSelect').value=String(cars.findIndex(c=>c.model===t.vehicle.model&&c.version===t.vehicle.version));$('modelSelect').dispatchEvent(new Event('change'))}}toast('Viagem recente restaurada.')}
+/* ==========================================================================
+   EV PLANNER PRO - CORE ENGINE (app.js)
+   ========================================================================== */
 
-function init(){
- map=L.map('map').setView([-8.05,-34.88],7);
- L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(map);
- map.on('click',onMapClick);
- setupVehicles(); setupWaypoints(); setupButtons(); setupFilters(); setupDefaults(); renderFavorites(); renderESG(); renderRecentTrips(); renderManualStations(); updateFuelBox(); updateFavoriteCarUI();
- if('serviceWorker' in navigator && location.protocol!=='file:') navigator.serviceWorker.register('sw.js').catch(()=>{});
- window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;$('installBtn').classList.remove('hidden')});
- $('installBtn').onclick=async()=>{if(!deferredPrompt)return;deferredPrompt.prompt();deferredPrompt=null;$('installBtn').classList.add('hidden')};
+const ufMap = {
+  "Acre": "AC", "Alagoas": "AL", "Amapá": "AP", "Amazonas": "AM", "Bahia": "BA",
+  "Ceará": "CE", "Distrito Federal": "DF", "Espírito Santo": "ES", "Goiás": "GO",
+  "Maranhão": "MA", "Mato Grosso": "MT", "Mato Grosso do Sul": "MS", "Minas Gerais": "MG",
+  "Pará": "PA", "Paraíba": "PB", "Paraná": "PR", "Pernambuco": "PE", "Piauí": "PI",
+  "Rio de Janeiro": "RJ", "Rio Grande do Norte": "RN", "Rio Grande do Sul": "RS",
+  "Rondônia": "RO", "Roraima": "RR", "Santa Catarina": "SC", "São Paulo": "SP",
+  "Sergipe": "SE", "Tocantins": "TO"
+};
+
+// Base estendida de suporte para grandes rodovias interestaduais (BR-101 / BR-116 / BR-381 / BR-242)
+const manualStationsDatabase = [
+  { name: "Planeta Charger - Rei das Coxinhas (Pedras de Fogo)", cityState: "Pedras de Fogo / PB", lat: -7.3957, lng: -34.9552, power: "CCS2 Ultra-Rápido DC (60kW)", type: "DC", operationalStatus: "Disponível" },
+  { name: "Planeta Charger - Rei das Coxinhas (Gravatá)", cityState: "Gravatá / PE", lat: -8.1888, lng: -35.5069, power: "CCS2 Ultra-Rápido DC (120kW)", type: "DC", operationalStatus: "Disponível" },
+  { name: "Eletroposto BR-101 (Maceió)", cityState: "Maceió / AL", lat: -9.6658, lng: -35.7353, power: "CCS2 Rápido DC (50kW)", type: "DC", operationalStatus: "Disponível" },
+  { name: "Eletroposto Shell Recharge (Aracaju)", cityState: "Aracaju / SE", lat: -10.9472, lng: -37.0731, power: "CCS2 Ultra-Rápido DC (150kW)", type: "DC", operationalStatus: "Disponível" },
+  { name: "Eletroposto BR-324 (Salvador)", cityState: "Salvador / BA", lat: -12.9714, lng: -38.5014, power: "CCS2 Ultra-Rápido DC (150kW)", type: "DC", operationalStatus: "Disponível" },
+  { name: "Eletroposto BR-116 (Feira de Santana)", cityState: "Feira de Santana / BA", lat: -12.2664, lng: -38.9663, power: "CCS2 Rápido DC (50kW)", type: "DC", operationalStatus: "Disponível" },
+  { name: "Eletroposto Vitória da Conquista", cityState: "Vitória da Conquista / BA", lat: -14.8661, lng: -40.8394, power: "CCS2 Ultra-Rápido DC (120kW)", type: "DC", operationalStatus: "Disponível" },
+  { name: "Eletroposto BR-116 (Montes Claros)", cityState: "Montes Claros / MG", lat: -16.7350, lng: -43.8617, power: "CCS2 Rápido DC (50kW)", type: "DC", operationalStatus: "Disponível" },
+  { name: "Eletroposto Zletric (Governador Valadares)", cityState: "Governador Valadares / MG", lat: -17.8575, lng: -41.9490, power: "CCS2 Ultra-Rápido DC (100kW)", type: "DC", operationalStatus: "Disponível" },
+  { name: "Eletroposto Zletric (Belo Horizonte - BR-381)", cityState: "Belo Horizonte / MG", lat: -19.9167, lng: -43.9345, power: "CCS2 Ultra-Rápido DC (150kW)", type: "DC", operationalStatus: "Disponível" },
+  { name: "Eletroposto Rodovia Fernão Dias (Extrema)", cityState: "Extrema / MG", lat: -22.8556, lng: -46.3197, power: "CCS2 Ultra-Rápido DC (150kW)", type: "DC", operationalStatus: "Disponível" },
+  { name: "Eletroposto Graal 56 (Jundiaí - Rod. Anhanguera)", cityState: "Jundiaí / SP", lat: -23.1864, lng: -46.8842, power: "CCS2 Ultra-Rápido DC (150kW)", type: "DC", operationalStatus: "Disponível" }
+];
+
+let map, waypoints = [];
+let waypointMarkers = [];
+let selectedCar = null;
+let stationMarkers = [];
+let fetchedStations = [];
+let currentPolyline = null;
+let isochronePolygon = null;
+let activeRouteData = null;
+let evDatabase = {};
+
+async function loadVehicles() {
+  try {
+    const response = await fetch('vehicles.json');
+    evDatabase = await response.json();
+    initVehicleSelectors();
+  } catch (error) {
+    console.error("Erro ao carregar banco de veículos:", error);
+  }
 }
-function setupDefaults(){
- const d=new Date(); $('departureDate').value=new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10);
- $('startBattery').value=clampBattery(localStorage.getItem('evp3_battery')??C.defaults.startBattery);
- $('startFuel').value=localStorage.getItem('evp3_fuel')??C.defaults.startFuel;
- $('kwhPrice').value=localStorage.getItem('evp3_kwh')??C.defaults.kwhPrice; $('gasPrice').value=localStorage.getItem('evp3_gas')??C.defaults.gasPrice; $('ethanolPrice').value=localStorage.getItem('evp3_ethanol')??C.defaults.ethanolPrice;
- syncBatteryUI(false);
- if(defaultsBound)return; defaultsBound=true;
- ['startBattery','startFuel','kwhPrice','gasPrice','ethanolPrice'].forEach(id=>$(id).addEventListener('change',()=>{if(id==='startBattery')syncBatteryUI(true);saveSettings()}));
- $('startBattery').addEventListener('input',()=>syncBatteryUI(false)); $('batteryRange').addEventListener('input',()=>{ $('startBattery').value=$('batteryRange').value; syncBatteryUI(true); saveSettings(); });
- $('batteryMinus').onclick=()=>adjustBattery(-1); $('batteryPlus').onclick=()=>adjustBattery(1);
+
+async function initMap() {
+  map = L.map('map').setView([-8.0476, -34.8770], 8);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
+
+  await loadVehicles();
+  initUserFavorites();
+  initRouteControls();
+  initDefaultDepartureDate();
+  initBatteryValidation();
+
+  waypoints = [
+    { address: "", coords: null, type: "origin", label: "Origem" },
+    { address: "", coords: null, type: "destination", label: "Destino 1" }
+  ];
+  renderWaypointsInputs();
 }
-function clampBattery(v){return Math.min(100,Math.max(0,Number(v)||0))}
-function syncBatteryUI(persist=true){const v=clampBattery($('startBattery').value);$('startBattery').value=v;$('batteryRange').value=v;$('batteryValueLabel').textContent=Math.round(v)+'%';if(persist)localStorage.setItem('evp3_battery',v);if(route)calculateEnergy()}
-function adjustBattery(delta){$('startBattery').value=clampBattery(Number($('startBattery').value)+delta);syncBatteryUI(true)}
-function saveSettings(){localStorage.setItem('evp3_battery',clampBattery($('startBattery').value));localStorage.setItem('evp3_fuel',$('startFuel').value);localStorage.setItem('evp3_kwh',$('kwhPrice').value);localStorage.setItem('evp3_gas',$('gasPrice').value);localStorage.setItem('evp3_ethanol',$('ethanolPrice').value);if(route)calculateEnergy()}
-function setupVehicles(){
- const brands=[...new Set(DB.map(x=>x.brand))].sort(); $('brandSelect').innerHTML='<option value="">Selecione...</option>'+brands.map(b=>`<option>${safe(b)}</option>`).join('');
- $('brandSelect').onchange=()=>{const b=$('brandSelect').value;const cars=DB.filter(x=>x.brand===b);$('modelSelect').disabled=!b;$('modelSelect').innerHTML='<option value="">Selecione...</option>'+cars.map((c,i)=>`<option value="${i}">${safe(c.model)}${c.version&&c.version!=='—'?' — '+safe(c.version):''} · ${safe(typeName(c.type))}</option>`).join('')};
- $('modelSelect').onchange=()=>{const b=$('brandSelect').value;selectedCar=DB.filter(x=>x.brand===b)[Number($('modelSelect').value)];updateCarUI();updateFavoriteCarUI()};
- const fav=JSON.parse(localStorage.getItem('evp3_car')||'null'); if(fav){const idx=brands.indexOf(fav.brand);if(idx>=0){$('brandSelect').value=fav.brand;$('brandSelect').dispatchEvent(new Event('change'));const cars=DB.filter(x=>x.brand===fav.brand);const ci=cars.findIndex(x=>x.model===fav.model&&x.version===fav.version);$('modelSelect').value=String(ci>=0?ci:0);$('modelSelect').dispatchEvent(new Event('change'));return}}
- $('brandSelect').value=brands.includes('Leapmotor')?'Leapmotor':brands[0];$('brandSelect').dispatchEvent(new Event('change'));$('modelSelect').value='0';$('modelSelect').dispatchEvent(new Event('change'));
+
+function initBatteryValidation() {
+  const input = document.getElementById('startBattery');
+  if (!input) return;
+  input.addEventListener('input', () => {
+    let val = parseInt(input.value);
+    if (isNaN(val)) return;
+    if (val < 0) input.value = 0;
+    if (val > 100) input.value = 100;
+  });
 }
-function updateCarUI(){if(!selectedCar)return;const estimated=!selectedCar.consumption&&selectedCar.battery&&selectedCar.range;const consumption=selectedCar.consumption||(estimated?selectedCar.battery/selectedCar.range*100:null);selectedCar._calcConsumption=consumption;const specs=[['Propulsão',typeName(selectedCar.type)],['Bateria',selectedCar.battery?num(selectedCar.battery)+' kWh':'—'],['Autonomia',selectedCar.range?num(selectedCar.range)+' km':'—'],['Consumo',consumption?num(consumption)+' kWh/100 km':'—'],['Potência',selectedCar.power||'—'],['Tração',selectedCar.traction||'—']];$('carSpecs').innerHTML=specs.map(x=>`<div class="spec"><span>${x[0]}</span><b>${safe(x[1])}</b></div>`).join('');$('dataQuality').textContent=estimated?'⚠️ Consumo estimado pela relação bateria/autonomia; use como referência, não como dado oficial.':'✓ Consumo disponível na base de dados.';updateFuelBox();}
-function updateFuelBox(){$('fuelBox').classList.toggle('hidden',!isFuelCar())}
-function isFavoriteCar(){const fav=JSON.parse(localStorage.getItem('evp3_car')||'null');return !!(fav&&selectedCar&&fav.brand===selectedCar.brand&&fav.model===selectedCar.model&&fav.version===selectedCar.version)}
-function updateFavoriteCarUI(){const b=$('favoriteCarBtn');if(!b)return; b.classList.toggle('active',isFavoriteCar());b.title=isFavoriteCar()?'Remover dos favoritos':'Favoritar veículo';b.innerHTML=`<i class="fa-${isFavoriteCar()?'solid':'regular'} fa-star"></i>`}
-function toggleFavoriteCar(){if(!selectedCar)return toast('Escolha um veículo primeiro.');if(isFavoriteCar()){localStorage.removeItem('evp3_car');toast('Veículo removido dos favoritos.')}else{localStorage.setItem('evp3_car',JSON.stringify(selectedCar));toast('Veículo salvo nos favoritos.')}updateFavoriteCarUI()}
-function setupWaypoints(){renderWaypoints()}
-function renderWaypoints(){
- const box=$('waypoints'); box.innerHTML=waypoints.map((w,i)=>`<div class="waypoint" draggable="true" data-index="${i}"><div class="wp-head"><span><span class="drag">☷</span>${safe(w.label)}</span>${i?`<button class="wp-remove" data-remove="${i}">Remover</button>`:''}</div><div class="relative"><input id="wp_${i}" value="${safe(w.address)}" placeholder="Endereço, cidade ou local" autocomplete="off"><div id="res_${i}" class="autocomplete-results hidden"></div></div></div>`).join('');
- waypoints.forEach((_,i)=>setupAutocomplete(i));box.querySelectorAll('[data-remove]').forEach(b=>b.onclick=()=>{waypoints.splice(Number(b.dataset.remove),1);relabel();renderWaypoints()});let dragIndex=null;box.querySelectorAll('.waypoint').forEach(el=>{el.ondragstart=()=>dragIndex=Number(el.dataset.index);el.ondragover=e=>e.preventDefault();el.ondrop=()=>{const to=Number(el.dataset.index);if(dragIndex===to)return;const[m]=waypoints.splice(dragIndex,1);waypoints.splice(to,0,m);relabel();renderWaypoints()}})
+
+function initDefaultDepartureDate() {
+  const dateInput = document.getElementById('departureDate');
+  if (dateInput) {
+    const today = new Date().toISOString().split('T')[0];
+    dateInput.value = today;
+  }
 }
-function relabel(){let d=0,s=0;waypoints.forEach((w,i)=>{if(i===0){w.type='origin';w.label='Origem'}else if(w.type==='stop'){w.label='Parada '+(++s)}else{w.type='destination';w.label='Destino '+(++d)}})}
-function setupAutocomplete(i){
- const input=$('wp_'+i),res=$('res_'+i);let timer;
- input.oninput=()=>{waypoints[i].address=input.value;waypoints[i].coords=null;clearTimeout(timer);const q=input.value.trim();if(q.length<3){res.classList.add('hidden');return}timer=setTimeout(async()=>{const data=await geocodeSearch(q,6,'wp_'+i);res.innerHTML=(data||[]).map((f,j)=>{const p=f.properties||{};const text=formatFeature(f);return `<div class="autocomplete-item" data-j="${j}">📍 ${safe(text)}</div>`}).join('');res.classList.toggle('hidden',!(data||[]).length);res.querySelectorAll('.autocomplete-item').forEach((el,j)=>el.onclick=()=>{const f=data[j];const text=formatFeature(f);input.value=text;waypoints[i].address=text;waypoints[i].coords=[f.geometry.coordinates[1],f.geometry.coordinates[0]];res.classList.add('hidden');drawWaypoints()})},C.geocodeDebounce)}
+
+function initVehicleSelectors() {
+  const brandSelect = document.getElementById('brandSelect');
+  const modelSelect = document.getElementById('modelSelect');
+  if (!brandSelect || !modelSelect) return;
+
+  brandSelect.innerHTML = '<option value="">Selecione a marca...</option>';
+  Object.keys(evDatabase).sort().forEach(brand => {
+    const option = document.createElement('option');
+    option.value = brand; 
+    option.textContent = brand;
+    brandSelect.appendChild(option);
+  });
+
+  brandSelect.addEventListener('change', (e) => {
+    const brand = e.target.value;
+    modelSelect.innerHTML = '<option value="">Selecione modelo...</option>';
+    if (!brand) { modelSelect.disabled = true; return; }
+    modelSelect.disabled = false;
+    evDatabase[brand].forEach((car, index) => {
+      const option = document.createElement('option');
+      option.value = index; 
+      option.textContent = `${car.model} (${car.type.split(' ')[0]})`;
+      modelSelect.appendChild(option);
+    });
+  });
+
+  modelSelect.addEventListener('change', (e) => {
+    const brand = brandSelect.value;
+    const index = e.target.value;
+    if (brand && index !== "") {
+      selectedCar = evDatabase[brand][index];
+      document.getElementById('specType').innerText = selectedCar.type;
+      document.getElementById('specBattery').innerText = `${selectedCar.battery} kWh`;
+      document.getElementById('specRange').innerText = `${selectedCar.range} km`;
+      document.getElementById('specConsumption').innerText = `${selectedCar.consumption} kWh/100km`;
+
+      const fuelContainer = document.getElementById('fuelContainer');
+      const hybridWrapper = document.getElementById('hybridConsumptionWrapper');
+      if (selectedCar.isHybrid) {
+        if (fuelContainer) fuelContainer.classList.remove('hidden');
+        if (hybridWrapper) hybridWrapper.classList.remove('hidden');
+      } else {
+        if (fuelContainer) fuelContainer.classList.add('hidden');
+        if (hybridWrapper) hybridWrapper.classList.add('hidden');
+      }
+    }
+  });
+
+  if (evDatabase["BYD"]) {
+    brandSelect.value = "BYD";
+    brandSelect.dispatchEvent(new Event('change'));
+    modelSelect.value = "2";
+    modelSelect.dispatchEvent(new Event('change'));
+  }
 }
-function formatFeature(f){const p=f?.properties||{};return [p.name,p.street,p.city||p.town||p.municipality,p.state,p.country].filter(Boolean).join(', ')}
-async function geocodeSearch(q,limit=1,key='default'){
- const cacheKey=`${q.trim().toLowerCase()}|${limit}`;if(geocodeCache.has(cacheKey))return geocodeCache.get(cacheKey);const persisted=cacheRead('evp3_geo_'+btoa(unescape(encodeURIComponent(cacheKey))).replace(/[^a-zA-Z0-9]/g,''),24*60*60*1000);if(persisted){geocodeCache.set(cacheKey,persisted);return persisted}
- if(geocodeControllers.has(key))geocodeControllers.get(key).abort();const controller=new AbortController();geocodeControllers.set(key,controller);const timeout=setTimeout(()=>controller.abort(),C.requestTimeoutMs||9000);
- try{const r=await fetch(`${C.services.geocode}?q=${encodeURIComponent(q)}&limit=${limit}`,{signal:controller.signal,headers:{'Accept':'application/json'}});if(!r.ok)throw Error('geocode');const d=await r.json();const features=d.features||[];geocodeCache.set(cacheKey,features);cacheWrite('evp3_geo_'+btoa(unescape(encodeURIComponent(cacheKey))).replace(/[^a-zA-Z0-9]/g,''),features);return features}catch(e){if(e.name!=='AbortError')console.warn('Geocoding:',e.message);return []}finally{clearTimeout(timeout);if(geocodeControllers.get(key)===controller)geocodeControllers.delete(key)}
+
+function initUserFavorites() {
+  const setHomeBtn = document.getElementById('setHomeBtn');
+  if (setHomeBtn) {
+    setHomeBtn.addEventListener('click', () => {
+      const newHome = prompt("Defina ou limpe o endereço de Casa:");
+      if (newHome !== null) {
+        if (newHome.trim() === "") {
+          localStorage.removeItem('hv_home_address');
+          if (waypoints.length > 0 && waypoints[0].label === "Origem") {
+            waypoints[0].address = "";
+            waypoints[0].coords = null;
+            renderWaypointsInputs();
+            updateWaypointMarkers();
+          }
+          alert("Endereço de Casa limpo com sucesso!");
+        } else {
+          localStorage.setItem('hv_home_address', newHome);
+          askTargetWaypointAndSet(newHome);
+        }
+      }
+    });
+  }
 }
-async function geocode(a){const d=await geocodeSearch(a,1,'route');const f=d[0];return f?[f.geometry.coordinates[1],f.geometry.coordinates[0]]:null}
-async function ensureCoords(){const pending=waypoints.map(async w=>{if(w.address&&!w.coords)w.coords=await geocode(w.address)});await Promise.all(pending)}
-function drawWaypoints(){waypointMarkers.forEach(m=>map.removeLayer(m));waypointMarkers=[];waypoints.forEach(w=>{if(!w.coords)return;const m=L.marker(w.coords).addTo(map).bindPopup(`<b>${safe(w.label)}</b><br>${safe(w.address)}`);waypointMarkers.push(m)})}
-function setupButtons(){
- $('addDestinationBtn').onclick=()=>{waypoints.push({type:'destination',label:'Destino',address:'',coords:null});relabel();renderWaypoints()};
- $('addStopBtn').onclick=()=>{waypoints.push({type:'stop',label:'Parada',address:'',coords:null});relabel();renderWaypoints()};
- $('roundTripBtn').onclick=()=>{roundTrip=!roundTrip;$('roundTripBtn').classList.toggle('active',roundTrip);$('roundTripBtn').textContent=roundTrip?'↔ Ida e volta ATIVADA':'↔ Ida e volta'};
- $('calculateBtn').onclick=calculateTrip;$('homeBtn').onclick=()=>useSavedPlace('home');$('workBtn').onclick=()=>useSavedPlace('work');$('addFavoritePlaceBtn').onclick=()=>openFavoriteModal();$('saveFavoriteBtn').onclick=saveFavorite;$('cancelFavoriteBtn').onclick=closeFavoriteModal;$('closeFavoriteModal').onclick=closeFavoriteModal;
- $('closeFavoriteTarget').onclick=closeFavoriteTarget;$('cancelFavoriteTarget').onclick=closeFavoriteTarget;
- $('favoriteAddress').oninput=setupFavoriteAutocomplete;
- $('favoriteCarBtn').onclick=toggleFavoriteCar;$('pdfBtn').onclick=exportPDF;
- $('esgBtn').onclick=()=>{$('esgModal').classList.remove('hidden');renderESG()};$('closeEsg').onclick=()=>{$('esgModal').classList.add('hidden')};$('resetEsg').onclick=()=>{if(confirm('Zerar histórico ESG?')){esg={trips:0,km:0,savings:0,co2:0};persistESG();renderESG()}};
- $('exportBtn').onclick=exportBackup;$('importBtn').onclick=()=>$('importFile').click();$('importFile').onchange=importBackup;$('copySummaryBtn').onclick=copySummary;
- $('helpBtn').onclick=()=>{$('helpModal').classList.remove('hidden')};
- $('manageStationsBtn').onclick=openStationManager;$('closeStationManager').onclick=closeStationManager;$('closeStationManager2').onclick=closeStationManager;$('clearRecentBtn').onclick=()=>{recentTrips=[];localStorage.removeItem('evp3_recent_trips');renderRecentTrips();toast('Histórico de viagens limpo.')};
- $('stationConnectorFilter').onchange=renderStations;
- $('resetSettingsBtn').onclick=()=>{if(confirm('Restaurar preços e parâmetros padrão?')){['battery','fuel','kwh','gas','ethanol'].forEach(k=>localStorage.removeItem('evp3_'+k));setupDefaults();toast('Padrões restaurados.')}};
- $('findMoreStationsBtn').onclick=async()=>{if(!route)return toast('Calcule uma viagem primeiro.');const b=$('findMoreStationsBtn');b.disabled=true;b.innerHTML='<i class="fa-solid fa-spinner fa-spin"></i> Buscando...';stationSearchRadius=C.stationWideRadiusKm;try{await Promise.all([loadStations(true),loadFuelStations()]);toast('Busca ampliada concluída.')}finally{b.disabled=false;b.innerHTML='<i class="fa-solid fa-magnifying-glass"></i> Buscar mais'}};
- $('addStationBtn').onclick=openStationModal;$('closeStationModal').onclick=closeStationModal;$('cancelStationBtn').onclick=closeStationModal;$('saveStationBtn').onclick=saveStation;
- $('stationSearchAddressBtn').onclick=searchStationAddress;$('stationPickMapBtn').onclick=toggleMapPicker;$('stationAddress').oninput=setupStationAddressAutocomplete;
+
+function initRouteControls() {
+  const addDestBtn = document.getElementById('addDestinationBtn');
+  if (addDestBtn) {
+    addDestBtn.addEventListener('click', () => {
+      const destCount = waypoints.filter(w => w.type === 'destination').length + 1;
+      waypoints.push({ address: "", coords: null, type: "destination", label: `Destino ${destCount}` });
+      renderWaypointsInputs();
+    });
+  }
+
+  const addWpBtn = document.getElementById('addWaypointBtn');
+  if (addWpBtn) {
+    addWpBtn.addEventListener('click', () => {
+      const stopCount = waypoints.filter(w => w.type === 'stop').length + 1;
+      waypoints.push({ address: "", coords: null, type: "stop", label: `Parada ${stopCount}` });
+      renderWaypointsInputs();
+    });
+  }
+
+  const calcBtn = document.getElementById('calcBtn');
+  if (calcBtn) {
+    calcBtn.addEventListener('click', calculateMultiRoute);
+  }
 }
-function setupFavoriteAutocomplete(){const input=$('favoriteAddress'),res=$('favoriteAddressResults');clearTimeout(setupFavoriteAutocomplete.t);const q=input.value.trim();if(q.length<3){res.classList.add('hidden');return}setupFavoriteAutocomplete.t=setTimeout(async()=>{const data=await geocodeSearch(q,5,'favorite');res.innerHTML=data.map((f,i)=>`<div class="autocomplete-item" data-j="${i}">📍 ${safe(formatFeature(f))}</div>`).join('');res.classList.toggle('hidden',!data.length);res.querySelectorAll('.autocomplete-item').forEach((el,i)=>el.onclick=()=>{input.value=formatFeature(data[i]);res.classList.add('hidden')})},C.geocodeDebounce)}
-function openFavoriteModal(type){pendingFavoriteType=type||null;$('favoriteType').value=type||'home';$('favoriteName').value=type==='work'?'Trabalho':type==='home'?'Casa':'';$('favoriteAddress').value=type? (savedPlaces[type]?.address||''):'';$('favoritePlaceModal').classList.remove('hidden')}
-function closeFavoriteModal(){$('favoritePlaceModal').classList.add('hidden')}
-function saveFavorite(){const type=$('favoriteType').value,address=$('favoriteAddress').value.trim();if(!address)return toast('Informe o endereço do favorito.');const name=$('favoriteName').value.trim()|| (type==='home'?'Casa':'Trabalho');savedPlaces[type]={name,address};localStorage.setItem('evp3_saved_places',JSON.stringify(savedPlaces));favorites=favorites.filter(f=>f.kind!==type);favorites.push({kind:type,name,address});localStorage.setItem('evp3_places',JSON.stringify(favorites));closeFavoriteModal();renderFavorites();toast(`${name} salvo nos favoritos.`);if(pendingFavoriteType===type){openFavoriteTargetModal(type,address);pendingFavoriteType=null}}
-function renderFavorites(){const s=$('favoritePlaceSelect');s.innerHTML='<option value="">⭐ Locais favoritos salvos</option>'+favorites.map((f,i)=>`<option value="${i}">${safe(f.name)}</option>`).join('');s.classList.toggle('hidden',!favorites.length);s.onchange=()=>{const f=favorites[Number(s.value)];if(!f)return;applyFavoriteAddress(f.address,0)}}
-function useSavedPlace(key){if(!savedPlaces[key]?.address){openFavoriteModal(key);return}pendingFavoriteType=key;openFavoriteTargetModal(key,savedPlaces[key].address)}
-function openFavoriteTargetModal(key,address){const label=key==='home'?'Casa':'Trabalho';$('favoriteTargetTitle').textContent=`${label}: onde usar?`;const options=[{idx:0,label:'Origem',icon:'📍'}];waypoints.forEach((w,i)=>{if(i>0&&w.type==='destination')options.push({idx:i,label:w.label,icon:'🏁'})});$('favoriteTargetOptions').innerHTML=options.map(o=>`<button class="target-option" data-index="${o.idx}"><span>${o.icon}</span><b>${safe(o.label)}</b><small>${safe(waypoints[o.idx]?.address||'Vazio')}</small></button>`).join('');$('favoriteTargetOptions').querySelectorAll('.target-option').forEach(b=>b.onclick=()=>{applyFavoriteAddress(address,Number(b.dataset.index));closeFavoriteTarget()});$('favoriteTargetModal').classList.remove('hidden')}
-function closeFavoriteTarget(){$('favoriteTargetModal').classList.add('hidden')}
-function applyFavoriteAddress(address,index){if(!waypoints[index])return;waypoints[index].address=address;waypoints[index].coords=null;renderWaypoints();toast(`${waypoints[index].label} atualizado.`)}
-function savePlace(){openFavoriteModal()}
-function setupFilters(){['filterDC','filterAC'].forEach(id=>$(id).onchange=renderStations);$('showRange').onchange=drawRange}
-async function calculateTrip(){
- const btn=$('calculateBtn');btn.disabled=true;$('calculationDone').classList.add('hidden');btn.innerHTML='<i class="fa-solid fa-spinner fa-spin"></i> Calculando...';
- try{
-  syncBatteryUI(false);await ensureCoords();if(waypoints.filter(w=>w.coords).length<2)throw Error('Informe uma origem e pelo menos um destino.');
-  if(roundTrip&&!waypoints.some(w=>w.type==='return')){const o=waypoints[0];waypoints.push({type:'return',label:'Retorno',address:o.address,coords:[...o.coords]})}if(!roundTrip)waypoints=waypoints.filter(w=>w.type!=='return');
-  drawWaypoints();const coords=waypoints.filter(w=>w.coords).map(w=>w.coords[1]+','+w.coords[0]).join(';');
-  const token=++routeRequestToken;const key=routeCacheKey();let d=cacheRead('evp3_route_'+btoa(unescape(encodeURIComponent(key))).replace(/[^a-zA-Z0-9]/g,''),C.routeCacheTtlMs||900000);
-  if(!d){const controller=new AbortController();const timer=setTimeout(()=>controller.abort(),C.requestTimeoutMs||9000);try{const r=await fetch(C.services.route+coords+'?overview=full&geometries=geojson&steps=true',{signal:controller.signal});d=await r.json()}finally{clearTimeout(timer)}}
-  if(token!==routeRequestToken)return;if(d.code!=='Ok'||!d.routes?.length)throw Error('Não foi possível calcular a rota.');
-  cacheWrite('evp3_route_'+btoa(unescape(encodeURIComponent(key))).replace(/[^a-zA-Z0-9]/g,''),d);route=d.routes[0];drawRoute();calculateEnergy();saveESG();persistRecentTrip();renderDetailedSummary();$('calculationDone').classList.remove('hidden');toast('Cálculo concluído');
-  Promise.all([loadStations(),loadFuelStations(),loadWeather()]).then(()=>{renderDetailedSummary();renderSmartPlan();drawRoute()}).catch(()=>{});
- }catch(e){console.error(e);toast(e.message||'Erro ao calcular viagem.')}finally{btn.disabled=false;btn.innerHTML='<i class="fa-solid fa-bolt"></i> Calcular viagem'}
+
+function askTargetWaypointAndSet(addressStr) {
+  if (waypoints.length > 0) {
+    waypoints[0].address = addressStr;
+    renderWaypointsInputs();
+    geocodeFast(addressStr).then(c => { waypoints[0].coords = c; updateWaypointMarkers(); });
+  }
 }
-function drawRoute(){
- if(routeLayer)map.removeLayer(routeLayer);
- if(!route?.geometry?.coordinates?.length)return;
- const segments=buildEnergySegments();
- routeLayer=L.layerGroup();
- segments.forEach(seg=>L.polyline(seg.latlngs,{color:seg.color,weight:7,opacity:.92,lineCap:'round',lineJoin:'round'}).bindTooltip(seg.label,{sticky:true,direction:'top'}).addTo(routeLayer));
- routeLayer.addTo(map);
- const bounds=L.latLngBounds(route.geometry.coordinates.map(c=>[c[1],c[0]]));
- map.fitBounds(bounds,{padding:[25,25]});
+
+function renderWaypointsInputs() {
+  const container = document.getElementById('routeWaypointsContainer');
+  if (!container) return;
+  container.innerHTML = '';
+  
+  waypoints.forEach((wp, index) => {
+    const div = document.createElement('div');
+    div.className = "waypoint-item relative bg-[#020b29] p-2 rounded-lg border border-blue-900 space-y-1";
+    
+    let badgeColor = "text-emerald-400";
+    if (wp.type === 'destination') badgeColor = "text-sky-400";
+    if (wp.type === 'stop') badgeColor = "text-amber-400";
+
+    div.innerHTML = `
+      <div class="flex justify-between items-center text-[11px] mb-1">
+        <span class="font-bold ${badgeColor}">${wp.label}</span>
+        ${index > 0 ? `<button onclick="removeWaypoint(${index})" class="text-red-400 hover:text-red-300 font-bold px-1">✕ Remover</button>` : ''}
+      </div>
+      <input type="text" id="wpInput_${index}" value="${wp.address}" 
+             class="w-full bg-[#031038] border border-blue-800 rounded p-1.5 text-white text-xs outline-none" 
+             placeholder="Ex: Rua, número, bairro, cidade, estado" autocomplete="off">
+      <div id="wpResults_${index}" class="autocomplete-results hidden"></div>
+    `;
+    container.appendChild(div);
+    setupFastAutocomplete(`wpInput_${index}`, `wpResults_${index}`, (coords, addressStr) => {
+      waypoints[index].coords = coords;
+      waypoints[index].address = addressStr;
+      updateWaypointMarkers();
+    }, index);
+  });
 }
-function routeEnergyLimits(){
- const km=route?.distance?route.distance/1000:0;
- const start=clampBattery($('startBattery').value);
- const reserve=C.reservePercent||15;
- const cap=Number(selectedCar?.battery)||0;
- const c=(selectedCar?._calcConsumption||selectedCar?.consumption||0)*factors();
- const electricRange=cap&&c?cap*start/100/(c/100):0;
- const electricReserveRange=cap&&c?cap*(Math.max(0,start-reserve)/100)/(c/100):0;
- const startFuel=isFuelCar()?Math.max(0,Number($('startFuel').value)||0):0;
- const kpl=Number(selectedCar?.fuelConsumption)||Number(selectedCar?.gasKm)||15;
- const fuelRange=startFuel*kpl;
- const fuelReserveRange=Math.max(0,(startFuel*(1-reserve/100))*kpl);
- return {km,start,reserve,cap,c,electricRange,electricReserveRange,startFuel,kpl,fuelRange,fuelReserveRange};
+
+function removeWaypoint(index) {
+  if (index > 0) {
+    waypoints.splice(index, 1);
+    renderWaypointsInputs();
+    updateWaypointMarkers();
+  }
 }
-function buildEnergySegments(){
- const cs=route.geometry.coordinates, lim=routeEnergyLimits(), out=[];
- let acc=0;
- for(let i=1;i<cs.length;i++){
-   const a=L.latLng(cs[i-1][1],cs[i-1][0]),b=L.latLng(cs[i][1],cs[i][0]);
-   const segKm=a.distanceTo(b)/1000, mid=acc+segKm/2;
-   let color='#34d399',label='Dentro da autonomia';
-   if(selectedCar?.type==='BEV'){
-     if(mid>lim.electricRange){color='#fb7185';label='Autonomia insuficiente — recarregar';}
-     else if(mid>lim.electricReserveRange){color='#fbbf24';label='Reserva de bateria — recarga recomendada';}
-   }else if(['PHEV','REEV'].includes(selectedCar?.type)){
-     if(mid<=lim.electricReserveRange){color='#34d399';label='Trecho elétrico com reserva';}
-     else if(mid<=lim.electricRange){color='#fbbf24';label='Bateria próxima do fim — recarga recomendada';}
-     else if(mid<=lim.electricRange+lim.fuelReserveRange){color='#fb923c';label='Trecho com combustível — abastecimento monitorado';}
-     else if(mid<=lim.electricRange+lim.fuelRange){color='#f59e0b';label='Trecho com combustível — reserva baixa';}
-     else{color='#fb7185';label='Autonomia total insuficiente — abastecer/recarregar';}
-   }else if(['HEV','MHEV'].includes(selectedCar?.type)){
-     if(mid>lim.fuelRange){color='#fb7185';label='Combustível insuficiente — abastecer';}
-     else if(mid>lim.fuelReserveRange){color='#fbbf24';label='Reserva de combustível — abastecimento recomendado';}
-   }
-   const prev=out[out.length-1];
-   if(prev && prev.color===color) prev.latlngs.push([b.lat,b.lng]);
-   else out.push({color,label,latlngs:[[a.lat,a.lng],[b.lat,b.lng]]});
-   acc+=segKm;
- }
- return out;
+
+function setupFastAutocomplete(inputId, resultsId, callback, index) {
+  const input = document.getElementById(inputId);
+  const results = document.getElementById(resultsId);
+  if (!input || !results) return;
+
+  input.addEventListener('input', async () => {
+    waypoints[index].address = input.value;
+    const query = input.value.trim();
+    if (query.length < 2) { results.classList.add('hidden'); return; }
+    try {
+      const res = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=5`);
+      const data = await res.json();
+      results.innerHTML = '';
+      if (data && data.features) {
+        data.features.forEach(f => {
+          const p = f.properties;
+          const coords = [f.geometry.coordinates[1], f.geometry.coordinates[0]];
+          const full = `${p.name || ''}, ${p.city || ''} - ${p.state || ''}`;
+          const div = document.createElement('div');
+          div.className = 'autocomplete-item';
+          div.innerHTML = `<span>📍 ${full}</span>`;
+          div.onclick = () => { input.value = full; results.classList.add('hidden'); callback(coords, full); };
+          results.appendChild(div);
+        });
+        results.classList.remove('hidden');
+      }
+    } catch (e) { results.classList.add('hidden'); }
+  });
 }
-function factors(){return Number($('driveMode').value)*Number($('acMode').value)*($('rainMode').checked?1.12:1)*($('elevationMode').checked?1.08:1)}
-function calculateEnergy(){
- if(!route||!selectedCar)return;const km=route.distance/1000,c=selectedCar._calcConsumption||selectedCar.consumption||0,f=c*factors(),start=clampBattery($('startBattery').value),cap=Number(selectedCar.battery)||0,kwhPrice=Number($('kwhPrice').value)||0,gasPrice=Number($('gasPrice').value)||0,ethPrice=Number($('ethanolPrice').value)||0;let electricKm=0,fuelKm=0,kwh=0,fuel=0,battery=start;
- if(selectedCar.type==='BEV'){electricKm=km;kwh=km*f/100;battery=cap?Math.max(0,start-kwh/cap*100):start}
- else if(selectedCar.type==='PHEV'||selectedCar.type==='REEV'){const er=(selectedCar.range||0)*start/100;electricKm=Math.min(km,er);fuelKm=Math.max(0,km-electricKm);kwh=electricKm*f/100;const kpl=Number(selectedCar.fuelConsumption)||selectedCar.gasKm||18;fuel=fuelKm/kpl;battery=cap?Math.max(0,start-kwh/cap*100):start}
- else{fuelKm=km;const kpl=Number(selectedCar.gasKm)||15;fuel=km/kpl;battery=100}
- const evCost=kwh*kwhPrice,gasCost=fuel*gasPrice,ethKm=Number(selectedCar.ethanolKm)||10,ethCost=(fuelKm/ethKm)*ethPrice,total=evCost+(fuelKm?Math.min(gasCost,ethCost):0),gasEquivalent=km/(Number(selectedCar.gasKm)||12)*gasPrice,saving=Math.max(0,gasEquivalent-total),startFuel=isFuelCar()?Math.max(0,Number($('startFuel').value)||0):0,arrivalFuel=Math.max(0,startFuel-fuel);
- lastEnergy={km,electricKm,fuelKm,kwh,fuel,battery,evCost,gasCost,ethCost,total,saving,f,startFuel,arrivalFuel};renderEnergy();drawRange();drawRoute();renderSmartPlan();
+
+async function geocodeFast(addressStr) {
+  try {
+    const res = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(addressStr)}&limit=1`);
+    const data = await res.json();
+    if (data && data.features && data.features.length > 0) return [data.features[0].geometry.coordinates[1], data.features[0].geometry.coordinates[0]];
+  } catch (e) {}
+  return null;
 }
-function renderEnergy(){const d=lastEnergy;if(!d)return;$('batteryPercent').textContent=Math.round(d.battery)+'%';$('batteryBar').style.width=Math.max(0,Math.min(100,d.battery))+'%';$('batteryBar').style.background=d.battery<=15?'#fb7185':d.battery<=30?'#fbbf24':'#34d399';$('distanceResult').textContent=num(d.km)+' km';$('timeResult').textContent=formatTime(route?.duration||0);$('arrivalBattery').textContent=Math.round(d.battery)+'%';$('arrivalFuel').textContent=isFuelCar()?num(d.arrivalFuel)+' L':'Não se aplica';
- $('costPanel').innerHTML=`<div class="cost-line"><span>Energia elétrica</span><b class="green">${money(d.evCost)}</b></div><div class="cost-line"><span>Gasolina equivalente</span><b>${money(d.gasCost)}</b></div><div class="cost-line"><span>Etanol equivalente</span><b>${money(d.ethCost)}</b></div><div class="cost-line total"><span>Custo estimado da viagem</span><b class="green">${money(d.total)}</b></div><div class="cost-line"><span>Economia vs. gasolina</span><b class="green">${money(d.saving)}</b></div>`;
- $('summaryGrid').innerHTML=[['Distância total',num(d.km)+' km'],['Tempo estimado',formatTime(route?.duration||0)],['Bateria inicial',Math.round(clampBattery($('startBattery').value))+'%'],['Bateria na chegada',Math.round(d.battery)+'%'],['Energia elétrica',num(d.kwh)+' kWh'],['Trecho elétrico',num(d.electricKm)+' km'],['Trecho com combustível',num(d.fuelKm)+' km'],['Combustível usado',isFuelCar()?num(d.fuel)+' L':'Não se aplica'],['Combustível na chegada',isFuelCar()?num(d.arrivalFuel)+' L':'Não se aplica'],['Custo total',money(d.total)],['Economia estimada',money(d.saving)],['Consumo ajustado',num(d.f)+' kWh/100 km']].map(x=>`<div class="summary-item"><span>${x[0]}</span><b>${safe(x[1])}</b></div>`).join('');
- const badge=$('statusBadge'),box=$('statusBox');if(selectedCar.type==='BEV'&&d.battery<=C.reservePercent){badge.className='status bad';badge.textContent='Recarga necessária';box.textContent='⚠️ A bateria estimada chega abaixo da reserva configurada. Planeje uma recarga.'}else{badge.className='status good';badge.textContent='Viagem viável';box.textContent='✅ Estimativa energética dentro dos parâmetros.'}
+
+async function updateWaypointMarkers() {
+  waypointMarkers.forEach(m => map.removeLayer(m));
+  waypointMarkers = [];
+  for (let i = 0; i < waypoints.length; i++) {
+    if (!waypoints[i].coords && waypoints[i].address) waypoints[i].coords = await geocodeFast(waypoints[i].address);
+    if (waypoints[i].coords) waypointMarkers.push(L.marker(waypoints[i].coords).addTo(map));
+  }
 }
-function renderSmartPlan(){
- const box=$('smartPlanContent'),badge=$('smartPlanBadge');
- if(!box||!route||!lastEnergy||!selectedCar)return;
- const lim=routeEnergyLimits();
- let feasible=true, safety='Alta', recommendation='Viagem viável sem intervenção obrigatória.';
- let action='';
- if(selectedCar.type==='BEV'){
-   feasible=lim.electricRange>=lim.km;
-   if(!feasible){safety='Baixa';recommendation='A autonomia disponível não cobre a rota completa.';action=findRecommendedCharge();}
-   else if(lim.electricRange-lim.km<lim.electricRange*(lim.reserve/100)){safety='Média';recommendation='A chegada fica próxima da reserva. Recomenda-se uma recarga preventiva.';action=findRecommendedCharge(true);}
- }else if(['PHEV','REEV'].includes(selectedCar.type)){
-   const totalRange=lim.electricRange+lim.fuelRange;
-   feasible=totalRange>=lim.km;
-   if(!feasible){safety='Baixa';recommendation='A combinação de bateria e combustível não cobre a rota completa.';action=findRecommendedFuelOrCharge();}
-   else if(lim.electricRange<lim.km){safety='Média';recommendation='A bateria elétrica termina antes do destino; o restante será feito com combustível.';action=findRecommendedCharge(true);}
- }else if(['HEV','MHEV'].includes(selectedCar.type)){
-   feasible=lim.fuelRange>=lim.km;
-   if(!feasible){safety='Baixa';recommendation='O combustível inicial não cobre a rota completa.';action=findRecommendedFuel();}
-   else if(lim.fuelRange-lim.km<lim.fuelRange*(lim.reserve/100)){safety='Média';recommendation='A chegada fica próxima da reserva de combustível.';action=findRecommendedFuel(true);}
- }
- badge.className='status '+(safety==='Alta'?'good':safety==='Média'?'warn':'bad');badge.textContent=feasible?'Viagem '+(safety==='Alta'?'viável':'viável com atenção'):'Planejar parada';
- const stationCost=bestChargeStation()?.price||Number($('kwhPrice').value)||0;
- const stopText=action||'Nenhuma parada obrigatória identificada.';
- const economy=(lastEnergy.saving>=0?`Economia estimada de ${money(lastEnergy.saving)} frente à gasolina.`:'');
- box.innerHTML=`<div class="smart-verdict ${feasible?'smart-ok':'smart-risk'}"><div class="smart-icon">${feasible?'✓':'!'}</div><div><strong>${safe(recommendation)}</strong><span>Segurança operacional: <b>${safety}</b></span></div></div><div class="smart-metric"><span><i class="fa-solid fa-location-dot"></i> Parada recomendada</span><b>${safe(stopText)}</b></div><div class="smart-metric"><span><i class="fa-solid fa-clock"></i> Tempo total</span><b>${formatTime(route.duration)}</b></div><div class="smart-metric"><span><i class="fa-solid fa-wallet"></i> Custo estimado</span><b>${money(lastEnergy.total)}</b><small>${safe(economy)}</small></div><div class="smart-metric"><span><i class="fa-solid fa-battery-three-quarters"></i> Estratégia energética</span><b>${smartEnergyStrategy()}</b><small>${isFuelCar()?`Combustível inicial: ${num(lastEnergy.startFuel)} L · chegada estimada: ${num(lastEnergy.arrivalFuel)} L`:`Bateria inicial: ${Math.round(lim.start)}% · chegada: ${Math.round(lastEnergy.battery)}%`}</small></div><div class="smart-metric"><span><i class="fa-solid fa-shield-halved"></i> Opção mais segura/econômica</span><b>${safe(bestStrategy())}</b><small>${stations.length} carregador(es) e ${fuelStations.length} posto(s) de combustível encontrados.</small></div>`;
+
+async function fetchWeatherForecast(lat, lng, dateStr, timeStr) {
+  const box = document.getElementById('weatherAlertBox');
+  const textElem = document.getElementById('weatherAlertText');
+  const badgeElem = document.getElementById('weatherTempBadge');
+  if (!box || !textElem || !badgeElem) return;
+
+  box.classList.remove('hidden');
+  textElem.innerHTML = "Buscando previsão do tempo...";
+  badgeElem.innerHTML = "--°C";
+
+  try {
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&hourly=temperature_2m,precipitation_probability,weathercode&timezone=auto`;
+    const res = await fetch(url);
+    const data = await res.json();
+
+    if (data && data.hourly && data.hourly.time) {
+      const times = data.hourly.time;
+      const targetDateTimeStr = `${dateStr}T${timeStr.split(':')[0]}:00`;
+      let targetIdx = 0;
+      for (let i = 0; i < times.length; i++) {
+        if (times[i] >= targetDateTimeStr) { targetIdx = i; break; }
+      }
+      const temp = data.hourly.temperature_2m[targetIdx];
+      const precipProb = data.hourly.precipitation_probability[targetIdx] || 0;
+      const weatherCode = data.hourly.weathercode[targetIdx] || 0;
+
+      let conditionDesc = "Clima Limpo / Bom";
+      let isRaining = false;
+
+      if (precipProb > 40 || (weatherCode >= 50 && weatherCode <= 67) || (weatherCode >= 80 && weatherCode <= 99)) {
+        conditionDesc = `Chuva prevista (${precipProb}% de chance)`;
+        isRaining = true;
+      } else if (weatherCode >= 1 && weatherCode <= 3) {
+        conditionDesc = "Parcialmente Nublado";
+      } else {
+        conditionDesc = "Ensolarado / Bom";
+      }
+
+      textElem.innerHTML = `🌤️ ${conditionDesc}`;
+      badgeElem.innerHTML = `${temp}°C`;
+
+      const rainCheckbox = document.getElementById('rainMode');
+      if (rainCheckbox) rainCheckbox.checked = isRaining;
+    }
+  } catch (e) {
+    textElem.innerHTML = "🌤️ Clima indisponível no momento";
+    badgeElem.innerHTML = "--°C";
+  }
 }
-function smartEnergyStrategy(){if(selectedCar.type==='BEV')return lastEnergy.battery<=C.reservePercent?'Recarregar antes de continuar':'Manter condução econômica';if(['PHEV','REEV'].includes(selectedCar.type))return lastEnergy.electricKm<lastEnergy.km?'Preservar combustível e recarregar quando conveniente':'Priorizar modo elétrico';return lastEnergy.arrivalFuel<=lastEnergy.startFuel*(C.reservePercent/100)?'Abastecer preventivamente':'Manter ritmo econômico'}
-function bestChargeStation(preferReserve=false){if(!stations.length)return null;const lim=routeEnergyLimits();const target=preferReserve?Math.max(0,lim.electricReserveRange):Math.max(0,lim.electricRange*0.65);return [...stations].sort((a,b)=>{const sa=Math.abs(a.routeKm-target)+(a.power<50?15:0)+(a.price||0)*2;const sb=Math.abs(b.routeKm-target)+(b.power<50?15:0)+(b.price||0)*2;return sa-sb})[0]}
-function findRecommendedCharge(preferReserve=false){const s=bestChargeStation(preferReserve);return s?`${s.name} · km ${num(s.routeKm)} · ${num(s.power)} kW`:'Buscar mais eletropostos antes da autonomia acabar.'}
-function findRecommendedFuel(preferReserve=false){if(!fuelStations.length)return 'Abastecer antes de atingir a reserva de combustível.';const lim=routeEnergyLimits(),target=preferReserve?lim.fuelReserveRange:lim.fuelRange*0.65,s=[...fuelStations].sort((a,b)=>Math.abs(a.routeKm-target)-Math.abs(b.routeKm-target))[0];return s?`${s.name} · km ${num(s.routeKm)} da rota`:'Abastecer antes de atingir a reserva de combustível.'}
-function findRecommendedFuelOrCharge(){const c=bestChargeStation(true);const f=fuelStations.length?fuelStations[0]:null;if(c&&(!f||c.routeKm<=f.routeKm))return findRecommendedCharge(true);return findRecommendedFuel(true)}
-function bestStrategy(){if(selectedCar.type==='BEV')return stations.length?'Recarregar em um ponto rápido antes da reserva':'Reduzir consumo e ampliar a busca por eletropostos';if(['PHEV','REEV'].includes(selectedCar.type))return stations.length&&lastEnergy.fuelKm>0?'Recarga estratégica para ampliar o trecho elétrico':'Usar combustível após a autonomia elétrica';return fuelStations.length?'Abastecimento preventivo antes da reserva':'Manter condução econômica e planejar abastecimento'}
-function renderDetailedSummary(){if(!lastEnergy||!selectedCar||!route)return;const stops=waypoints.filter((w,i)=>i>0&&w.type!=='return').map(w=>w.label+' — '+w.address).join('<br>')||'Nenhuma parada adicional';const routeNames=waypoints.map(w=>`${w.label}: ${w.address||'não informado'}`).join('<br>');const mode=$('driveMode').selectedOptions[0]?.textContent||'Normal',ac=$('acMode').selectedOptions[0]?.textContent||'Ligado';const stationVisible=stations.length;const stationText=stations.slice(0,6).map((s,i)=>`${i+1}. ${safe(s.name)} — ${num(s.routeKm)} km da rota · ${safe(s.type)} · ${num(s.power)} kW${s.price?' · '+money(s.price)+'/kWh':''}`).join('<br>')||'Nenhum ponto disponível';const weather=lastWeather?`${num(lastWeather.temp)}°C · ${lastWeather.rain}% de probabilidade de chuva`:'Indisponível';$('summaryDetails').innerHTML=`<div class="detail-block"><h3>🚗 Veículo</h3><p><b>${safe(selectedCar.brand)} ${safe(selectedCar.model)} ${safe(selectedCar.version||'')}</b><br>${safe(typeName(selectedCar.type))} · ${safe(selectedCar.power||'Potência não informada')} · ${selectedCar.battery?num(selectedCar.battery)+' kWh de bateria':'Bateria não informada'} · ${selectedCar.range?num(selectedCar.range)+' km de autonomia de referência':'Autonomia não informada'}</p></div><div class="detail-block"><h3>📍 Rota</h3><p>${routeNames}</p><p><b>Paradas extras:</b><br>${stops}</p></div><div class="detail-block"><h3>⚡ Energia e combustível</h3><p>Bateria inicial: <b>${Math.round(clampBattery($('startBattery').value))}%</b><br>Energia prevista: <b>${num(lastEnergy.kwh)} kWh</b><br>Trecho elétrico: <b>${num(lastEnergy.electricKm)} km</b><br>Trecho a combustível: <b>${num(lastEnergy.fuelKm)} km</b><br>Combustível inicial: <b>${isFuelCar()?num(lastEnergy.startFuel)+' L':'Não se aplica'}</b><br>Combustível previsto na chegada: <b>${isFuelCar()?num(lastEnergy.arrivalFuel)+' L':'Não se aplica'}</b></p></div><div class="detail-block"><h3>💰 Custos</h3><p>Energia elétrica: <b>${money(lastEnergy.evCost)}</b><br>Gasolina equivalente: <b>${money(lastEnergy.gasCost)}</b><br>Etanol equivalente: <b>${money(lastEnergy.ethCost)}</b><br>Custo estimado: <b>${money(lastEnergy.total)}</b><br>Economia estimada: <b>${money(lastEnergy.saving)}</b></p></div><div class="detail-block"><h3>🔌 Carregamento</h3><p>${stationText}</p></div><div class="detail-block"><h3>🧭 Condições do planejamento</h3><p>Condução: <b>${safe(mode)}</b> · Climatização: <b>${safe(ac)}</b><br>Chuva: <b>${$('rainMode').checked?'Sim':'Não'}</b> · Relevo: <b>${$('elevationMode').checked?'Considerado':'Não considerado'}</b> · Trânsito: <b>${$('trafficMode').checked?'Considerado no planejamento':'Não considerado'}</b><br>Clima de saída: <b>${weather}</b><br>Pontos de carregamento encontrados: <b>${stationVisible}</b></p></div>`}
-function formatTime(sec){const m=Math.round(Number(sec||0)/60),h=Math.floor(m/60),r=m%60;return h?`${h}h ${r}min`:`${r} min`}
-function drawRange(){if(rangeLayer){map.removeLayer(rangeLayer);rangeLayer=null}if(!$('showRange').checked||!selectedCar?.range||!waypoints[0]?.coords)return;const pct=clampBattery($('startBattery').value),r=selectedCar.range*pct/100,lat=waypoints[0].coords[0],lng=waypoints[0].coords[1];rangeLayer=L.circle([lat,lng],{radius:r*1000,color:'#34d399',fillColor:'#34d399',fillOpacity:.08,weight:2,dashArray:'6 6'}).addTo(map).bindPopup(`Alcance teórico inicial: ${num(r)} km`)}
-function nearest(lat,lng){const cs=route.geometry.coordinates;let best={distance:Infinity,routeKm:0},acc=0;const p=L.latLng(lat,lng);for(let i=1;i<cs.length;i++){const a=L.latLng(cs[i-1][1],cs[i-1][0]),b=L.latLng(cs[i][1],cs[i][0]),seg=a.distanceTo(b)/1000,da=p.distanceTo(a)/1000,db=p.distanceTo(b)/1000,d=Math.min(da,db);if(d<best.distance)best={distance:d,routeKm:acc+Math.min(da,seg)};acc+=seg}return best}
-function stationFromOSM(x){const t=x.tags||{},lat=x.lat??x.center?.lat,lon=x.lon??x.center?.lon;if(lat==null||lon==null)return null;const n=nearest(lat,lon);if(n.distance>stationSearchRadius)return null;const text=JSON.stringify(t).toLowerCase();const rawPower=Number(String(t.charge_speed||t.maxoutput||t.capacity||'').match(/[0-9]+(?:\.[0-9]+)?/)?.[0]);const power=rawPower||(/350/.test(text)?350:/250/.test(text)?250:/150/.test(text)?150:/120/.test(text)?120:/100/.test(text)?100:/60/.test(text)?60:/50/.test(text)?50:22);const type=/ccs|chademo|dc|fast/.test(text)?'DC':'AC';return {id:'osm-'+(x.id||`${lat}-${lon}`),lat,lng:lon,name:t.name||t.operator||'Eletroposto OSM',city:t['addr:city']||t.city||t.town||t.municipality||'Rota',power,type,routeKm:n.routeKm,brand:t.operator||'',model:t.model||'',connector:t.socket||t.connector||(type==='DC'?'CCS2':'Type 2'),price:Number(t['charge:fee'])||0,points:Number(t.capacity)||1,source:'OSM'} }
-async function queryOverpass(radius){
- const cs=route.geometry.coordinates;const indexes=[0,.14,.28,.42,.56,.70,.84,1].map(p=>Math.min(cs.length-1,Math.floor(cs.length*p))).filter((v,i,a)=>a.indexOf(v)===i);const around=indexes.map(i=>{const c=cs[i];return `nwr["amenity"="charging_station"](around:${Math.round(radius*1000)},${c[1]},${c[0]});`}).join('');const q=`[out:json][timeout:12];(${around});out center tags;`;
- const tasks=(C.services.overpass||[]).map(ep=>fetch(ep,{method:'POST',body:q,signal:(()=>{const c=new AbortController();setTimeout(()=>c.abort(),C.requestTimeoutMs||9000);return c.signal})(),headers:{'Content-Type':'text/plain'}}).then(r=>r.ok?r.json():Promise.reject(Error('Overpass'))).then(d=>d.elements||[]).catch(()=>[]));const results=await Promise.all(tasks);const all=[];const seen=new Set();results.flat().forEach(x=>{const k=x.type+'-'+x.id;if(!seen.has(k)){seen.add(k);all.push(x)}});return all
+
+function drawBatteryIsochronePolyline(startCoords, rangeKm) {
+  if (isochronePolygon) map.removeLayer(isochronePolygon);
+  const toggle = document.getElementById('showIsochrone');
+  if (!toggle || !toggle.checked || !startCoords) return;
+
+  const points = [];
+  const numPoints = 32;
+  const lat = startCoords[0];
+  const lng = startCoords[1];
+  const latRadius = rangeKm / 111.0;
+  const lngRadius = rangeKm / (111.0 * Math.cos(lat * Math.PI / 180));
+
+  for (let i = 0; i < numPoints; i++) {
+    const angle = (i / numPoints) * (2 * Math.PI);
+    points.push([lat + (latRadius * Math.sin(angle)), lng + (lngRadius * Math.cos(angle))]);
+  }
+
+  isochronePolygon = L.polygon(points, {
+    color: '#10b981', fillColor: '#34d399', fillOpacity: 0.12, weight: 2, dashArray: '5, 5'
+  }).addTo(map).bindPopup(`<b>Raio Elétrico Inicial</b><br>Autonomia estimada: ${Math.round(rangeKm)} km.`);
 }
-async function loadStations(wide=false){
- if(!route)return;
- const status=$('stationSearchStatus');if(status){status.classList.remove('hidden');status.textContent=wide?'🔎 Ampliando busca de eletropostos…':'🔎 Localizando eletropostos na rota…'}
- const radius=stationSearchRadius;
- const routeKey=route.geometry.coordinates.filter((_,i,a)=>i%Math.max(1,Math.floor(a.length/30))===0).map(c=>`${c[0].toFixed(3)},${c[1].toFixed(3)}`).join('|');
- const cacheKey=`${radius}|${routeKey}`;
- let osmElements=stationCache.get(cacheKey);
- if(!osmElements){osmElements=cacheRead('evp3_station_'+btoa(unescape(encodeURIComponent(cacheKey))).replace(/[^a-zA-Z0-9]/g,''),C.stationCacheTtlMs||1800000)||await queryOverpass(radius);stationCache.set(cacheKey,osmElements);cacheWrite('evp3_station_'+btoa(unescape(encodeURIComponent(cacheKey))).replace(/[^a-zA-Z0-9]/g,''),osmElements)}
- const unique=new Map();
- manualStations.forEach(s=>{const n=nearest(s.lat,s.lng);if(n.distance<=radius)unique.set(s.id||`manual-${s.lat}-${s.lng}`,{...s,routeKm:n.routeKm,source:'Manual'})});
- const fixed=[[-8.1888,-35.5069,'Planeta Charger - Gravatá','Gravatá / PE',120,'DC'],[-7.3957,-34.9552,'Planeta Charger - Pedras de Fogo','Pedras de Fogo / PB',60,'DC'],[-9.6658,-35.7353,'Eletroposto BR-101 - Maceió','Maceió / AL',50,'DC'],[-10.9472,-37.0731,'Shell Recharge - Aracaju','Aracaju / SE',150,'DC'],[-12.9714,-38.5014,'Eletroposto Salvador','Salvador / BA',150,'DC']];
- fixed.forEach(s=>{const n=nearest(s[0],s[1]);if(n.distance<=radius)unique.set('fixed-'+s[0]+s[1],{lat:s[0],lng:s[1],name:s[2],city:s[3],power:s[4],type:s[5],routeKm:n.routeKm,source:'Base'})});
- osmElements.forEach(x=>{const s=stationFromOSM(x);if(!s)return;const key=`${s.lat.toFixed(4)}|${s.lng.toFixed(4)}`;if(!unique.has(key))unique.set(key,s)});
- stations=[...unique.values()].sort((a,b)=>a.routeKm-b.routeKm);renderStations();renderDetailedSummary();renderSmartPlan();drawRoute();if(status){status.classList.add('hidden');status.textContent=''}if(!wide&&stations.length<4)toast('Poucos pontos encontrados. Use “Buscar mais” para ampliar a busca.');
+
+function getMinDistanceToRouteInKm(lat, lng, routeCoords) {
+  let minDistance = Infinity;
+  let closestPointIndex = 0;
+  let accumulatedDist = 0;
+  const step = Math.max(1, Math.floor(routeCoords.length / 300));
+
+  for (let i = 0; i < routeCoords.length - step; i += step) {
+    const ptA = L.latLng(routeCoords[i][1], routeCoords[i][0]);
+    if (i > 0) {
+      accumulatedDist += ptA.distanceTo(L.latLng(routeCoords[i - step][1], routeCoords[i - step][0])) / 1000;
+    }
+    const d = L.latLng(lat, lng).distanceTo(ptA) / 1000;
+    if (d < minDistance) {
+      minDistance = d;
+      closestPointIndex = accumulatedDist;
+    }
+  }
+  return { minDistance, routeKm: Math.round(closestPointIndex) };
 }
-function renderStations(){stationMarkers.forEach(m=>map.removeLayer(m));stationMarkers=[];const connector=$('stationConnectorFilter')?.value||'';const visible=stations.filter(s=>((s.type==='DC'&&$('filterDC').checked)||(s.type==='AC'&&$('filterAC').checked))&&(!connector||String(s.connector||'').toLowerCase().includes(connector.toLowerCase())));$('stationCount').textContent=visible.length+' encontrados';const list=$('stationsList');list.innerHTML=visible.length?visible.map((s,i)=>{const bat=estimateBattery(s.routeKm);const icon=L.divIcon({className:'',html:'<div class="pin">⚡</div>',iconSize:[30,30],iconAnchor:[15,15]});const m=L.marker([s.lat,s.lng],{icon}).addTo(map).bindPopup(`<b>${safe(s.name)}</b><br>${safe(s.city)}<br>${num(s.routeKm)} km · ${s.type} · ${s.power} kW`);stationMarkers.push(m);return `<div class="station-item"><div><b>${i+1}. ${safe(s.name)}</b><span>${safe(s.city)} · ${num(s.routeKm)} km da rota</span><small>${safe(s.type)} · ${num(s.power)} kW · ${safe(s.points||1)} ponto(s)${s.brand?' · '+safe(s.brand):''}${s.connector?' · '+safe(s.connector):''}${s.source==='Manual'?' · Manual':''}</small></div><div class="station-side"><strong class="${bat<=15?'danger-text':'green'}">${Math.round(bat)}%</strong><button class="btn secondary" onclick="window.__focusStation(${s.lat},${s.lng})">Ver</button>${s.source==='Manual'?`<button class="btn ghost" onclick="window.__editStation('${safe(s.id)}')">Editar</button>`:''}</div></div>`}).join(''):'<div class="empty">Nenhum eletroposto encontrado com os filtros atuais.</div>'}
-window.__focusStation=(lat,lng)=>{map.setView([lat,lng],15);const marker=stationMarkers.find(m=>{const p=m.getLatLng();return Math.abs(p.lat-lat)<.0001&&Math.abs(p.lng-lng)<.0001});if(marker)marker.openPopup()};
-function estimateBattery(km){if(!selectedCar||!['BEV','PHEV','REEV'].includes(selectedCar.type))return 100;const c=(selectedCar._calcConsumption||selectedCar.consumption||0)*factors(),kwh=km*c/100,cap=Number(selectedCar.battery)||0,start=clampBattery($('startBattery').value);return cap?Math.max(0,start-kwh/cap*100):start}
-async function queryFuelOverpass(radius){
- const cs=route.geometry.coordinates;const indexes=[0,.13,.26,.39,.52,.65,.78,.91,1].map(p=>Math.min(cs.length-1,Math.floor(cs.length*p))).filter((v,i,a)=>a.indexOf(v)===i);const around=indexes.map(i=>{const c=cs[i];return `nwr["amenity"="fuel"](around:${Math.round(radius*1000)},${c[1]},${c[0]});`}).join('');const q=`[out:json][timeout:12];(${around});out center tags;`;
- const tasks=(C.services.overpass||[]).map(ep=>fetch(ep,{method:'POST',body:q,signal:(()=>{const c=new AbortController();setTimeout(()=>c.abort(),C.requestTimeoutMs||9000);return c.signal})(),headers:{'Content-Type':'text/plain'}}).then(r=>r.ok?r.json():Promise.reject(Error('Overpass'))).then(d=>d.elements||[]).catch(()=>[]));const results=await Promise.all(tasks);const seen=new Set(),out=[];results.flat().forEach(x=>{const k=x.type+'-'+x.id;if(seen.has(k))return;seen.add(k);const t=x.tags||{},lat=x.lat??x.center?.lat,lon=x.lon??x.center?.lon;if(lat==null||lon==null)return;const n=nearest(lat,lon);if(n.distance<=radius)out.push({id:'fuel-'+x.id,lat,lng:lon,name:t.name||t.operator||'Posto de combustível',city:t['addr:city']||t.city||t.town||t.municipality||'',brand:t.brand||t.operator||'',routeKm:n.routeKm,source:'OSM'})});return out.sort((a,b)=>a.routeKm-b.routeKm)
+
+async function fetchCityStateFromCoords(lat, lng) {
+  try {
+    const res = await fetch(`https://photon.komoot.io/reverse?lat=${lat}&lon=${lng}`);
+    const data = await res.json();
+    if (data && data.features && data.features.length > 0) {
+      const props = data.features[0].properties;
+      const city = props.city || props.town || props.village || props.county || "Localidade";
+      const stateFull = props.state || "";
+      const uf = ufMap[stateFull] || stateFull || "BR";
+      return `${city} / ${uf}`;
+    }
+  } catch (e) {}
+  return "Rodovia / BR";
 }
-async function loadFuelStations(){
- if(!route||!isFuelCar())return;
- const radius=stationSearchRadius;const key=route.geometry.coordinates.filter((_,i,a)=>i%Math.max(1,Math.floor(a.length/30))===0).map(c=>`${c[0].toFixed(3)},${c[1].toFixed(3)}`).join('|');const ck=`${radius}|${key}`;let data=cacheRead('evp3_fuel_'+btoa(unescape(encodeURIComponent(ck))).replace(/[^a-zA-Z0-9]/g,''),C.fuelCacheTtlMs||1800000);if(!data)data=await queryFuelOverpass(radius);fuelStations=data||[];cacheWrite('evp3_fuel_'+btoa(unescape(encodeURIComponent(ck))).replace(/[^a-zA-Z0-9]/g,''),fuelStations);renderFuelMarkers();renderSmartPlan();}
-function renderFuelMarkers(){fuelMarkers.forEach(m=>map.removeLayer(m));fuelMarkers=[];if(!isFuelCar())return;fuelStations.slice(0,40).forEach(s=>{const icon=L.divIcon({className:'',html:'<div class="pin fuel-pin">⛽</div>',iconSize:[30,30],iconAnchor:[15,15]});const m=L.marker([s.lat,s.lng],{icon}).addTo(map).bindPopup(`<b>${safe(s.name)}</b><br>${safe(s.city)}<br>${num(s.routeKm)} km da rota${s.brand?' · '+safe(s.brand):''}`);fuelMarkers.push(m)})}
-async function loadWeather(){const o=waypoints[0]?.coords;if(!o)return;const box=$('weatherBox');box.classList.remove('hidden');try{const r=await fetch(`${C.services.weather}?latitude=${o[0]}&longitude=${o[1]}&hourly=temperature_2m,precipitation_probability,weathercode&timezone=auto`);const d=await r.json();const date=$('departureDate').value,time=$('departureTime').value||'08:00',target=`${date}T${time.slice(0,2)}:00`,i=Math.max(0,d.hourly.time.findIndex(x=>x>=target)),temp=d.hourly.temperature_2m[i],rain=d.hourly.precipitation_probability[i]||0;lastWeather={temp,rain};box.textContent=`🌡️ ${temp}°C · 🌧️ ${rain}% de probabilidade de chuva`;if(rain>=40&&!$('rainMode').checked){$('rainMode').checked=true;calculateEnergy();renderDetailedSummary()}}catch{lastWeather=null;box.textContent='🌤️ Clima indisponível.'}}
-function saveESG(){if(!route||!lastEnergy)return;const gasEq=route.distance/1000/(Number(selectedCar.gasKm)||12),co2=gasEq*C.co2KgPerLiter;esg.trips++;esg.km+=lastEnergy.km;esg.savings+=lastEnergy.saving;esg.co2+=co2;persistESG()}
-function persistESG(){localStorage.setItem('evp3_esg',JSON.stringify(esg))}
-function renderESG(){$('esgGrid').innerHTML=[['Viagens',esg.trips],['Km planejados',num(esg.km)+' km'],['Economia acumulada',money(esg.savings)],['CO₂ evitado*',num(esg.co2)+' kg']].map(x=>`<div class="summary-item"><span>${x[0]}</span><b>${x[1]}</b></div>`).join('')}
-function closeStationModal(){toggleMapPicker(false);$('stationModal').classList.add('hidden')}
-async function searchStationAddress(){const q=$('stationAddress').value.trim();if(q.length<3)return toast('Digite pelo menos 3 caracteres.');const data=await geocodeSearch(q,1,'stationSearch');const f=data[0];if(!f)return toast('Endereço não encontrado.');applyStationFeature(f);toast('Endereço localizado.')}
-function setupStationAddressAutocomplete(){const input=$('stationAddress'),res=$('stationAddressResults');clearTimeout(setupStationAddressAutocomplete.t);const q=input.value.trim();if(q.length<3){res.classList.add('hidden');return}setupStationAddressAutocomplete.t=setTimeout(async()=>{const data=await geocodeSearch(q,5,'station');res.innerHTML=data.map((f,i)=>`<div class="autocomplete-item" data-j="${i}">📍 ${safe(formatFeature(f))}</div>`).join('');res.classList.toggle('hidden',!data.length);res.querySelectorAll('.autocomplete-item').forEach((el,i)=>el.onclick=()=>{applyStationFeature(data[i]);res.classList.add('hidden')})},C.geocodeDebounce)}
-function applyStationFeature(f){$('stationAddress').value=formatFeature(f);$('stationLat').value=f.geometry.coordinates[1];$('stationLng').value=f.geometry.coordinates[0];$('stationAddressStatus').textContent='✓ Localização definida pelas coordenadas selecionadas.';const p=f.properties||{};if(!$('stationCity').value)$('stationCity').value=p.city||p.town||p.municipality||'';map.setView([Number($('stationLat').value),Number($('stationLng').value)],15)}
-function toggleMapPicker(force){mapPicking=typeof force==='boolean'?force:!mapPicking;$('mapPickerHint').classList.toggle('hidden',!mapPicking);$('stationPickMapBtn').classList.toggle('active',mapPicking);if(mapPicking){$('stationModal').classList.add('hidden');toast('Clique no mapa para escolher a posição do ponto.')}}
-async function onMapClick(e){if(!mapPicking)return;const {lat,lng}=e.latlng;$('stationLat').value=lat.toFixed(6);$('stationLng').value=lng.toFixed(6);$('stationAddressStatus').textContent='✓ Posição escolhida no mapa. Buscando endereço...';try{const data=await fetch(`${C.services.geocode.replace('/api/','/reverse')}?lat=${lat}&lon=${lng}`).then(r=>r.json());const f=data.features?.[0];if(f){$('stationAddress').value=formatFeature(f);const p=f.properties||{};if(!$('stationCity').value)$('stationCity').value=p.city||p.town||p.municipality||''}}catch{}$('stationAddressStatus').textContent='✓ Posição escolhida no mapa.';toggleMapPicker(false);$('stationModal').classList.remove('hidden');$('stationAddress').focus()}
-function resetStationForm(){['stationName','stationBrand','stationModel','stationPower','stationPrice','stationCity','stationConnector','stationLat','stationLng','stationNotes','stationAddress'].forEach(id=>{if($(id))$(id).value=''});$('stationPoints').value=1;$('stationType').value='DC';$('stationAddressStatus').textContent='Você também pode informar as coordenadas manualmente.';editingStationId=null}
-function openStationModal(editId){editingStationId=editId||null;const s=manualStations.find(x=>x.id===editId);if(s){$('stationName').value=s.name||'';$('stationBrand').value=s.brand||'';$('stationType').value=s.type||'DC';$('stationModel').value=s.model||'';$('stationPower').value=s.power??'';$('stationPrice').value=s.price??'';$('stationPoints').value=s.points||1;$('stationCity').value=s.city||'';$('stationConnector').value=s.connector||'';$('stationLat').value=s.lat??'';$('stationLng').value=s.lng??'';$('stationNotes').value=s.notes||'';$('stationAddress').value=s.address||'';$('stationAddressStatus').textContent='✓ Editando ponto salvo.'}else resetStationForm();$('stationModal').classList.remove('hidden');$('stationName').focus()}
-window.__editStation=id=>openStationModal(id);
-window.__deleteStation=id=>{if(!confirm('Excluir este ponto manual?'))return;manualStations=manualStations.filter(s=>s.id!==id);localStorage.setItem('evp3_stations',JSON.stringify(manualStations));renderManualStations();if(route)loadStations(true);toast('Ponto excluído.')};
-function renderManualStations(){const box=$('manualStationsList');if(!box)return;box.innerHTML=manualStations.length?manualStations.map(s=>`<div class="manual-station-row"><div><b>${safe(s.name)}</b><span>${safe(s.city||'Local não informado')} · ${safe(s.type)} · ${num(s.power)} kW${s.connector?' · '+safe(s.connector):''}</span></div><div><button class="btn secondary" onclick="window.__editStation('${safe(s.id)}');closeStationManager()">Editar</button><button class="btn danger" onclick="window.__deleteStation('${safe(s.id)}')">Excluir</button></div></div>`).join(''):'<div class="empty">Nenhum ponto manual cadastrado.</div>'}
-function openStationManager(){renderManualStations();$('stationManagerModal').classList.remove('hidden')}
-function closeStationManager(){$('stationManagerModal').classList.add('hidden')}
-window.__closeStationManager=closeStationManager
-function saveStation(){const name=$('stationName').value.trim(),lat=Number($('stationLat').value),lng=Number($('stationLng').value),power=Number($('stationPower').value);if(!name||!Number.isFinite(lat)||!Number.isFinite(lng)||!Number.isFinite(power)||power<0)return toast('Preencha nome, localização e potência do ponto.');const s={id:editingStationId||'manual-'+Date.now(),name,address:$('stationAddress').value.trim(),brand:$('stationBrand').value.trim(),type:$('stationType').value,model:$('stationModel').value.trim(),power,price:Number($('stationPrice').value)||0,points:Math.max(1,Number($('stationPoints').value)||1),city:$('stationCity').value.trim(),connector:$('stationConnector').value.trim(),lat,lng,notes:$('stationNotes').value.trim()};if(editingStationId)manualStations=manualStations.map(x=>x.id===editingStationId?s:x);else manualStations.push(s);localStorage.setItem('evp3_stations',JSON.stringify(manualStations));renderManualStations();closeStationModal();toast(editingStationId?'Ponto atualizado.':'Ponto de carregamento salvo.');editingStationId=null;if(route)loadStations(true)}
-function exportPDF(){if(!route){toast('Calcule uma viagem antes de exportar.');return}const opt={margin:7,filename:'EV-Planner-Pro-3.4-'+Date.now()+'.pdf',image:{type:'jpeg',quality:.95},html2canvas:{scale:1.5,useCORS:true},jsPDF:{unit:'mm',format:'a4',orientation:'portrait'}};html2pdf().set(opt).from(document.querySelector('.app-shell')).save()}
-function exportBackup(){const payload={version:C.version,settings:{battery:$('startBattery').value,fuel:$('startFuel').value,kwh:$('kwhPrice').value,gas:$('gasPrice').value,ethanol:$('ethanolPrice').value},favorites,savedPlaces,manualStations,esg,vehicle:selectedCar};const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(payload,null,2)],{type:'application/json'}));a.download='ev-planner-pro-3.4-backup.json';a.click();URL.revokeObjectURL(a.href)}
-function importBackup(e){const f=e.target.files?.[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(d.settings){$('startBattery').value=clampBattery(d.settings.battery??$('startBattery').value);$('startFuel').value=d.settings.fuel??$('startFuel').value;$('kwhPrice').value=d.settings.kwh??$('kwhPrice').value;$('gasPrice').value=d.settings.gas??$('gasPrice').value;$('ethanolPrice').value=d.settings.ethanol??$('ethanolPrice').value;saveSettings();syncBatteryUI(false)}if(Array.isArray(d.favorites)){favorites=d.favorites;localStorage.setItem('evp3_places',JSON.stringify(favorites));renderFavorites()}if(d.savedPlaces){savedPlaces=d.savedPlaces;localStorage.setItem('evp3_saved_places',JSON.stringify(savedPlaces))}if(Array.isArray(d.manualStations)){manualStations=d.manualStations;localStorage.setItem('evp3_stations',JSON.stringify(manualStations))}if(d.esg){esg=d.esg;persistESG();renderESG()}toast('Backup importado.')}catch{toast('Arquivo de backup inválido.')}};r.readAsText(f)}
-function copySummary(){if(!lastEnergy){toast('Calcule uma viagem primeiro.');return}const routeText=waypoints.map(w=>`${w.label}: ${w.address}`).join('\n');const t=`EV Planner Pro 3.4\nVeículo: ${selectedCar.brand} ${selectedCar.model} ${selectedCar.version||''}\nTipo: ${typeName(selectedCar.type)}\n\n${routeText}\n\nDistância: ${num(lastEnergy.km)} km\nTempo: ${formatTime(route.duration)}\nBateria inicial: ${Math.round(clampBattery($('startBattery').value))}%\nBateria chegada: ${Math.round(lastEnergy.battery)}%\nEnergia elétrica: ${num(lastEnergy.kwh)} kWh\nTrecho elétrico: ${num(lastEnergy.electricKm)} km\nCombustível usado: ${isFuelCar()?num(lastEnergy.fuel)+' L':'Não se aplica'}\nCusto: ${money(lastEnergy.total)}\nEconomia: ${money(lastEnergy.saving)}\nPontos de carregamento encontrados: ${stations.length}`;navigator.clipboard?.writeText(t).then(()=>toast('Resumo copiado.')).catch(()=>toast('Não foi possível copiar automaticamente.'))}
-window.addEventListener('load',init);
-})();
+
+// OTIMIZAÇÃO CRÍTICA DE ALTA VELOCIDADE PARA ROTAS LONGAS
+async function fetchRouteStationsFromOSM(routeGeometry) {
+  const countLabel = document.getElementById('stationsCount');
+  if (countLabel) countLabel.innerText = "Buscando eletropostos na rota...";
+  
+  const routeCoords = routeGeometry.coordinates;
+  const uniqueMap = new Map();
+
+  // 1. Postos manuais de rodovia de alta prioridade
+  for (const mStation of manualStationsDatabase) {
+    const routeMatch = getMinDistanceToRouteInKm(mStation.lat, mStation.lng, routeCoords);
+    if (routeMatch.minDistance <= 40) {
+      uniqueMap.set(`${mStation.lat.toFixed(3)}_${mStation.lng.toFixed(3)}`, {
+        id: `manual_${Math.random()}`, name: mStation.name, cityState: mStation.cityState,
+        lat: mStation.lat, lng: mStation.lng, power: mStation.power, type: mStation.type,
+        distToRoute: routeMatch.minDistance, routeKm: routeMatch.routeKm, operationalStatus: mStation.operationalStatus
+      });
+    }
+  }
+
+  // 2. Coleta de Amostras ao longo de rotas longas para acelerar resposta
+  const samplePoints = [];
+  const numSamples = Math.min(10, Math.max(3, Math.floor(routeCoords.length / 150)));
+  const step = Math.floor(routeCoords.length / numSamples);
+
+  for (let i = 0; i < routeCoords.length; i += step) {
+    samplePoints.push(routeCoords[i]);
+  }
+  if (routeCoords.length > 0) samplePoints.push(routeCoords[routeCoords.length - 1]);
+
+  // Consulta paralela otimizada por bounding box focalizada
+  const queryPromises = samplePoints.map(async (pt) => {
+    const lat = pt[1];
+    const lng = pt[0];
+    const bbox = `${lat - 0.8},${lng - 0.8},${lat + 0.8},${lng + 0.8}`;
+
+    const query = `[out:json][timeout:6];
+    (
+      node["amenity"="charging_station"](${bbox});
+      node["amenity"="ev_charging"](${bbox});
+    );
+    out body 40;`;
+
+    try {
+      const res = await fetch('https://overpass-api.de/api/interpreter', { method: 'POST', body: query });
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.elements) {
+          for (const item of data.elements) {
+            const elLat = item.lat;
+            const elLng = item.lon;
+            if (!elLat || !elLng) continue;
+            const key = `${elLat.toFixed(3)}_${elLng.toFixed(3)}`;
+            if (uniqueMap.has(key)) continue;
+
+            const routeMatch = getMinDistanceToRouteInKm(elLat, elLng, routeCoords);
+            if (routeMatch.minDistance <= 25) {
+              const tags = item.tags || {};
+              const name = tags.name || tags.operator || tags.brand || `Eletroposto BR`;
+              const isDC = tags['socket:ccs'] || tags['socket:type2_combo'] || (tags.description && tags.description.toLowerCase().includes('dc'));
+
+              uniqueMap.set(key, {
+                id: item.id, name: name, cityState: `${elLat.toFixed(2)}, ${elLng.toFixed(2)}`,
+                lat: elLat, lng: elLng,
+                power: isDC ? 'CCS2 Ultra-Rápido DC (50-150kW)' : 'AC Wallbox (7-22kW)',
+                type: isDC ? 'DC' : 'AC', distToRoute: routeMatch.minDistance, routeKm: routeMatch.routeKm,
+                operationalStatus: "Disponível"
+              });
+            }
+          }
+        }
+      }
+    } catch (err) {}
+  });
+
+  await Promise.all(queryPromises);
+
+  const rawStations = Array.from(uniqueMap.values());
+  rawStations.sort((a, b) => a.routeKm - b.routeKm);
+  fetchedStations = rawStations;
+}
+
+function renderStationsOnMapAndTable(totalDistKm, initialRangeKm) {
+  stationMarkers.forEach(m => map.removeLayer(m));
+  stationMarkers = [];
+
+  const tbody = document.getElementById('stationsTableBody');
+  if (!tbody) return;
+  tbody.innerHTML = '';
+
+  const countLabel = document.getElementById('stationsCount');
+  if (countLabel) countLabel.innerText = `${fetchedStations.length} encontrados na rota`;
+
+  if (fetchedStations.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="8" class="p-3 text-center text-slate-400">Nenhum eletroposto encontrado ao longo desta rota.</td></tr>`;
+    return;
+  }
+
+  const abrpIcon = L.divIcon({
+    className: 'custom-abrp-pin',
+    html: `<div class="abrp-charger-pin"><i class="fa-solid fa-bolt"></i></div>`,
+    iconSize: [28, 28],
+    iconAnchor: [14, 14]
+  });
+
+  fetchedStations.forEach((station, index) => {
+    const marker = L.marker([station.lat, station.lng], { icon: abrpIcon }).addTo(map).bindPopup(`<b>#${index + 1} ⚡ ${station.name}</b><br>Km ${station.routeKm} da rota`);
+    stationMarkers.push(marker);
+
+    let battAtArrival = Math.max(0, 100 - Math.round((station.routeKm / initialRangeKm) * 100));
+    let operationMsg = "Ponto de Carga na Rota";
+    if (station.routeKm > initialRangeKm) {
+      battAtArrival = 0;
+      const deficitKm = station.routeKm - initialRangeKm;
+      const neededRechargePct = Math.min(100, Math.ceil((deficitKm / selectedCar.range) * 100));
+      operationMsg = `⚠️ Recarregar +${neededRechargePct}% aqui`;
+    }
+
+    const tr = document.createElement('tr');
+    tr.className = "hover:bg-blue-900/30 transition text-xs md:text-sm";
+    tr.innerHTML = `
+      <td class="p-2 font-bold text-amber-400 whitespace-nowrap">#${index + 1}</td>
+      <td class="p-2 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-950 text-emerald-400 border border-emerald-600">🟢 Livre</span></td>
+      <td class="p-2 font-semibold text-white whitespace-nowrap"><i class="fa-solid fa-charging-station text-yellow-400 mr-1"></i> ${station.name} (Km ${station.routeKm})</td>
+      <td class="p-2 text-emerald-300 font-bold whitespace-nowrap">${station.cityState || 'Rodovia / Trecho'}</td>
+      <td class="p-2 text-center whitespace-nowrap font-bold ${battAtArrival > 15 ? 'text-emerald-400' : 'text-red-400'}">${battAtArrival}%</td>
+      <td class="p-2 text-center whitespace-nowrap font-bold text-amber-300">${operationMsg}</td>
+      <td class="p-2 whitespace-nowrap"><span class="bg-blue-900 text-blue-100 px-2 py-0.5 rounded border border-blue-700 text-xs">${station.power}</span></td>
+      <td class="p-2 text-right whitespace-nowrap"><button onclick="map.setView([${station.lat}, ${station.lng}], 14)" class="bg-blue-600 text-white font-bold px-2.5 py-1 rounded text-xs">Ver</button></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+async function calculateMultiRoute() {
+  const calcBtn = document.getElementById('calcBtn');
+  const calcBtnText = document.getElementById('calcBtnText');
+  const calcBtnIcon = document.getElementById('calcBtnIcon');
+  const progressBar = document.getElementById('calcProgressBar');
+  const toast = document.getElementById('routeToast');
+
+  if (calcBtn) calcBtn.disabled = true;
+  if (calcBtnText) calcBtnText.innerText = "Calculando rota...";
+  if (calcBtnIcon) calcBtnIcon.className = "fa-solid fa-spinner fa-spin";
+  if (progressBar) progressBar.classList.remove('hidden');
+
+  try {
+    for (let i = 0; i < waypoints.length; i++) {
+      const val = document.getElementById(`wpInput_${i}`)?.value;
+      if (val) waypoints[i].address = val;
+      if (waypoints[i].address && !waypoints[i].coords) {
+        waypoints[i].coords = await geocodeFast(waypoints[i].address);
+      }
+    }
+
+    await updateWaypointMarkers();
+    const validCoords = waypoints.filter(w => w.coords).map(w => `${w.coords[1]},${w.coords[0]}`);
+    if (validCoords.length < 2) { alert("Informe a Origem e pelo menos um Destino."); return; }
+
+    if (waypoints[0] && waypoints[0].coords) {
+      const depDate = document.getElementById('departureDate')?.value || new Date().toISOString().split('T')[0];
+      const depTime = document.getElementById('departureTime')?.value || "08:00";
+      await fetchWeatherForecast(waypoints[0].coords[0], waypoints[0].coords[1], depDate, depTime);
+    }
+
+    const res = await fetch(`https://router.project-osrm.org/route/v1/driving/${validCoords.join(';')}?overview=full&geometries=geojson`);
+    const data = await res.json();
+
+    if (data.routes && data.routes.length > 0) {
+      activeRouteData = data.routes[0];
+      if (currentPolyline) map.removeLayer(currentPolyline);
+      currentPolyline = L.geoJSON(activeRouteData.geometry, { style: { color: '#10b981', weight: 6 } }).addTo(map);
+      map.fitBounds(currentPolyline.getBounds(), { padding: [30, 30] });
+
+      const distKm = Math.round(activeRouteData.distance / 1000);
+      const distElem = document.getElementById('totalDistance');
+      if (distElem) distElem.innerText = `${distKm} km`;
+
+      const startBatt = parseFloat(document.getElementById('startBattery')?.value) || 80;
+      const electricRange = selectedCar ? (selectedCar.range * (startBatt / 100)) : 250;
+      drawBatteryIsochronePolyline(waypoints[0].coords, electricRange);
+
+      await fetchRouteStationsFromOSM(activeRouteData.geometry);
+      renderStationsOnMapAndTable(distKm, electricRange);
+
+      let totalCost = 0;
+      const kwhCost = parseFloat(document.getElementById('costPerKwh')?.value) || 2.39;
+
+      if (selectedCar && selectedCar.isHybrid) {
+        const startLiters = parseFloat(document.getElementById('startFuelLiters')?.value) || 40;
+        const gasKmPL = parseFloat(document.getElementById('kmPerLiterGas')?.value) || selectedCar.gasKm || 15.0;
+        const ethanolKmPL = parseFloat(document.getElementById('kmPerLiterEthanol')?.value) || selectedCar.ethanolKm || 10.5;
+        const gasPrice = parseFloat(document.getElementById('costPerLiterGas')?.value) || 6.88;
+        const ethanolPrice = parseFloat(document.getElementById('costPerLiterEthanol')?.value) || 5.07;
+
+        const bestKmPL = (ethanolPrice / ethanolKmPL < gasPrice / gasKmPL) ? ethanolKmPL : gasKmPL;
+        const totalRangeCapacity = electricRange + (startLiters * bestKmPL);
+
+        const alertBox = document.getElementById('rechargeDistanceAlert');
+        const targetBox = document.getElementById('targetBatteryNeeded');
+
+        if (distKm > totalRangeCapacity) {
+          const deficitKm = distKm - totalRangeCapacity;
+          const neededRecharge = Math.ceil((deficitKm / selectedCar.range) * 100);
+          if (alertBox) alertBox.innerText = `Necessário reabastecer / carregar +${neededRecharge}% no percurso`;
+          if (targetBox) targetBox.innerText = `Parada obrigatória em rota`;
+        } else {
+          const remainingRange = totalRangeCapacity - distKm;
+          const arrivalBattPct = Math.max(0, Math.round((remainingRange / selectedCar.range) * 100));
+          const tripElectricUsed = Math.min(distKm, electricRange);
+          const tripCost = (tripElectricUsed / 100) * selectedCar.consumption * kwhCost;
+          if (alertBox) alertBox.innerText = `Chegada com ${arrivalBattPct}% de bateria (Custo elétrico R$ ${tripCost.toFixed(2)})`;
+          if (targetBox) targetBox.innerText = `Chegada com ${arrivalBattPct}% restante`;
+        }
+
+        const electricUsed = Math.min(distKm, electricRange);
+        const fuelUsed = Math.min(Math.max(0, distKm - electricRange), startLiters * bestKmPL);
+        const electricCost = (electricUsed / 100) * selectedCar.consumption * kwhCost;
+        const fuelCost = (fuelUsed / bestKmPL) * (bestKmPL === ethanolKmPL ? ethanolPrice : gasPrice);
+        totalCost = electricCost + fuelCost;
+      } else if (selectedCar) {
+        totalCost = ((distKm / 100) * selectedCar.consumption) * kwhCost;
+        const alertBox = document.getElementById('rechargeDistanceAlert');
+        const targetBox = document.getElementById('targetBatteryNeeded');
+
+        if (distKm > electricRange) {
+          const deficitKm = distKm - electricRange;
+          const neededRecharge = Math.min(100, Math.ceil((deficitKm / selectedCar.range) * 100));
+          if (alertBox) alertBox.innerText = `Autonomia insuficiente. Carregar +${neededRecharge}% no eletroposto`;
+          if (targetBox) targetBox.innerText = `Recarga de +${neededRecharge}% necessária`;
+        } else {
+          const remainingKm = electricRange - distKm;
+          const arrivalBattPct = Math.max(0, Math.round((remainingKm / selectedCar.range) * 100));
+          if (alertBox) alertBox.innerText = `Chegada com ${arrivalBattPct}% de bateria (Valor R$ ${totalCost.toFixed(2)})`;
+          if (targetBox) targetBox.innerText = `Chegada com ${arrivalBattPct}% restante`;
+        }
+      }
+
+      const totalCostElem = document.getElementById('totalCost');
+      if (totalCostElem) totalCostElem.innerText = `R$ ${totalCost.toFixed(2)}`;
+
+      if (toast) {
+        toast.classList.remove('hidden');
+        setTimeout(() => toast.classList.add('hidden'), 4000);
+      }
+    }
+  } catch (e) {
+    console.error(e);
+  } finally {
+    if (calcBtn) calcBtn.disabled = false;
+    if (calcBtnText) calcBtnText.innerText = "Calcular Rota Completa";
+    if (calcBtnIcon) calcBtnIcon.className = "fa-solid fa-calculator";
+    if (progressBar) progressBar.classList.add('hidden');
+  }
+}
+
+window.onload = initMap;
