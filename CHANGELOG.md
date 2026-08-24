@@ -1,3 +1,9 @@
+## 3.8.3 — 24/08/2026
+- Corrigido o erro `returnText is not defined` ao renderizar o planejamento inteligente.
+- Criada uma função própria para gerar a estratégia da volta sem depender de variável inexistente.
+- A recomendação da volta agora informa o ponto compatível sugerido, o nível aproximado da bateria na chegada ao ponto e um alvo de recarga para continuar com margem de segurança.
+- Mantida a compatibilidade AC/DC e o mapeamento de eletropostos da volta.
+
 ## 3.8.2 — 24/08/2026
 - Eletropostos mapeados também no mapa da volta.
 - Busca ampliada de carregadores na rota de retorno.

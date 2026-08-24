@@ -221,6 +221,18 @@ function renderEnergy(){const d=lastEnergy;if(!d)return;$('batteryPercent').text
  $('summaryGrid').innerHTML=[['Distância total',num(d.km)+' km'],['Tempo estimado',formatTime(route?.duration||0)],['Bateria inicial',Math.round(clampBattery($('startBattery').value))+'%'],['Bateria na chegada',Math.round(d.battery)+'%'],['Energia elétrica',num(d.kwh)+' kWh'],['Trecho elétrico',num(d.electricKm)+' km'],['Trecho com combustível',num(d.fuelKm)+' km'],['Combustível usado',isFuelCar()?num(d.fuel)+' L':'Não se aplica'],['Combustível na chegada',isFuelCar()?num(d.arrivalFuel)+' L':'Não se aplica'],['Custo total',money(d.total)],['Economia estimada',money(d.saving)],['Consumo ajustado',num(d.f)+' kWh/100 km']].map(x=>`<div class="summary-item"><span>${x[0]}</span><b>${safe(x[1])}</b></div>`).join('');
  const badge=$('statusBadge'),box=$('statusBox');if(selectedCar.type==='BEV'&&d.battery<=C.reservePercent){badge.className='status bad';badge.textContent='Recarga necessária';box.textContent='⚠️ A bateria estimada chega abaixo da reserva configurada. Planeje uma recarga.'}else{badge.className='status good';badge.textContent='Viagem viável';box.textContent='✅ Estimativa energética dentro dos parâmetros.'}
 }
+function returnStrategyText(){
+ if(!roundTrip||!routeBack||!selectedCar) return '';
+ if(['HEV','MHEV'].includes(selectedCar.type)) return isFuelCar() ? 'Sem recarga externa: monitorar o combustível e abastecer antes da reserva.' : 'Sem recarga externa necessária.';
+ const station=bestReturnChargeStation();
+ if(!station) return 'Nenhum carregador compatível identificado na volta ainda; aguarde a busca ou amplie a pesquisa.';
+ const threshold=getStopThreshold();
+ const start=Math.max(0,Number(lastEnergy?.battery ?? routeEnergyLimits().start));
+ const range=Number(getRange(selectedCar)||0);
+ const expected=range ? Math.max(0,start*(1-(Number(station.routeKm)||0)/range)) : start;
+ const target=Math.min(90,Math.max(threshold+5,67));
+ return `Pare em ${station.name} no km ${num(station.routeKm)} da volta, quando a bateria estiver próxima de ${Math.round(expected)}%. Recarregue até aproximadamente ${target}% para seguir com margem de segurança; carregador ${station.type}, ${num(station.power)} kW.`;
+}
 function renderSmartPlan(){
  const box=$('smartPlanContent'),badge=$('smartPlanBadge');
  if(!box||!route||!lastEnergy||!selectedCar)return;
@@ -243,7 +255,7 @@ function renderSmartPlan(){
  }
  badge.className='status '+(safety==='Alta'?'good':safety==='Média'?'warn':'bad');badge.textContent=feasible?'Viagem '+(safety==='Alta'?'viável':'viável com atenção'):'Planejar parada';
  const stationCost=bestChargeStation()?.price||Number($('kwhPrice').value)||0;
- const stop=bestChargeStation(true);const threshold=getStopThreshold();const stopText=action||'Nenhuma parada obrigatória identificada.';const triggerText=stop?`Quando a bateria atingir aproximadamente ${threshold}%, parar em ${stop.name} (${num(stop.routeKm)} km da rota).`:`Ao atingir ${threshold}%, procurar um ponto compatível próximo.`;
+ const stop=bestChargeStation(true);const returnText=returnStrategyText();const threshold=getStopThreshold();const stopText=action||'Nenhuma parada obrigatória identificada.';const triggerText=stop?`Quando a bateria atingir aproximadamente ${threshold}%, parar em ${stop.name} (${num(stop.routeKm)} km da rota).`:`Ao atingir ${threshold}%, procurar um ponto compatível próximo.`;
  const economy=(lastEnergy.saving>=0?`Economia estimada de ${money(lastEnergy.saving)} frente à gasolina.`:'');
  box.innerHTML=`<div class="smart-verdict ${feasible?'smart-ok':'smart-risk'}"><div class="smart-icon">${feasible?'✓':'!'}</div><div><strong>${safe(recommendation)}</strong><span>Segurança operacional: <b>${safety}</b></span></div></div><div class="smart-metric"><span><i class="fa-solid fa-location-dot"></i> Parada recomendada</span><b>${safe(stopText)}</b><small>${safe(triggerText)}</small></div><div class="smart-metric"><span><i class="fa-solid fa-clock"></i> Tempo total</span><b>${formatTime(route.duration)}</b></div><div class="smart-metric"><span><i class="fa-solid fa-wallet"></i> Custo estimado</span><b>${money(lastEnergy.total)}</b><small>${safe(economy)}</small></div><div class="smart-metric"><span><i class="fa-solid fa-battery-three-quarters"></i> Estratégia energética</span><b>${smartEnergyStrategy()}</b><small>${isFuelCar()?`Combustível inicial: ${num(lastEnergy.startFuel)} L · chegada estimada: ${num(lastEnergy.arrivalFuel)} L`:`Bateria inicial: ${Math.round(lim.start)}% · chegada: ${Math.round(lastEnergy.battery)}%`}</small></div><div class="smart-metric"><span><i class="fa-solid fa-shield-halved"></i> Opção mais segura/econômica</span><b>${safe(bestStrategy())}</b><small>${compatibleStations().length} carregador(es) compatível(is) na ida${roundTrip?' · '+returnStations.filter(stationCompatible).length+' na volta':''} e ${fuelStations.length} posto(s) de combustível encontrados.</small></div>${roundTrip?'<div class="smart-metric"><span><i class="fa-solid fa-arrow-rotate-left"></i> Estratégia da volta</span><b>'+safe(returnText)+'</b><small>O ponto recomendado mantém a bateria acima da reserva configurada e prioriza carregadores compatíveis.</small></div>':''}`;
 }
