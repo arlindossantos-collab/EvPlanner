@@ -1,6 +1,6 @@
 /* ==========================================================================
    EV PLANNER PRO - CORE ENGINE (app.js)
-   Restauração Absoluta do vehicles.json Original + Cores Dinâmicas de Bateria
+   Correção do Seletor de Veículos (Texto do Modelo) + PlugShare/ABRP + Cores
    ========================================================================== */
 
 const ufMap = {
@@ -13,7 +13,7 @@ const ufMap = {
   "Sergipe": "SE", "Tocantins": "TO"
 };
 
-// Base Real de Eletropostos (PlugShare)
+// Base Real de Eletropostos (PlugShare / ABRP)
 const manualStationsDatabase = [
   { name: "Shell Recharge - Posto Milagres", network: "Shell Recharge", cityState: "Recife / PE", lat: -8.0321, lng: -34.9125, powerKw: 150, plugType: "CCS2 High Power", power: "CCS2 Ultra-Rápido DC (150kW)", type: "DC", operationalStatus: "Disponível" },
   { name: "Volvo Recharge - Shopping Tacaruna", network: "Volvo Recharge", cityState: "Recife / PE", lat: -8.0382, lng: -34.8724, powerKw: 50, plugType: "CCS2 / Type 2", power: "CCS2 Rápido DC (50kW)", type: "DC", operationalStatus: "Disponível" },
@@ -43,13 +43,12 @@ let currentPolyline = null;
 let activeRouteData = null;
 let evDatabase = {};
 
-// Função de cálculo de cor dinâmica por percentual (100% Verde a 0% Vermelho)
 function getBatteryColorHex(pct) {
   const p = Math.max(0, Math.min(100, pct));
-  if (p >= 80) return "#10b981"; // Verde Esmeralda
-  if (p >= 45) return "#f59e0b"; // Amarelo Dourado
-  if (p >= 21) return "#f97316"; // Laranja Alerta
-  return "#ef4444";             // Vermelho Crítico
+  if (p >= 80) return "#10b981"; // Verde
+  if (p >= 45) return "#f59e0b"; // Amarelo
+  if (p >= 21) return "#f97316"; // Laranja
+  return "#ef4444";             // Vermelho
 }
 
 async function initMap() {
@@ -71,15 +70,14 @@ async function initMap() {
   renderWaypointsInputs();
 }
 
-// Leitura Exclusiva e Direta do arquivo local vehicles.json
 async function loadVehicles() {
   try {
     const response = await fetch('./vehicles.json');
-    if (!response.ok) throw new Error("Erro de HTTP ao ler vehicles.json");
+    if (!response.ok) throw new Error("Não foi possível carregar vehicles.json");
     evDatabase = await response.json();
     initVehicleSelectors();
   } catch (error) {
-    console.error("Falha ao ler vehicles.json:", error);
+    console.error("Erro no carregamento de vehicles.json:", error);
   }
 }
 
@@ -111,7 +109,12 @@ function initVehicleSelectors() {
     evDatabase[brand].forEach((car, index) => {
       const option = document.createElement('option');
       option.value = index;
-      option.textContent = `${car.model} (${car.type ? car.type.split(' ')[0] : 'EV'})`;
+      
+      // Exibição amigável do nome do modelo sem alterar o JSON
+      const modelName = car.model || car.name || `Modelo ${index + 1}`;
+      const carType = car.type ? ` (${car.type.split(' ')[0]})` : '';
+      option.textContent = `${modelName}${carType}`;
+      
       modelSelect.appendChild(option);
     });
   });
@@ -119,13 +122,12 @@ function initVehicleSelectors() {
   modelSelect.addEventListener('change', (e) => {
     const brand = brandSelect.value;
     const index = e.target.value;
-    if (brand && index !== "" && evDatabase[brand]) {
+    if (brand && index !== "" && evDatabase[brand] && evDatabase[brand][index]) {
       selectedCar = evDatabase[brand][index];
       updateCarSpecsUI();
     }
   });
 
-  // Autoseleção da primeira marca do seu arquivo
   if (brands.length > 0) {
     brandSelect.value = brands[0];
     brandSelect.dispatchEvent(new Event('change'));
