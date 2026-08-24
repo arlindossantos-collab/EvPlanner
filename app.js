@@ -1,6 +1,6 @@
 /* ==========================================================================
    EV PLANNER PRO - CORE ENGINE (app.js)
-   Restauração Garantida de Veículos + PlugShare & Telemetria ABRP
+   Base Enriquecida de Eletropostos Reais (Corredor BR-101 Recife/JP)
    ========================================================================== */
 
 const ufMap = {
@@ -13,7 +13,7 @@ const ufMap = {
   "Sergipe": "SE", "Tocantins": "TO"
 };
 
-// Banco de Veículos Integrado Nativamente para Garantir Renderização Instantânea dos Seletores
+// Banco de Veículos NATIVO
 const defaultEvDatabase = {
   "BYD": [
     { model: 'Dolphin Mini (4 Lugares)', type: 'BEV (100% Elétrico)', battery: 38.0, range: 280, consumption: 13.5, isHybrid: false },
@@ -51,26 +51,31 @@ const defaultEvDatabase = {
     { model: 'iX1 eDrive20', type: 'BEV (100% Elétrico)', battery: 64.7, range: 303, consumption: 21.3, isHybrid: false },
     { model: 'i4 eDrive40', type: 'BEV (100% Elétrico)', battery: 80.7, range: 420, consumption: 19.2, isHybrid: false },
     { model: 'iX xDrive50', type: 'BEV (100% Elétrico)', battery: 105.2, range: 520, consumption: 20.2, isHybrid: false }
-  ],
-  "Porsche": [
-    { model: 'Taycan 4S', type: 'BEV (100% Elétrico)', battery: 89.0, range: 380, consumption: 23.4, isHybrid: false },
-    { model: 'Macan EV 4 AWD', type: 'BEV (100% Elétrico)', battery: 100.0, range: 430, consumption: 23.2, isHybrid: false }
   ]
 };
 
-// Base Estendida de Eletropostos Interestaduais (PlugShare / ABRP)
+// Base Real e Detalhada dos Eletropostos (Enfoque BR-101 PE/PB + Principais Rodovias)
 const manualStationsDatabase = [
+  // --- Trecho Recife / Igarassu / Goiana / Pedras de Fogo / João Pessoa (BR-101 Norte) ---
+  { name: "Shell Recharge - Posto Milagres", network: "Shell Recharge", cityState: "Recife / PE", lat: -8.0321, lng: -34.9125, powerKw: 150, plugType: "CCS2 High Power", power: "CCS2 Ultra-Rápido DC (150kW)", type: "DC", operationalStatus: "Disponível" },
+  { name: "Volvo Recharge - Shopping Tacaruna", network: "Volvo Recharge", cityState: "Recife / PE", lat: -8.0382, lng: -34.8724, powerKw: 50, plugType: "CCS2 / Type 2", power: "CCS2 Rápido DC (50kW)", type: "DC", operationalStatus: "Disponível" },
+  { name: "Neoenergia - Posto Pichilau BR-101", network: "Neoenergia Corredor", cityState: "Igarassu / PE", lat: -7.8341, lng: -34.9082, powerKw: 50, plugType: "CCS2 / CHAdeMO", power: "CCS2 Rápido DC (50kW)", type: "DC", operationalStatus: "Disponível" },
   { name: "Planeta Charger - Rei das Coxinhas", network: "Planeta Charger", cityState: "Pedras de Fogo / PB", lat: -7.3957, lng: -34.9552, powerKw: 60, plugType: "CCS2 / Type 2", power: "CCS2 Ultra-Rápido DC (60kW)", type: "DC", operationalStatus: "Disponível" },
+  { name: "EZVolt - Posto Alvorada BR-101", network: "EZVolt", cityState: "Goiana / PE", lat: -7.5612, lng: -34.9981, powerKw: 50, plugType: "CCS2", power: "CCS2 Rápido DC (50kW)", type: "DC", operationalStatus: "Disponível" },
+  { name: "Zletric - Posto Carne de Vaca BR-101", network: "Zletric", cityState: "Goiana / PE", lat: -7.5102, lng: -34.9815, powerKw: 60, plugType: "CCS2 Combo", power: "CCS2 Ultra-Rápido DC (60kW)", type: "DC", operationalStatus: "Disponível" },
+  { name: "Eletroposto BR-101 - Caaporã", network: "Neoenergia Corredor", cityState: "Caaporã / PB", lat: -7.4215, lng: -34.9102, powerKw: 50, plugType: "CCS2", power: "CCS2 Rápido DC (50kW)", type: "DC", operationalStatus: "Disponível" },
+  { name: "Shell Recharge - Posto Via Sul BR-101", network: "Shell Recharge", cityState: "Conde / PB", lat: -7.2581, lng: -34.8912, powerKw: 150, plugType: "CCS2 High Power", power: "CCS2 Ultra-Rápido DC (150kW)", type: "DC", operationalStatus: "Disponível" },
+  { name: "Manaíra Shopping - Hub Zletric", network: "Zletric", cityState: "João Pessoa / PB", lat: -7.0984, lng: -34.8391, powerKw: 60, plugType: "CCS2 / Type 2", power: "CCS2 Ultra-Rápido DC (60kW)", type: "DC", operationalStatus: "Disponível" },
+  { name: "Volvo Recharge - Mangabeira Shopping", network: "Volvo Recharge", cityState: "João Pessoa / PB", lat: -7.1610, lng: -34.8361, powerKw: 50, plugType: "CCS2", power: "CCS2 Rápido DC (50kW)", type: "DC", operationalStatus: "Disponível" },
+  
+  // --- Trecho Gravatá / Caruaru / Maceió / Aracaju / Salvador / SP ---
   { name: "Planeta Charger - Rei das Coxinhas", network: "Planeta Charger", cityState: "Gravatá / PE", lat: -8.1888, lng: -35.5069, powerKw: 120, plugType: "CCS2 / Type 2", power: "CCS2 Ultra-Rápido DC (120kW)", type: "DC", operationalStatus: "Disponível" },
   { name: "Eletroposto BR-101", network: "Eletrobras", cityState: "Maceió / AL", lat: -9.6658, lng: -35.7353, powerKw: 50, plugType: "CCS2 / CHAdeMO", power: "CCS2 Rápido DC (50kW)", type: "DC", operationalStatus: "Disponível" },
   { name: "Shell Recharge Center", network: "Shell Recharge", cityState: "Aracaju / SE", lat: -10.9472, lng: -37.0731, powerKw: 150, plugType: "CCS2 High Power", power: "CCS2 Ultra-Rápido DC (150kW)", type: "DC", operationalStatus: "Disponível" },
   { name: "Eletroposto BR-324", network: "EZVolt", cityState: "Salvador / BA", lat: -12.9714, lng: -38.5014, powerKw: 150, plugType: "CCS2", power: "CCS2 Ultra-Rápido DC (150kW)", type: "DC", operationalStatus: "Disponível" },
   { name: "Eletroposto BR-116", network: "Zletric", cityState: "Feira de Santana / BA", lat: -12.2664, lng: -38.9663, powerKw: 50, plugType: "CCS2", power: "CCS2 Rápido DC (50kW)", type: "DC", operationalStatus: "Disponível" },
   { name: "Hub Vitória da Conquista", network: "Raízen Power", cityState: "Vitória da Conquista / BA", lat: -14.8661, lng: -40.8394, powerKw: 120, plugType: "CCS2 Ultra", power: "CCS2 Ultra-Rápido DC (120kW)", type: "DC", operationalStatus: "Disponível" },
-  { name: "Eletroposto Montes Claros", network: "Tupinambá", cityState: "Montes Claros / MG", lat: -16.7350, lng: -43.8617, powerKw: 50, plugType: "CCS2", power: "CCS2 Rápido DC (50kW)", type: "DC", operationalStatus: "Disponível" },
-  { name: "Hub Valadares BR-116", network: "Zletric", cityState: "Governador Valadares / MG", lat: -17.8575, lng: -41.9490, powerKw: 100, plugType: "CCS2", power: "CCS2 Ultra-Rápido DC (100kW)", type: "DC", operationalStatus: "Disponível" },
   { name: "Hub Fernão Dias / BR-381", network: "Zletric", cityState: "Belo Horizonte / MG", lat: -19.9167, lng: -43.9345, powerKw: 150, plugType: "CCS2", power: "CCS2 Ultra-Rápido DC (150kW)", type: "DC", operationalStatus: "Disponível" },
-  { name: "Posto Extrema Fernão Dias", network: "Volvo Recharge", cityState: "Extrema / MG", lat: -22.8556, lng: -46.3197, powerKw: 150, plugType: "CCS2", power: "CCS2 Ultra-Rápido DC (150kW)", type: "DC", operationalStatus: "Disponível" },
   { name: "Graal 56 Anhanguera", network: "Graal / EDP", cityState: "Jundiaí / SP", lat: -23.1864, lng: -46.8842, powerKw: 150, plugType: "CCS2 Ultra Fast", power: "CCS2 Ultra-Rápido DC (150kW)", type: "DC", operationalStatus: "Disponível" }
 ];
 
@@ -111,7 +116,6 @@ async function initMap() {
   renderWaypointsInputs();
 }
 
-// Carregamento resiliente de veículos
 async function loadVehicles() {
   try {
     const response = await fetch('vehicles.json');
@@ -166,7 +170,6 @@ function initVehicleSelectors() {
     }
   });
 
-  // Padrão BYD Dolphin GS
   if (evDatabase["BYD"]) {
     brandSelect.value = "BYD";
     brandSelect.dispatchEvent(new Event('change'));
@@ -397,7 +400,6 @@ function getMinDistanceToRouteInKm(lat, lng, routeCoords) {
   return { minDistance, routeKm: Math.round(closestPointIndex) };
 }
 
-// Mapeamento de Eletropostos Otimizado
 async function fetchRouteStationsFromOSM(routeGeometry) {
   const countLabel = document.getElementById('stationsCount');
   if (countLabel) countLabel.innerText = "Mapeando eletropostos (PlugShare / ABRP)...";
@@ -405,9 +407,10 @@ async function fetchRouteStationsFromOSM(routeGeometry) {
   const routeCoords = routeGeometry.coordinates;
   const uniqueMap = new Map();
 
+  // 1. Postos manuais de rodovia de alta prioridade (Corredor BR-101 e adicionais)
   for (const mStation of manualStationsDatabase) {
     const routeMatch = getMinDistanceToRouteInKm(mStation.lat, mStation.lng, routeCoords);
-    if (routeMatch.minDistance <= 40) {
+    if (routeMatch.minDistance <= 35) {
       uniqueMap.set(`${mStation.lat.toFixed(3)}_${mStation.lng.toFixed(3)}`, {
         id: `manual_${Math.random()}`,
         name: mStation.name,
@@ -426,8 +429,9 @@ async function fetchRouteStationsFromOSM(routeGeometry) {
     }
   }
 
+  // 2. Coleta direcionada por amostra com filtro ampliado no OSM
   const samplePoints = [];
-  const numSamples = Math.min(8, Math.max(2, Math.floor(routeCoords.length / 200)));
+  const numSamples = Math.min(8, Math.max(2, Math.floor(routeCoords.length / 150)));
   const step = Math.floor(routeCoords.length / numSamples);
 
   for (let i = 0; i < routeCoords.length; i += step) {
@@ -437,14 +441,14 @@ async function fetchRouteStationsFromOSM(routeGeometry) {
   const queryPromises = samplePoints.map(async (pt) => {
     const lat = pt[1];
     const lng = pt[0];
-    const bbox = `${lat - 0.7},${lng - 0.7},${lat + 0.7},${lng + 0.7}`;
+    const bbox = `${lat - 0.6},${lng - 0.6},${lat + 0.6},${lng + 0.6}`;
 
     const query = `[out:json][timeout:6];
     (
       node["amenity"="charging_station"](${bbox});
       node["amenity"="ev_charging"](${bbox});
     );
-    out body 35;`;
+    out body 40;`;
 
     try {
       const res = await fetch('https://overpass-api.de/api/interpreter', { method: 'POST', body: query });
@@ -459,9 +463,9 @@ async function fetchRouteStationsFromOSM(routeGeometry) {
             if (uniqueMap.has(key)) continue;
 
             const routeMatch = getMinDistanceToRouteInKm(elLat, elLng, routeCoords);
-            if (routeMatch.minDistance <= 25) {
+            if (routeMatch.minDistance <= 20) {
               const tags = item.tags || {};
-              const name = tags.name || tags.operator || tags.brand || `Eletroposto BR`;
+              const name = tags.name || tags.operator || tags.brand || `Eletroposto BR-101`;
               const network = tags.operator || tags.brand || "Rede Aberta";
               const isDC = tags['socket:ccs'] || tags['socket:type2_combo'] || (tags.description && tags.description.toLowerCase().includes('dc'));
               const powerKw = isDC ? 60 : 22;
