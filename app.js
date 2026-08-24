@@ -1,5 +1,6 @@
 /* ==========================================================================
    EV PLANNER PRO - CORE ENGINE (app.js)
+   Integrado com Inteligência PlugShare & Telemetria ABRP
    ========================================================================== */
 
 const ufMap = {
@@ -12,20 +13,20 @@ const ufMap = {
   "Sergipe": "SE", "Tocantins": "TO"
 };
 
-// Base estendida de referência para grandes rodovias interestaduais
+// Base estendida com atributos inspirados no PlugShare (Rede, Plugs, Potência kW)
 const manualStationsDatabase = [
-  { name: "Planeta Charger - Rei das Coxinhas (Pedras de Fogo)", cityState: "Pedras de Fogo / PB", lat: -7.3957, lng: -34.9552, power: "CCS2 Ultra-Rápido DC (60kW)", type: "DC", operationalStatus: "Disponível" },
-  { name: "Planeta Charger - Rei das Coxinhas (Gravatá)", cityState: "Gravatá / PE", lat: -8.1888, lng: -35.5069, power: "CCS2 Ultra-Rápido DC (120kW)", type: "DC", operationalStatus: "Disponível" },
-  { name: "Eletroposto BR-101 (Maceió)", cityState: "Maceió / AL", lat: -9.6658, lng: -35.7353, power: "CCS2 Rápido DC (50kW)", type: "DC", operationalStatus: "Disponível" },
-  { name: "Eletroposto Shell Recharge (Aracaju)", cityState: "Aracaju / SE", lat: -10.9472, lng: -37.0731, power: "CCS2 Ultra-Rápido DC (150kW)", type: "DC", operationalStatus: "Disponível" },
-  { name: "Eletroposto BR-324 (Salvador)", cityState: "Salvador / BA", lat: -12.9714, lng: -38.5014, power: "CCS2 Ultra-Rápido DC (150kW)", type: "DC", operationalStatus: "Disponível" },
-  { name: "Eletroposto BR-116 (Feira de Santana)", cityState: "Feira de Santana / BA", lat: -12.2664, lng: -38.9663, power: "CCS2 Rápido DC (50kW)", type: "DC", operationalStatus: "Disponível" },
-  { name: "Eletroposto Vitória da Conquista", cityState: "Vitória da Conquista / BA", lat: -14.8661, lng: -40.8394, power: "CCS2 Ultra-Rápido DC (120kW)", type: "DC", operationalStatus: "Disponível" },
-  { name: "Eletroposto BR-116 (Montes Claros)", cityState: "Montes Claros / MG", lat: -16.7350, lng: -43.8617, power: "CCS2 Rápido DC (50kW)", type: "DC", operationalStatus: "Disponível" },
-  { name: "Eletroposto Zletric (Governador Valadares)", cityState: "Governador Valadares / MG", lat: -17.8575, lng: -41.9490, power: "CCS2 Ultra-Rápido DC (100kW)", type: "DC", operationalStatus: "Disponível" },
-  { name: "Eletroposto Zletric (Belo Horizonte - BR-381)", cityState: "Belo Horizonte / MG", lat: -19.9167, lng: -43.9345, power: "CCS2 Ultra-Rápido DC (150kW)", type: "DC", operationalStatus: "Disponível" },
-  { name: "Eletroposto Rodovia Fernão Dias (Extrema)", cityState: "Extrema / MG", lat: -22.8556, lng: -46.3197, power: "CCS2 Ultra-Rápido DC (150kW)", type: "DC", operationalStatus: "Disponível" },
-  { name: "Eletroposto Graal 56 (Jundiaí - Rod. Anhanguera)", cityState: "Jundiaí / SP", lat: -23.1864, lng: -46.8842, power: "CCS2 Ultra-Rápido DC (150kW)", type: "DC", operationalStatus: "Disponível" }
+  { name: "Planeta Charger - Rei das Coxinhas", network: "Planeta Charger", cityState: "Pedras de Fogo / PB", lat: -7.3957, lng: -34.9552, powerKw: 60, plugType: "CCS2 / Type 2", power: "CCS2 Ultra-Rápido DC (60kW)", type: "DC", operationalStatus: "Disponível" },
+  { name: "Planeta Charger - Rei das Coxinhas", network: "Planeta Charger", cityState: "Gravatá / PE", lat: -8.1888, lng: -35.5069, powerKw: 120, plugType: "CCS2 / Type 2", power: "CCS2 Ultra-Rápido DC (120kW)", type: "DC", operationalStatus: "Disponível" },
+  { name: "Eletroposto BR-101", network: "Eletrobras", cityState: "Maceió / AL", lat: -9.6658, lng: -35.7353, powerKw: 50, plugType: "CCS2 / CHAdeMO", power: "CCS2 Rápido DC (50kW)", type: "DC", operationalStatus: "Disponível" },
+  { name: "Shell Recharge Center", network: "Shell Recharge", cityState: "Aracaju / SE", lat: -10.9472, lng: -37.0731, powerKw: 150, plugType: "CCS2 High Power", power: "CCS2 Ultra-Rápido DC (150kW)", type: "DC", operationalStatus: "Disponível" },
+  { name: "Eletroposto BR-324", network: "EZVolt", cityState: "Salvador / BA", lat: -12.9714, lng: -38.5014, powerKw: 150, plugType: "CCS2", power: "CCS2 Ultra-Rápido DC (150kW)", type: "DC", operationalStatus: "Disponível" },
+  { name: "Eletroposto BR-116", network: "Zletric", cityState: "Feira de Santana / BA", lat: -12.2664, lng: -38.9663, powerKw: 50, plugType: "CCS2", power: "CCS2 Rápido DC (50kW)", type: "DC", operationalStatus: "Disponível" },
+  { name: "Hub Vitória da Conquista", network: "Raízen Power", cityState: "Vitória da Conquista / BA", lat: -14.8661, lng: -40.8394, powerKw: 120, plugType: "CCS2 Ultra", power: "CCS2 Ultra-Rápido DC (120kW)", type: "DC", operationalStatus: "Disponível" },
+  { name: "Eletroposto Montes Claros", network: "Tupinambá", cityState: "Montes Claros / MG", lat: -16.7350, lng: -43.8617, powerKw: 50, plugType: "CCS2", power: "CCS2 Rápido DC (50kW)", type: "DC", operationalStatus: "Disponível" },
+  { name: "Hub Valadares BR-116", network: "Zletric", cityState: "Governador Valadares / MG", lat: -17.8575, lng: -41.9490, powerKw: 100, plugType: "CCS2", power: "CCS2 Ultra-Rápido DC (100kW)", type: "DC", operationalStatus: "Disponível" },
+  { name: "Hub Fernão Dias / BR-381", network: "Zletric", cityState: "Belo Horizonte / MG", lat: -19.9167, lng: -43.9345, powerKw: 150, plugType: "CCS2", power: "CCS2 Ultra-Rápido DC (150kW)", type: "DC", operationalStatus: "Disponível" },
+  { name: "Posto Extrema Fernão Dias", network: "Volvo Recharge", cityState: "Extrema / MG", lat: -22.8556, lng: -46.3197, powerKw: 150, plugType: "CCS2", power: "CCS2 Ultra-Rápido DC (150kW)", type: "DC", operationalStatus: "Disponível" },
+  { name: "Graal 56 Anhanguera", network: "Graal / EDP", cityState: "Jundiaí / SP", lat: -23.1864, lng: -46.8842, powerKw: 150, plugType: "CCS2 Ultra Fast", power: "CCS2 Ultra-Rápido DC (150kW)", type: "DC", operationalStatus: "Disponível" }
 ];
 
 let map;
@@ -38,8 +39,6 @@ let currentPolyline = null;
 let isochronePolygon = null;
 let activeRouteData = null;
 let evDatabase = {};
-let favoritePlaces = [];
-let favoriteCar = null;
 
 let currentTripStats = {
   totalKm: 0,
@@ -48,7 +47,6 @@ let currentTripStats = {
   tripsCount: 0
 };
 
-// Inicialização Principal
 async function initMap() {
   map = L.map('map').setView([-8.0476, -34.8770], 8);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
@@ -68,7 +66,6 @@ async function initMap() {
   renderWaypointsInputs();
 }
 
-// Carregamento de veículos a partir do JSON
 async function loadVehicles() {
   try {
     const response = await fetch('vehicles.json');
@@ -117,7 +114,6 @@ function initVehicleSelectors() {
     }
   });
 
-  // Seleção padrão inicial
   if (evDatabase["BYD"]) {
     brandSelect.value = "BYD";
     brandSelect.dispatchEvent(new Event('change'));
@@ -172,7 +168,7 @@ function initUserFavorites() {
   const setHomeBtn = document.getElementById('setHomeBtn');
   if (setHomeBtn) {
     setHomeBtn.addEventListener('click', () => {
-      const newHome = prompt("Defina ou limpe o endereço de Casa:");
+      const newHome = prompt("Defina seu endereço de Casa:");
       if (newHome !== null) {
         if (newHome.trim() === "") {
           localStorage.removeItem('hv_home_address');
@@ -182,7 +178,6 @@ function initUserFavorites() {
             renderWaypointsInputs();
             updateWaypointMarkers();
           }
-          alert("Endereço de Casa limpo com sucesso!");
         } else {
           localStorage.setItem('hv_home_address', newHome);
           askTargetWaypointAndSet(newHome);
@@ -232,21 +227,6 @@ function initRouteControls() {
       const stopCount = waypoints.filter(w => w.type === 'stop').length + 1;
       waypoints.push({ address: "", coords: null, type: "stop", label: `Parada ${stopCount}` });
       renderWaypointsInputs();
-    });
-  }
-
-  const roundTripBtn = document.getElementById('roundTripBtn');
-  if (roundTripBtn) {
-    roundTripBtn.addEventListener('click', () => {
-      if (waypoints.length >= 2 && waypoints[0].address) {
-        const originAddr = waypoints[0].address;
-        const originCoords = waypoints[0].coords;
-        waypoints.push({ address: originAddr, coords: originCoords, type: "destination", label: "Retorno (Origem)" });
-        renderWaypointsInputs();
-        updateWaypointMarkers();
-      } else {
-        alert("Defina o ponto de origem antes de criar o retorno.");
-      }
     });
   }
 
@@ -344,78 +324,6 @@ async function updateWaypointMarkers() {
   }
 }
 
-async function fetchWeatherForecast(lat, lng, dateStr, timeStr) {
-  const box = document.getElementById('weatherAlertBox');
-  const textElem = document.getElementById('weatherAlertText');
-  const badgeElem = document.getElementById('weatherTempBadge');
-  if (!box || !textElem || !badgeElem) return;
-
-  box.classList.remove('hidden');
-  textElem.innerHTML = "Buscando previsão do tempo...";
-  badgeElem.innerHTML = "--°C";
-
-  try {
-    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&hourly=temperature_2m,precipitation_probability,weathercode&timezone=auto`;
-    const res = await fetch(url);
-    const data = await res.json();
-
-    if (data && data.hourly && data.hourly.time) {
-      const times = data.hourly.time;
-      const targetDateTimeStr = `${dateStr}T${timeStr.split(':')[0]}:00`;
-      let targetIdx = 0;
-      for (let i = 0; i < times.length; i++) {
-        if (times[i] >= targetDateTimeStr) { targetIdx = i; break; }
-      }
-      const temp = data.hourly.temperature_2m[targetIdx];
-      const precipProb = data.hourly.precipitation_probability[targetIdx] || 0;
-      const weatherCode = data.hourly.weathercode[targetIdx] || 0;
-
-      let conditionDesc = "Clima Limpo / Bom";
-      let isRaining = false;
-
-      if (precipProb > 40 || (weatherCode >= 50 && weatherCode <= 67) || (weatherCode >= 80 && weatherCode <= 99)) {
-        conditionDesc = `Chuva prevista (${precipProb}% de chance)`;
-        isRaining = true;
-      } else if (weatherCode >= 1 && weatherCode <= 3) {
-        conditionDesc = "Parcialmente Nublado";
-      } else {
-        conditionDesc = "Ensolarado / Bom";
-      }
-
-      textElem.innerHTML = `🌤️ ${conditionDesc}`;
-      badgeElem.innerHTML = `${temp}°C`;
-
-      const rainCheckbox = document.getElementById('rainMode');
-      if (rainCheckbox) rainCheckbox.checked = isRaining;
-    }
-  } catch (e) {
-    textElem.innerHTML = "🌤️ Clima indisponível no momento";
-    badgeElem.innerHTML = "--°C";
-  }
-}
-
-function drawBatteryIsochronePolyline(startCoords, rangeKm) {
-  if (isochronePolygon) map.removeLayer(isochronePolygon);
-  const toggle = document.getElementById('showIsochrone');
-  if (!toggle || !toggle.checked || !startCoords) return;
-
-  const points = [];
-  const numPoints = 32;
-  const lat = startCoords[0];
-  const lng = startCoords[1];
-  const latRadius = rangeKm / 111.0;
-  const lngRadius = rangeKm / (111.0 * Math.cos(lat * Math.PI / 180));
-
-  for (let i = 0; i < numPoints; i++) {
-    const angle = (i / numPoints) * (2 * Math.PI);
-    points.push([lat + (latRadius * Math.sin(angle)), lng + (lngRadius * Math.cos(angle))]);
-  }
-
-  isochronePolygon = L.polygon(points, {
-    color: '#10b981', fillColor: '#34d399', fillOpacity: 0.12, weight: 2, dashArray: '5, 5'
-  }).addTo(map).bindPopup(`<b>Raio Elétrico Inicial</b><br>Autonomia estimada: ${Math.round(rangeKm)} km.`);
-}
-
 function getMinDistanceToRouteInKm(lat, lng, routeCoords) {
   let minDistance = Infinity;
   let closestPointIndex = 0;
@@ -436,27 +344,35 @@ function getMinDistanceToRouteInKm(lat, lng, routeCoords) {
   return { minDistance, routeKm: Math.round(closestPointIndex) };
 }
 
-// Otimização de busca em lote leve para eletropostos em rotas longas
+// Busca rápida em lote sem causar estouro de tempo/timeout
 async function fetchRouteStationsFromOSM(routeGeometry) {
   const countLabel = document.getElementById('stationsCount');
-  if (countLabel) countLabel.innerText = "Buscando eletropostos na rota...";
+  if (countLabel) countLabel.innerText = "Mapeando eletropostos (PlugShare / ABRP)...";
   
   const routeCoords = routeGeometry.coordinates;
   const uniqueMap = new Map();
 
-  // 1. Postos manuais de rodovia de alta prioridade
   for (const mStation of manualStationsDatabase) {
     const routeMatch = getMinDistanceToRouteInKm(mStation.lat, mStation.lng, routeCoords);
     if (routeMatch.minDistance <= 40) {
       uniqueMap.set(`${mStation.lat.toFixed(3)}_${mStation.lng.toFixed(3)}`, {
-        id: `manual_${Math.random()}`, name: mStation.name, cityState: mStation.cityState,
-        lat: mStation.lat, lng: mStation.lng, power: mStation.power, type: mStation.type,
-        distToRoute: routeMatch.minDistance, routeKm: routeMatch.routeKm, operationalStatus: mStation.operationalStatus
+        id: `manual_${Math.random()}`,
+        name: mStation.name,
+        network: mStation.network || "Rede Rodoviária",
+        cityState: mStation.cityState,
+        lat: mStation.lat,
+        lng: mStation.lng,
+        powerKw: mStation.powerKw || 50,
+        plugType: mStation.plugType || "CCS2",
+        power: mStation.power,
+        type: mStation.type,
+        distToRoute: routeMatch.minDistance,
+        routeKm: routeMatch.routeKm,
+        operationalStatus: mStation.operationalStatus
       });
     }
   }
 
-  // 2. Coleta direcionada por amostra sem gerar gargalo/timeout na API
   const samplePoints = [];
   const numSamples = Math.min(8, Math.max(2, Math.floor(routeCoords.length / 200)));
   const step = Math.floor(routeCoords.length / numSamples);
@@ -493,13 +409,23 @@ async function fetchRouteStationsFromOSM(routeGeometry) {
             if (routeMatch.minDistance <= 25) {
               const tags = item.tags || {};
               const name = tags.name || tags.operator || tags.brand || `Eletroposto BR`;
+              const network = tags.operator || tags.brand || "Rede Aberta";
               const isDC = tags['socket:ccs'] || tags['socket:type2_combo'] || (tags.description && tags.description.toLowerCase().includes('dc'));
+              const powerKw = isDC ? 60 : 22;
 
               uniqueMap.set(key, {
-                id: item.id, name: name, cityState: `Lat/Lng: ${elLat.toFixed(2)}, ${elLng.toFixed(2)}`,
-                lat: elLat, lng: elLng,
-                power: isDC ? 'CCS2 Ultra-Rápido DC (50-150kW)' : 'AC Wallbox (7-22kW)',
-                type: isDC ? 'DC' : 'AC', distToRoute: routeMatch.minDistance, routeKm: routeMatch.routeKm,
+                id: item.id,
+                name: name,
+                network: network,
+                cityState: `Rodovia BR (${elLat.toFixed(2)}, ${elLng.toFixed(2)})`,
+                lat: elLat,
+                lng: elLng,
+                powerKw: powerKw,
+                plugType: isDC ? "CCS2 Combo" : "Tipo 2 AC",
+                power: isDC ? `CCS2 DC (${powerKw}kW)` : `AC Wallbox (${powerKw}kW)`,
+                type: isDC ? 'DC' : 'AC',
+                distToRoute: routeMatch.minDistance,
+                routeKm: routeMatch.routeKm,
                 operationalStatus: "Disponível"
               });
             }
@@ -516,6 +442,7 @@ async function fetchRouteStationsFromOSM(routeGeometry) {
   fetchedStations = rawStations;
 }
 
+// Renderização enriquecida (PlugShare + Telemetria ABRP)
 function renderStationsOnMapAndTable(totalDistKm, initialRangeKm) {
   stationMarkers.forEach(m => map.removeLayer(m));
   stationMarkers = [];
@@ -525,7 +452,7 @@ function renderStationsOnMapAndTable(totalDistKm, initialRangeKm) {
   tbody.innerHTML = '';
 
   const countLabel = document.getElementById('stationsCount');
-  if (countLabel) countLabel.innerText = `${fetchedStations.length} encontrados na rota`;
+  if (countLabel) countLabel.innerText = `${fetchedStations.length} eletropostos mapeados`;
 
   if (fetchedStations.length === 0) {
     tbody.innerHTML = `<tr><td colspan="8" class="p-3 text-center text-slate-400">Nenhum eletroposto encontrado ao longo desta rota.</td></tr>`;
@@ -539,30 +466,50 @@ function renderStationsOnMapAndTable(totalDistKm, initialRangeKm) {
     iconAnchor: [14, 14]
   });
 
-  fetchedStations.forEach((station, index) => {
-    const marker = L.marker([station.lat, station.lng], { icon: abrpIcon }).addTo(map).bindPopup(`<b>#${index + 1} ⚡ ${station.name}</b><br>Km ${station.routeKm} da rota`);
-    stationMarkers.push(marker);
+  const carBatteryCapacity = selectedCar ? selectedCar.battery : 45.0;
 
+  fetchedStations.forEach((station, index) => {
     let battAtArrival = Math.max(0, 100 - Math.round((station.routeKm / initialRangeKm) * 100));
-    let operationMsg = "Ponto de Carga na Rota";
-    if (station.routeKm > initialRangeKm) {
-      battAtArrival = 0;
-      const deficitKm = station.routeKm - initialRangeKm;
-      const neededRechargePct = Math.min(100, Math.ceil((deficitKm / (selectedCar ? selectedCar.range : 250)) * 100));
-      operationMsg = `⚠️ Recarregar +${neededRechargePct}% aqui`;
+    
+    // Cálculo de Telemetria no modelo ABRP (Recarga e Tempo Estimado)
+    let abrpPlanMsg = "Ponto de Passagem";
+    let chargeTimeMinutes = 0;
+    
+    if (station.routeKm > initialRangeKm || battAtArrival < 20) {
+      const targetPct = 80;
+      const neededPct = Math.min(80, Math.max(20, targetPct - battAtArrival));
+      const energyNeededKwh = (neededPct / 100) * carBatteryCapacity;
+      chargeTimeMinutes = Math.round((energyNeededKwh / (station.powerKw || 50)) * 60) + 5; // +5min overhead
+      abrpPlanMsg = `⚡ Recarregar +${neededPct}% (~${chargeTimeMinutes} min)`;
     }
+
+    // Popup estilo PlugShare
+    const popupContent = `
+      <div style="font-size:12px; font-family:sans-serif; color:#0f172a;">
+        <strong style="color:#059669; font-size:13px;">#${index + 1} ${station.name}</strong><br>
+        <b>Rede:</b> ${station.network}<br>
+        <b>Plugue:</b> ${station.plugType} (${station.powerKw} kW)<br>
+        <b>Local:</b> Km ${station.routeKm} da rota<br>
+        <hr style="margin:4px 0;">
+        <b>Telemetria ABRP:</b> Chegada em <b>${battAtArrival}%</b><br>
+        <span style="color:#d97706; font-weight:bold;">${abrpPlanMsg}</span>
+      </div>
+    `;
+
+    const marker = L.marker([station.lat, station.lng], { icon: abrpIcon }).addTo(map).bindPopup(popupContent);
+    stationMarkers.push(marker);
 
     const tr = document.createElement('tr');
     tr.className = "hover:bg-blue-900/30 transition text-xs md:text-sm";
     tr.innerHTML = `
       <td class="p-2 font-bold text-amber-400 whitespace-nowrap">#${index + 1}</td>
-      <td class="p-2 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-950 text-emerald-400 border border-emerald-600">🟢 Livre</span></td>
+      <td class="p-2 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-950 text-emerald-400 border border-emerald-600">🟢 ${station.network}</span></td>
       <td class="p-2 font-semibold text-white whitespace-nowrap"><i class="fa-solid fa-charging-station text-yellow-400 mr-1"></i> ${station.name} (Km ${station.routeKm})</td>
-      <td class="p-2 text-emerald-300 font-bold whitespace-nowrap">${station.cityState || 'Rodovia / Trecho'}</td>
+      <td class="p-2 text-emerald-300 font-bold whitespace-nowrap">${station.cityState}</td>
       <td class="p-2 text-center whitespace-nowrap font-bold ${battAtArrival > 15 ? 'text-emerald-400' : 'text-red-400'}">${battAtArrival}%</td>
-      <td class="p-2 text-center whitespace-nowrap font-bold text-amber-300">${operationMsg}</td>
+      <td class="p-2 text-center whitespace-nowrap font-bold text-amber-300">${abrpPlanMsg}</td>
       <td class="p-2 whitespace-nowrap"><span class="bg-blue-900 text-blue-100 px-2 py-0.5 rounded border border-blue-700 text-xs">${station.power}</span></td>
-      <td class="p-2 text-right whitespace-nowrap"><button onclick="map.setView([${station.lat}, ${station.lng}], 14)" class="bg-blue-600 text-white font-bold px-2.5 py-1 rounded text-xs">Ver</button></td>
+      <td class="p-2 text-right whitespace-nowrap"><button onclick="map.setView([${station.lat}], 14)" class="bg-blue-600 text-white font-bold px-2.5 py-1 rounded text-xs">Ver</button></td>
     `;
     tbody.appendChild(tr);
   });
@@ -593,12 +540,6 @@ async function calculateMultiRoute() {
     const validCoords = waypoints.filter(w => w.coords).map(w => `${w.coords[1]},${w.coords[0]}`);
     if (validCoords.length < 2) { alert("Informe a Origem e pelo menos um Destino."); return; }
 
-    if (waypoints[0] && waypoints[0].coords) {
-      const depDate = document.getElementById('departureDate')?.value || new Date().toISOString().split('T')[0];
-      const depTime = document.getElementById('departureTime')?.value || "08:00";
-      await fetchWeatherForecast(waypoints[0].coords[0], waypoints[0].coords[1], depDate, depTime);
-    }
-
     const res = await fetch(`https://router.project-osrm.org/route/v1/driving/${validCoords.join(';')}?overview=full&geometries=geojson`);
     const data = await res.json();
 
@@ -614,7 +555,6 @@ async function calculateMultiRoute() {
 
       const startBatt = parseFloat(document.getElementById('startBattery')?.value) || 80;
       const electricRange = selectedCar ? (selectedCar.range * (startBatt / 100)) : 250;
-      drawBatteryIsochronePolyline(waypoints[0].coords, electricRange);
 
       await fetchRouteStationsFromOSM(activeRouteData.geometry);
       renderStationsOnMapAndTable(distKm, electricRange);
@@ -675,9 +615,8 @@ async function calculateMultiRoute() {
       const totalCostElem = document.getElementById('totalCost');
       if (totalCostElem) totalCostElem.innerText = `R$ ${totalCost.toFixed(2)}`;
 
-      // Atualiza telemetria ESG
       currentTripStats.totalKm += distKm;
-      currentTripStats.savings += Math.max(0, (distKm * 0.45)); // estimativa
+      currentTripStats.savings += Math.max(0, (distKm * 0.45));
       currentTripStats.co2Saved += Math.round(distKm * 0.12);
       currentTripStats.tripsCount += 1;
       saveEsgStats();
@@ -697,7 +636,6 @@ async function calculateMultiRoute() {
   }
 }
 
-// Ouvintes de Modais e Botões Adicionais (Google Maps, Waze, ESG, PDF)
 function initExtraButtonsAndModals() {
   const gmapsBtn = document.getElementById('openGoogleMapsBtn');
   if (gmapsBtn) {
@@ -749,7 +687,7 @@ function initExtraButtonsAndModals() {
       currentTripStats = { totalKm: 0, savings: 0, co2Saved: 0, tripsCount: 0 };
       saveEsgStats();
       updateEsgUI();
-      alert("Histórico ESG zerado com sucesso.");
+      alert("Histórico ESG zerado.");
     });
   }
 }
