@@ -2,7 +2,7 @@
 'use strict';
 const C=window.EV_CONFIG||{}; const DB=window.EV_VEHICLES||[];
 const $=id=>document.getElementById(id);
-let map,routeLayer,rangeLayer,stations=[],stationMarkers=[],fuelStations=[],fuelMarkers=[],waypointMarkers=[],route=null,selectedCar=null,roundTrip=false,deferredPrompt=null;
+let map,mapReturn,routeLayer,returnRouteLayer,rangeLayer,stations=[],stationMarkers=[],fuelStations=[],fuelMarkers=[],waypointMarkers=[],route=null,routeOut=null,routeBack=null,selectedCar=null,roundTrip=false,deferredPrompt=null;
 let waypoints=[{type:'origin',label:'Origem',address:'',coords:null},{type:'destination',label:'Destino 1',address:'',coords:null}];
 let favorites=JSON.parse(localStorage.getItem('evp3_places')||'[]');
 let savedPlaces=JSON.parse(localStorage.getItem('evp3_saved_places')||'{}');
@@ -39,7 +39,7 @@ function renderVersionUI(){
 function withTimeout(ms){const c=new AbortController();const t=setTimeout(()=>c.abort(),ms||9000);return {signal:c.signal,done:()=>clearTimeout(t)}}
 function cacheRead(key,ttl){try{const d=JSON.parse(localStorage.getItem(key)||'null');if(!d||Date.now()-d.t>(ttl||0))return null;return d.v}catch{return null}}
 function cacheWrite(key,value){try{localStorage.setItem(key,JSON.stringify({t:Date.now(),v:value}))}catch{}}
-function routeCacheKey(){return JSON.stringify({v:C.version,w:waypoints.map(w=>[w.type,w.address,w.coords]),roundTrip,mode:$('driveMode')?.value,ac:$('acMode')?.value,rain:$('rainMode')?.checked,elev:$('elevationMode')?.checked,traffic:$('trafficMode')?.checked,returnTime:$('returnDepartureTime')?.value})}
+function routeCacheKey(){return JSON.stringify({v:C.version,w:waypoints.map(w=>[w.type,w.address,w.coords]),roundTrip,mode:$('driveMode')?.value,ac:$('acMode')?.value,rain:$('rainMode')?.checked,elev:$('elevationMode')?.checked,traffic:$('trafficMode')?.checked,returnDate:$('returnDepartureDate')?.value,returnTime:$('returnDepartureTime')?.value})}
 function persistRecentTrip(){if(!route||!selectedCar)return;const item={id:Date.now(),date:new Date().toISOString(),vehicle:{brand:selectedCar.brand,model:selectedCar.model,version:selectedCar.version||'',type:selectedCar.type},waypoints:waypoints.filter(w=>w.type!=='return').map(w=>({type:w.type,label:w.label,address:w.address,coords:w.coords})),distance:lastEnergy?.km||0,duration:route.duration||0};recentTrips=[item,...recentTrips.filter(x=>JSON.stringify(x.waypoints)!==JSON.stringify(item.waypoints))].slice(0,C.recentTripsLimit||8);localStorage.setItem('evp3_recent_trips',JSON.stringify(recentTrips));renderRecentTrips()}
 function renderRecentTrips(){const box=$('recentTripsList');if(!box)return;box.innerHTML=recentTrips.length?recentTrips.map((t,i)=>`<div class="recent-trip"><div><b>${safe(t.vehicle.brand)} ${safe(t.vehicle.model)}</b><span>${safe(t.waypoints?.[0]?.address||'Origem')} → ${safe(t.waypoints?.[t.waypoints.length-1]?.address||'Destino')}</span><small>${num(t.distance)} km · ${formatTime(t.duration)}</small></div><button class="btn secondary" onclick="window.__restoreTrip(${i})">Usar</button></div>`).join(''):'<div class="empty">As viagens calculadas aparecerão aqui.</div>'}
 window.__restoreTrip=i=>{const t=recentTrips[i];if(!t)return;waypoints=t.waypoints.map(w=>({...w,coords:w.coords?[...w.coords]:null}));relabel();renderWaypoints();if(t.vehicle){const ci=DB.findIndex(c=>c.brand===t.vehicle.brand&&c.model===t.vehicle.model&&c.version===t.vehicle.version);if(ci>=0){$('brandSelect').value=t.vehicle.brand;$('brandSelect').dispatchEvent(new Event('change'));const cars=DB.filter(c=>c.brand===t.vehicle.brand);$('modelSelect').value=String(cars.findIndex(c=>c.model===t.vehicle.model&&c.version===t.vehicle.version));$('modelSelect').dispatchEvent(new Event('change'))}}toast('Viagem recente restaurada.')}
@@ -49,13 +49,16 @@ function init(){
  map=L.map('map').setView([-8.05,-34.88],7);
  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(map);
  map.on('click',onMapClick);
+ mapReturn=L.map('mapReturn').setView([-8.05,-34.88],7);
+ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(mapReturn);
+ mapReturn.on('click',onMapClick);
  setupVehicles(); setupWaypoints(); setupButtons(); setupFilters(); setupDefaults(); renderFavorites(); renderESG(); renderRecentTrips(); renderManualStations(); updateFuelBox(); updateFavoriteCarUI();
  if('serviceWorker' in navigator && location.protocol!=='file:') navigator.serviceWorker.register('sw.js').catch(()=>{});
  window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;$('installBtn').classList.remove('hidden')});
  $('installBtn').onclick=async()=>{if(!deferredPrompt)return;deferredPrompt.prompt();deferredPrompt=null;$('installBtn').classList.add('hidden')};
 }
 function setupDefaults(){
- const d=new Date(); $('departureDate').value=new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10);
+ const d=new Date(); const today=new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10); $('departureDate').value=today; $('returnDepartureDate').value=today;
  $('startBattery').value=clampBattery(localStorage.getItem('evp3_battery')??C.defaults.startBattery);
  $('stopBatteryThreshold').value=Number(localStorage.getItem('evp3_stop_threshold')??C.stopBatteryPercent??20);
  $('startFuel').value=localStorage.getItem('evp3_fuel')??C.defaults.startFuel;
@@ -106,7 +109,7 @@ function drawWaypoints(){waypointMarkers.forEach(m=>map.removeLayer(m));waypoint
 function setupButtons(){
  $('addDestinationBtn').onclick=()=>{waypoints.push({type:'destination',label:'Destino',address:'',coords:null});relabel();renderWaypoints()};
  $('addStopBtn').onclick=()=>{waypoints.push({type:'stop',label:'Parada',address:'',coords:null});relabel();renderWaypoints()};
- $('roundTripBtn').onclick=()=>{roundTrip=!roundTrip;$('roundTripBtn').classList.toggle('active',roundTrip);$('roundTripBtn').textContent=roundTrip?'↔ Ida e volta ATIVADA':'↔ Ida e volta';$('returnTimeRow').classList.toggle('hidden',!roundTrip);if(roundTrip)toast('Ida e volta ativada. Informe também a hora de saída da volta.');};
+ $('roundTripBtn').onclick=()=>{roundTrip=!roundTrip;$('roundTripBtn').classList.toggle('active',roundTrip);$('roundTripBtn').textContent=roundTrip?'↔ Ida e volta ATIVADA':'↔ Ida e volta';$('returnScheduleRow').classList.toggle('hidden',!roundTrip);$('returnTimeNote').classList.toggle('hidden',!roundTrip);$('returnMapCard').classList.toggle('hidden',!roundTrip);if(roundTrip)toast('Ida e volta ativada. Informe a data e o horário da volta.');else{routeBack=null;clearReturnMap();}};
  $('calculateBtn').onclick=calculateTrip;$('homeBtn').onclick=()=>useSavedPlace('home');$('workBtn').onclick=()=>useSavedPlace('work');$('addFavoritePlaceBtn').onclick=()=>openFavoriteModal();$('saveFavoriteBtn').onclick=saveFavorite;$('cancelFavoriteBtn').onclick=closeFavoriteModal;$('closeFavoriteModal').onclick=closeFavoriteModal;
  $('closeFavoriteTarget').onclick=closeFavoriteTarget;$('cancelFavoriteTarget').onclick=closeFavoriteTarget;
  $('favoriteAddress').oninput=setupFavoriteAutocomplete;
@@ -132,72 +135,63 @@ function closeFavoriteTarget(){$('favoriteTargetModal').classList.add('hidden')}
 function applyFavoriteAddress(address,index){if(!waypoints[index])return;waypoints[index].address=address;waypoints[index].coords=null;renderWaypoints();toast(`${waypoints[index].label} atualizado.`)}
 function savePlace(){openFavoriteModal()}
 function setupFilters(){['filterDC','filterAC'].forEach(id=>$(id).onchange=renderStations);$('showRange').onchange=drawRange}
+async function fetchRouteData(coords,key){
+ const cacheKey='evp3_route_'+btoa(unescape(encodeURIComponent(key))).replace(/[^a-zA-Z0-9]/g,'');
+ let d=cacheRead(cacheKey,C.routeCacheTtlMs||900000);
+ if(!d){const controller=new AbortController();const timer=setTimeout(()=>controller.abort(),C.requestTimeoutMs||9000);try{const r=await fetch(C.services.route+coords+'?overview=full&geometries=geojson&steps=true',{signal:controller.signal});d=await r.json()}finally{clearTimeout(timer)}}
+ if(d?.code!=='Ok'||!d?.routes?.length)throw Error('Não foi possível calcular a rota.');
+ cacheWrite(cacheKey,d);return d.routes[0];
+}
 async function calculateTrip(){
  const btn=$('calculateBtn');btn.disabled=true;$('calculationDone').classList.add('hidden');btn.innerHTML='<i class="fa-solid fa-spinner fa-spin"></i> Calculando...';
  try{
   syncBatteryUI(false);await ensureCoords();if(waypoints.filter(w=>w.coords).length<2)throw Error('Informe uma origem e pelo menos um destino.');
-  if(roundTrip&&!waypoints.some(w=>w.type==='return')){const o=waypoints[0];waypoints.push({type:'return',label:'Retorno',address:o.address,coords:[...o.coords]})}if(!roundTrip)waypoints=waypoints.filter(w=>w.type!=='return');
-  drawWaypoints();const coords=waypoints.filter(w=>w.coords).map(w=>w.coords[1]+','+w.coords[0]).join(';');
-  const token=++routeRequestToken;const key=routeCacheKey();let d=cacheRead('evp3_route_'+btoa(unescape(encodeURIComponent(key))).replace(/[^a-zA-Z0-9]/g,''),C.routeCacheTtlMs||900000);
-  if(!d){const controller=new AbortController();const timer=setTimeout(()=>controller.abort(),C.requestTimeoutMs||9000);try{const r=await fetch(C.services.route+coords+'?overview=full&geometries=geojson&steps=true',{signal:controller.signal});d=await r.json()}finally{clearTimeout(timer)}}
-  if(token!==routeRequestToken)return;if(d.code!=='Ok'||!d.routes?.length)throw Error('Não foi possível calcular a rota.');
-  cacheWrite('evp3_route_'+btoa(unescape(encodeURIComponent(key))).replace(/[^a-zA-Z0-9]/g,''),d);route=d.routes[0];drawRoute();calculateEnergy();saveESG();persistRecentTrip();renderDetailedSummary();$('calculationDone').classList.remove('hidden');toast('Cálculo concluído');
+  if(roundTrip){
+   const retDate=$('returnDepartureDate').value,retTime=$('returnDepartureTime').value;
+   if(!retDate||!retTime)throw Error('Informe a data e o horário de saída da volta.');
+   if($('departureDate').value&&retDate<$('departureDate').value)throw Error('A data da volta não pode ser anterior à data da ida.');
+   if(!waypoints.some(w=>w.type==='return')){const o=waypoints[0];waypoints.push({type:'return',label:'Retorno',address:o.address,coords:[...o.coords]})}
+  } else waypoints=waypoints.filter(w=>w.type!=='return');
+  drawWaypoints();
+  const outbound=waypoints.filter(w=>w.type!=='return'&&w.coords);
+  const outCoords=outbound.map(w=>w.coords[1]+','+w.coords[0]).join(';');
+  const token=++routeRequestToken;
+  routeOut=await fetchRouteData(outCoords,JSON.stringify({v:C.version,type:'out',w:outbound.map(w=>w.coords)}));
+  if(roundTrip){
+   const backPoints=[...outbound].reverse();
+   const backCoords=backPoints.map(w=>w.coords[1]+','+w.coords[0]).join(';');
+   routeBack=await fetchRouteData(backCoords,JSON.stringify({v:C.version,type:'back',w:backPoints.map(w=>w.coords)}));
+   const combinedCoords=[...routeOut.geometry.coordinates,...routeBack.geometry.coordinates.slice(1)];
+   route={...routeOut,distance:(routeOut.distance||0)+(routeBack.distance||0),duration:(routeOut.duration||0)+(routeBack.duration||0),geometry:{...routeOut.geometry,coordinates:combinedCoords},legs:[...(routeOut.legs||[]),...(routeBack.legs||[])]};
+  }else{routeBack=null;route=routeOut;}
+  if(token!==routeRequestToken)return;
+  drawRoute();calculateEnergy();saveESG();persistRecentTrip();renderDetailedSummary();$('calculationDone').classList.remove('hidden');toast('Cálculo concluído');
   Promise.all([loadStations(),loadFuelStations(),loadWeather()]).then(()=>{renderDetailedSummary();renderSmartPlan();drawRoute()}).catch(()=>{});
  }catch(e){console.error(e);toast(e.message||'Erro ao calcular viagem.')}finally{btn.disabled=false;btn.innerHTML='<i class="fa-solid fa-bolt"></i> Calcular viagem'}
 }
+function clearReturnMap(){if(returnRouteLayer){mapReturn.removeLayer(returnRouteLayer);returnRouteLayer=null}mapReturn?.setView([-8.05,-34.88],7);}
+function drawRouteLayer(targetMap,obj,layerRef,forceReturn=false,distanceOffset=0){
+ if(layerRef){targetMap.removeLayer(layerRef);layerRef=null}
+ if(!obj?.geometry?.coordinates?.length)return null;
+ const segments=buildEnergySegmentsFor(obj,forceReturn,distanceOffset);
+ const layer=L.layerGroup();segments.forEach(seg=>L.polyline(seg.latlngs,{color:seg.color,weight:7,opacity:.92,lineCap:'round',lineJoin:'round'}).bindTooltip(seg.label,{sticky:true,direction:'top'}).addTo(layer));layer.addTo(targetMap);
+ targetMap.fitBounds(L.latLngBounds(obj.geometry.coordinates.map(c=>[c[1],c[0]])),{padding:[25,25]});return layer;
+}
 function drawRoute(){
  if(routeLayer)map.removeLayer(routeLayer);
- if(!route?.geometry?.coordinates?.length)return;
- const segments=buildEnergySegments();
- routeLayer=L.layerGroup();
- segments.forEach(seg=>L.polyline(seg.latlngs,{color:seg.color,weight:7,opacity:.92,lineCap:'round',lineJoin:'round'}).bindTooltip(seg.label,{sticky:true,direction:'top'}).addTo(routeLayer));
- routeLayer.addTo(map);
- const bounds=L.latLngBounds(route.geometry.coordinates.map(c=>[c[1],c[0]]));
- map.fitBounds(bounds,{padding:[25,25]});
+ routeLayer=drawRouteLayer(map,routeOut||route,false,false,0);
+ if(roundTrip&&routeBack){$('returnMapCard').classList.remove('hidden');if(returnRouteLayer)mapReturn.removeLayer(returnRouteLayer);returnRouteLayer=drawRouteLayer(mapReturn,routeBack,null,true,routeOut?.distance?routeOut.distance/1000:0);setTimeout(()=>mapReturn.invalidateSize(),50)}else{clearReturnMap();$('returnMapCard').classList.add('hidden')}
 }
-function routeEnergyLimits(){
- const km=route?.distance?route.distance/1000:0;
- const start=clampBattery($('startBattery').value);
- const reserve=getStopThreshold();
- const cap=Number(selectedCar?.battery)||0;
- const c=(selectedCar?._calcConsumption||selectedCar?.consumption||0)*factors();
- const electricRange=cap&&c?cap*start/100/(c/100):0;
- const electricReserveRange=cap&&c?cap*(Math.max(0,start-reserve)/100)/(c/100):0;
- const startFuel=isFuelCar()?Math.max(0,Number($('startFuel').value)||0):0;
- const kpl=Number(selectedCar?.fuelConsumption)||Number(selectedCar?.gasKm)||15;
- const fuelRange=startFuel*kpl;
- const fuelReserveRange=Math.max(0,(startFuel*(1-reserve/100))*kpl);
- return {km,start,reserve,cap,c,electricRange,electricReserveRange,startFuel,kpl,fuelRange,fuelReserveRange};
+function buildEnergySegmentsFor(obj,forceReturn=false,distanceOffset=0){
+ const cs=obj.geometry.coordinates,lim=routeEnergyLimits(),out=[];let acc=distanceOffset;
+ for(let i=1;i<cs.length;i++){const a=L.latLng(cs[i-1][1],cs[i-1][0]),b=L.latLng(cs[i][1],cs[i][0]);const segKm=a.distanceTo(b)/1000,mid=acc+segKm/2;const blue=forceReturn;let color=blue?'#38bdf8':'#34d399',label=blue?'Volta — dentro da autonomia':'Ida — dentro da autonomia';
+  if(selectedCar?.type==='BEV'){if(mid>lim.electricRange){color='#fb7185';label=`${blue?'Volta':'Ida'} — autonomia insuficiente — recarregar`;}else if(mid>lim.electricReserveRange){color=blue?'#60a5fa':'#fbbf24';label=`${blue?'Volta':'Ida'} — reserva de bateria — recarga recomendada`;}}
+  else if(['PHEV','PHEV Flex','REEV'].includes(selectedCar?.type)){if(mid<=lim.electricReserveRange){color=blue?'#38bdf8':'#34d399';label=`${blue?'Volta':'Ida'} — trecho elétrico com reserva`;}else if(mid<=lim.electricRange){color=blue?'#60a5fa':'#fbbf24';label=`${blue?'Volta':'Ida'} — bateria próxima do fim — recarga recomendada`;}else if(mid<=lim.electricRange+lim.fuelReserveRange){color='#fb923c';label=`${blue?'Volta':'Ida'} — trecho com combustível — abastecimento monitorado`;}else if(mid<=lim.electricRange+lim.fuelRange){color='#f59e0b';label=`${blue?'Volta':'Ida'} — combustível — reserva baixa`;}else{color='#fb7185';label=`${blue?'Volta':'Ida'} — autonomia total insuficiente — abastecer/recarregar`;}}
+  else if(['HEV','MHEV'].includes(selectedCar?.type)){if(mid>lim.fuelRange){color='#fb7185';label=`${blue?'Volta':'Ida'} — combustível insuficiente — abastecer`;}else if(mid>lim.fuelReserveRange){color=blue?'#60a5fa':'#fbbf24';label=`${blue?'Volta':'Ida'} — reserva de combustível — abastecimento recomendado`;}}
+  const prev=out[out.length-1];if(prev&&prev.color===color)prev.latlngs.push([b.lat,b.lng]);else out.push({color,label,latlngs:[[a.lat,a.lng],[b.lat,b.lng]],isReturn:blue});acc+=segKm;
+ }return out;
 }
-function buildEnergySegments(){
- const cs=route.geometry.coordinates, lim=routeEnergyLimits(), out=[];
- let acc=0;
- const returnStartKm=roundTrip&&route?.legs?.length?route.legs.slice(0,-1).reduce((sum,l)=>sum+(l.distance||0)/1000,0):Infinity;
- for(let i=1;i<cs.length;i++){
-   const a=L.latLng(cs[i-1][1],cs[i-1][0]),b=L.latLng(cs[i][1],cs[i][0]);
-   const segKm=a.distanceTo(b)/1000, mid=acc+segKm/2, isReturn=mid>=returnStartKm;
-   const blue=isReturn;
-   let color=blue?'#38bdf8':'#34d399',label=blue?'Volta — dentro da autonomia':'Ida — dentro da autonomia';
-   if(selectedCar?.type==='BEV'){
-     if(mid>lim.electricRange){color='#fb7185';label=`${blue?'Volta':'Ida'} — autonomia insuficiente — recarregar`;}
-     else if(mid>lim.electricReserveRange){color=blue?'#60a5fa':'#fbbf24';label=`${blue?'Volta':'Ida'} — reserva de bateria — recarga recomendada`;}
-   }else if(['PHEV','PHEV Flex','REEV'].includes(selectedCar?.type)){
-     if(mid<=lim.electricReserveRange){color=blue?'#38bdf8':'#34d399';label=`${blue?'Volta':'Ida'} — trecho elétrico com reserva`;}
-     else if(mid<=lim.electricRange){color=blue?'#60a5fa':'#fbbf24';label=`${blue?'Volta':'Ida'} — bateria próxima do fim — recarga recomendada`;}
-     else if(mid<=lim.electricRange+lim.fuelReserveRange){color='#fb923c';label=`${blue?'Volta':'Ida'} — trecho com combustível — abastecimento monitorado`;}
-     else if(mid<=lim.electricRange+lim.fuelRange){color='#f59e0b';label=`${blue?'Volta':'Ida'} — combustível — reserva baixa`;}
-     else{color='#fb7185';label=`${blue?'Volta':'Ida'} — autonomia total insuficiente — abastecer/recarregar`;}
-   }else if(['HEV','MHEV'].includes(selectedCar?.type)){
-     if(mid>lim.fuelRange){color='#fb7185';label=`${blue?'Volta':'Ida'} — combustível insuficiente — abastecer`;}
-     else if(mid>lim.fuelReserveRange){color=blue?'#60a5fa':'#fbbf24';label=`${blue?'Volta':'Ida'} — reserva de combustível — abastecimento recomendado`;}
-   }
-   const prev=out[out.length-1];
-   if(prev && prev.color===color) prev.latlngs.push([b.lat,b.lng]);
-   else out.push({color,label,latlngs:[[a.lat,a.lng],[b.lat,b.lng]],isReturn});
-   acc+=segKm;
- }
- return out;
-}
+
 function factors(){return Number($('driveMode').value)*Number($('acMode').value)*($('rainMode').checked?1.12:1)*($('elevationMode').checked?1.08:1)}
 function calculateEnergy(){
  if(!route||!selectedCar)return;const km=route.distance/1000,c=selectedCar._calcConsumption||selectedCar.consumption||0,f=c*factors(),start=clampBattery($('startBattery').value),cap=Number(selectedCar.battery)||0,kwhPrice=Number($('kwhPrice').value)||0,gasPrice=Number($('gasPrice').value)||0,ethPrice=Number($('ethanolPrice').value)||0;let electricKm=0,fuelKm=0,kwh=0,fuel=0,battery=start;
@@ -244,7 +238,7 @@ function findRecommendedCharge(preferReserve=false){const s=bestChargeStation(pr
 function findRecommendedFuel(preferReserve=false){if(!fuelStations.length)return 'Abastecer antes de atingir a reserva de combustível.';const lim=routeEnergyLimits(),target=preferReserve?lim.fuelReserveRange:lim.fuelRange*0.65,s=[...fuelStations].sort((a,b)=>Math.abs(a.routeKm-target)-Math.abs(b.routeKm-target))[0];return s?`${s.name} · km ${num(s.routeKm)} da rota`:'Abastecer antes de atingir a reserva de combustível.'}
 function findRecommendedFuelOrCharge(){const c=bestChargeStation(true);const f=fuelStations.length?fuelStations[0]:null;if(c&&(!f||c.routeKm<=f.routeKm))return findRecommendedCharge(true);return findRecommendedFuel(true)}
 function bestStrategy(){if(selectedCar.type==='BEV')return stations.length?'Recarregar em um ponto rápido antes da reserva':'Reduzir consumo e ampliar a busca por eletropostos';if(['PHEV','PHEV Flex','REEV'].includes(selectedCar.type))return stations.length&&lastEnergy.fuelKm>0?'Recarga estratégica para ampliar o trecho elétrico':'Usar combustível após a autonomia elétrica';return fuelStations.length?'Abastecimento preventivo antes da reserva':'Manter condução econômica e planejar abastecimento'}
-function renderDetailedSummary(){if(!lastEnergy||!selectedCar||!route)return;const stops=waypoints.filter((w,i)=>i>0&&w.type!=='return').map(w=>w.label+' — '+w.address).join('<br>')||'Nenhuma parada adicional';const routeNames=waypoints.map(w=>`${w.label}: ${w.address||'não informado'}`).join('<br>');const mode=$('driveMode').selectedOptions[0]?.textContent||'Normal',ac=$('acMode').selectedOptions[0]?.textContent||'Ligado';const stationVisible=stations.length;const stationText=stations.slice(0,6).map((s,i)=>`${i+1}. ${safe(s.name)} — ${num(s.routeKm)} km da rota · ${safe(s.type)} · ${num(s.power)} kW${s.price?' · '+money(s.price)+'/kWh':''}`).join('<br>')||'Nenhum ponto disponível';const weather=lastWeather?`${num(lastWeather.temp)}°C · ${lastWeather.rain}% de probabilidade de chuva`:'Indisponível';$('summaryDetails').innerHTML=`<div class="detail-block"><h3>🚗 Veículo</h3><p><b>${safe(selectedCar.brand)} ${safe(selectedCar.model)} ${safe(selectedCar.version||'')}</b><br>${safe(typeName(selectedCar.type))} · ${safe(selectedCar.power||'Potência não informada')} · ${selectedCar.battery?num(selectedCar.battery)+' kWh de bateria':'Bateria não informada'} · ${getRange(selectedCar)?num(getRange(selectedCar))+' km INMETRO/PBEV':'Autonomia INMETRO não informada'}${getPanelRange()?` · painel: ${num(getPanelRange())} km`:''}</p></div><div class="detail-block"><h3>📍 Rota</h3><p>${routeNames}</p><p><b>Paradas extras:</b><br>${stops}</p></div><div class="detail-block"><h3>⚡ Energia e combustível</h3><p>Bateria inicial: <b>${Math.round(clampBattery($('startBattery').value))}%</b><br>Energia prevista: <b>${num(lastEnergy.kwh)} kWh</b><br>Trecho elétrico: <b>${num(lastEnergy.electricKm)} km</b><br>Trecho a combustível: <b>${num(lastEnergy.fuelKm)} km</b><br>Combustível inicial: <b>${isFuelCar()?num(lastEnergy.startFuel)+' L':'Não se aplica'}</b><br>Combustível previsto na chegada: <b>${isFuelCar()?num(lastEnergy.arrivalFuel)+' L':'Não se aplica'}</b></p></div><div class="detail-block"><h3>💰 Custos</h3><p>Energia elétrica: <b>${money(lastEnergy.evCost)}</b><br>Gasolina equivalente: <b>${money(lastEnergy.gasCost)}</b><br>Etanol equivalente: <b>${money(lastEnergy.ethCost)}</b><br>Custo estimado: <b>${money(lastEnergy.total)}</b><br>Economia estimada: <b>${money(lastEnergy.saving)}</b></p></div><div class="detail-block"><h3>🔌 Carregamento</h3><p>${stationText}</p></div><div class="detail-block"><h3>🧭 Condições do planejamento</h3><p>Condução: <b>${safe(mode)}</b> · Climatização: <b>${safe(ac)}</b><br>Chuva: <b>${$('rainMode').checked?'Sim':'Não'}</b> · Relevo: <b>${$('elevationMode').checked?'Considerado':'Não considerado'}</b> · Trânsito: <b>${$('trafficMode').checked?'Considerado no planejamento':'Não considerado'}</b><br>Saída ida: <b>${$('departureTime').value||'—'}</b>${roundTrip?` · saída volta: <b>${$('returnDepartureTime').value||'—'}</b>`:''}<br>Clima de saída: <b>${weather}</b><br>Pontos de carregamento encontrados: <b>${stationVisible}</b><br>Gatilho estratégico: <b>${getStopThreshold()}%</b></p></div>`}
+function renderDetailedSummary(){if(!lastEnergy||!selectedCar||!route)return;const stops=waypoints.filter((w,i)=>i>0&&w.type!=='return').map(w=>w.label+' — '+w.address).join('<br>')||'Nenhuma parada adicional';const routeNames=waypoints.map(w=>`${w.label}: ${w.address||'não informado'}`).join('<br>');const mode=$('driveMode').selectedOptions[0]?.textContent||'Normal',ac=$('acMode').selectedOptions[0]?.textContent||'Ligado';const stationVisible=stations.length;const stationText=stations.slice(0,6).map((s,i)=>`${i+1}. ${safe(s.name)} — ${num(s.routeKm)} km da rota · ${safe(s.type)} · ${num(s.power)} kW${s.price?' · '+money(s.price)+'/kWh':''}`).join('<br>')||'Nenhum ponto disponível';const weather=lastWeather?`${num(lastWeather.temp)}°C · ${lastWeather.rain}% de probabilidade de chuva`:'Indisponível';$('summaryDetails').innerHTML=`<div class="detail-block"><h3>🚗 Veículo</h3><p><b>${safe(selectedCar.brand)} ${safe(selectedCar.model)} ${safe(selectedCar.version||'')}</b><br>${safe(typeName(selectedCar.type))} · ${safe(selectedCar.power||'Potência não informada')} · ${selectedCar.battery?num(selectedCar.battery)+' kWh de bateria':'Bateria não informada'} · ${getRange(selectedCar)?num(getRange(selectedCar))+' km INMETRO/PBEV':'Autonomia INMETRO não informada'}${getPanelRange()?` · painel: ${num(getPanelRange())} km`:''}</p></div><div class="detail-block"><h3>📍 Rota</h3><p>${routeNames}</p><p><b>Paradas extras:</b><br>${stops}</p></div><div class="detail-block"><h3>⚡ Energia e combustível</h3><p>Bateria inicial: <b>${Math.round(clampBattery($('startBattery').value))}%</b><br>Energia prevista: <b>${num(lastEnergy.kwh)} kWh</b><br>Trecho elétrico: <b>${num(lastEnergy.electricKm)} km</b><br>Trecho a combustível: <b>${num(lastEnergy.fuelKm)} km</b><br>Combustível inicial: <b>${isFuelCar()?num(lastEnergy.startFuel)+' L':'Não se aplica'}</b><br>Combustível previsto na chegada: <b>${isFuelCar()?num(lastEnergy.arrivalFuel)+' L':'Não se aplica'}</b></p></div><div class="detail-block"><h3>💰 Custos</h3><p>Energia elétrica: <b>${money(lastEnergy.evCost)}</b><br>Gasolina equivalente: <b>${money(lastEnergy.gasCost)}</b><br>Etanol equivalente: <b>${money(lastEnergy.ethCost)}</b><br>Custo estimado: <b>${money(lastEnergy.total)}</b><br>Economia estimada: <b>${money(lastEnergy.saving)}</b></p></div><div class="detail-block"><h3>🔌 Carregamento</h3><p>${stationText}</p></div><div class="detail-block"><h3>🧭 Condições do planejamento</h3><p>Condução: <b>${safe(mode)}</b> · Climatização: <b>${safe(ac)}</b><br>Chuva: <b>${$('rainMode').checked?'Sim':'Não'}</b> · Relevo: <b>${$('elevationMode').checked?'Considerado':'Não considerado'}</b> · Trânsito: <b>${$('trafficMode').checked?'Considerado no planejamento':'Não considerado'}</b><br>Saída ida: <b>${$('departureDate').value||'—'}</b> às <b>${$('departureTime').value||'—'}</b>${roundTrip?` · volta: <b>${$('returnDepartureDate').value||'—'}</b> às <b>${$('returnDepartureTime').value||'—'}</b>`:''}<br>Clima de saída: <b>${weather}</b><br>Pontos de carregamento encontrados: <b>${stationVisible}</b><br>Gatilho estratégico: <b>${getStopThreshold()}%</b></p></div>`}
 function formatTime(sec){const m=Math.round(Number(sec||0)/60),h=Math.floor(m/60),r=m%60;return h?`${h}h ${r}min`:`${r} min`}
 function drawRange(){if(rangeLayer){map.removeLayer(rangeLayer);rangeLayer=null}if(!$('showRange').checked||!getRange(selectedCar)||!waypoints[0]?.coords)return;const pct=clampBattery($('startBattery').value),r=getRange(selectedCar)*pct/100,lat=waypoints[0].coords[0],lng=waypoints[0].coords[1];rangeLayer=L.circle([lat,lng],{radius:r*1000,color:'#34d399',fillColor:'#34d399',fillOpacity:.08,weight:2,dashArray:'6 6'}).addTo(map).bindPopup(`Alcance teórico inicial: ${num(r)} km`)}
 function nearest(lat,lng){const cs=route.geometry.coordinates;let best={distance:Infinity,routeKm:0},acc=0;const p=L.latLng(lat,lng);for(let i=1;i<cs.length;i++){const a=L.latLng(cs[i-1][1],cs[i-1][0]),b=L.latLng(cs[i][1],cs[i][0]),seg=a.distanceTo(b)/1000,da=p.distanceTo(a)/1000,db=p.distanceTo(b)/1000,d=Math.min(da,db);if(d<best.distance)best={distance:d,routeKm:acc+Math.min(da,seg)};acc+=seg}return best}
@@ -320,10 +314,10 @@ function openStationManager(){renderManualStations();$('stationManagerModal').cl
 function closeStationManager(){$('stationManagerModal').classList.add('hidden')}
 window.__closeStationManager=closeStationManager
 function saveStation(){const name=$('stationName').value.trim(),lat=Number($('stationLat').value),lng=Number($('stationLng').value),power=Number($('stationPower').value);if(!name||!Number.isFinite(lat)||!Number.isFinite(lng)||!Number.isFinite(power)||power<0)return toast('Preencha nome, localização e potência do ponto.');const s={id:editingStationId||'manual-'+Date.now(),name,address:$('stationAddress').value.trim(),brand:$('stationBrand').value.trim(),type:$('stationType').value,model:$('stationModel').value.trim(),power,price:Number($('stationPrice').value)||0,points:Math.max(1,Number($('stationPoints').value)||1),city:$('stationCity').value.trim(),connector:$('stationConnector').value.trim(),lat,lng,notes:$('stationNotes').value.trim()};if(editingStationId)manualStations=manualStations.map(x=>x.id===editingStationId?s:x);else manualStations.push(s);localStorage.setItem('evp3_stations',JSON.stringify(manualStations));renderManualStations();closeStationModal();toast(editingStationId?'Ponto atualizado.':'Ponto de carregamento salvo.');editingStationId=null;if(route)loadStations(true)}
-function exportPDF(){if(!route){toast('Calcule uma viagem antes de exportar.');return}const opt={margin:7,filename:`EV-Planner-Pro-${String(C.version||'3.7').replace(/\.0$/,'')}-${Date.now()}.pdf`,image:{type:'jpeg',quality:.95},html2canvas:{scale:1.5,useCORS:true},jsPDF:{unit:'mm',format:'a4',orientation:'portrait'}};html2pdf().set(opt).from(document.querySelector('.app-shell')).save()}
-function exportBackup(){const payload={version:C.version,settings:{battery:$('startBattery').value,fuel:$('startFuel').value,kwh:$('kwhPrice').value,gas:$('gasPrice').value,ethanol:$('ethanolPrice').value,stopThreshold:$('stopBatteryThreshold').value},panelRanges,favorites,savedPlaces,manualStations,esg,vehicle:selectedCar};const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(payload,null,2)],{type:'application/json'}));a.download=`ev-planner-pro-${String(C.version||'3.7').replace(/\.0$/,'')}-backup.json`;a.click();URL.revokeObjectURL(a.href)}
+function exportPDF(){if(!route){toast('Calcule uma viagem antes de exportar.');return}const opt={margin:7,filename:`EV-Planner-Pro-${String(C.version||'3.8').replace(/\.0$/,'')}-${Date.now()}.pdf`,image:{type:'jpeg',quality:.95},html2canvas:{scale:1.5,useCORS:true},jsPDF:{unit:'mm',format:'a4',orientation:'portrait'}};html2pdf().set(opt).from(document.querySelector('.app-shell')).save()}
+function exportBackup(){const payload={version:C.version,settings:{battery:$('startBattery').value,fuel:$('startFuel').value,kwh:$('kwhPrice').value,gas:$('gasPrice').value,ethanol:$('ethanolPrice').value,stopThreshold:$('stopBatteryThreshold').value},panelRanges,favorites,savedPlaces,manualStations,esg,vehicle:selectedCar};const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(payload,null,2)],{type:'application/json'}));a.download=`ev-planner-pro-${String(C.version||'3.8').replace(/\.0$/,'')}-backup.json`;a.click();URL.revokeObjectURL(a.href)}
 function importBackup(e){const f=e.target.files?.[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(d.settings){$('startBattery').value=clampBattery(d.settings.battery??$('startBattery').value);$('startFuel').value=d.settings.fuel??$('startFuel').value;$('kwhPrice').value=d.settings.kwh??$('kwhPrice').value;$('gasPrice').value=d.settings.gas??$('gasPrice').value;$('ethanolPrice').value=d.settings.ethanol??$('ethanolPrice').value;$('stopBatteryThreshold').value=d.settings.stopThreshold??$('stopBatteryThreshold').value;saveSettings();syncBatteryUI(false);if(d.panelRanges){Object.assign(panelRanges,d.panelRanges);localStorage.setItem('evp3_panel_ranges',JSON.stringify(panelRanges));updateCarUI()}}if(Array.isArray(d.favorites)){favorites=d.favorites;localStorage.setItem('evp3_places',JSON.stringify(favorites));renderFavorites()}if(d.savedPlaces){savedPlaces=d.savedPlaces;localStorage.setItem('evp3_saved_places',JSON.stringify(savedPlaces))}if(Array.isArray(d.manualStations)){manualStations=d.manualStations;localStorage.setItem('evp3_stations',JSON.stringify(manualStations))}if(d.esg){esg=d.esg;persistESG();renderESG()}toast('Backup importado.')}catch{toast('Arquivo de backup inválido.')}};r.readAsText(f)}
-function copySummary(){if(!lastEnergy){toast('Calcule uma viagem primeiro.');return}const routeText=waypoints.map(w=>`${w.label}: ${w.address}`).join('\n');const t=`EV Planner Pro ${String(C.version||'3.7').replace(/\.0$/,'')}\nVeículo: ${selectedCar.brand} ${selectedCar.model} ${selectedCar.version||''}\nTipo: ${typeName(selectedCar.type)}\n\n${routeText}\n\nDistância: ${num(lastEnergy.km)} km\nTempo: ${formatTime(route.duration)}\nBateria inicial: ${Math.round(clampBattery($('startBattery').value))}%\nBateria chegada: ${Math.round(lastEnergy.battery)}%\nEnergia elétrica: ${num(lastEnergy.kwh)} kWh\nTrecho elétrico: ${num(lastEnergy.electricKm)} km\nCombustível usado: ${isFuelCar()?num(lastEnergy.fuel)+' L':'Não se aplica'}\nCusto: ${money(lastEnergy.total)}\nEconomia: ${money(lastEnergy.saving)}\nPontos de carregamento encontrados: ${stations.length}
+function copySummary(){if(!lastEnergy){toast('Calcule uma viagem primeiro.');return}const routeText=waypoints.map(w=>`${w.label}: ${w.address}`).join('\n');const t=`EV Planner Pro ${String(C.version||'3.8').replace(/\.0$/,'')}\nVeículo: ${selectedCar.brand} ${selectedCar.model} ${selectedCar.version||''}\nTipo: ${typeName(selectedCar.type)}\n\n${routeText}\n\nDistância: ${num(lastEnergy.km)} km\nTempo: ${formatTime(route.duration)}\nBateria inicial: ${Math.round(clampBattery($('startBattery').value))}%\nBateria chegada: ${Math.round(lastEnergy.battery)}%\nEnergia elétrica: ${num(lastEnergy.kwh)} kWh\nTrecho elétrico: ${num(lastEnergy.electricKm)} km\nCombustível usado: ${isFuelCar()?num(lastEnergy.fuel)+' L':'Não se aplica'}\nCusto: ${money(lastEnergy.total)}\nEconomia: ${money(lastEnergy.saving)}\nPontos de carregamento encontrados: ${stations.length}
 Estratégia: parar ao atingir ${getStopThreshold()}% em ${bestChargeStation(true)?.name||'ponto compatível mais próximo'}`;navigator.clipboard?.writeText(t).then(()=>toast('Resumo copiado.')).catch(()=>toast('Não foi possível copiar automaticamente.'))}
 window.addEventListener('load',init);
 })();

@@ -1,6 +1,7 @@
 window.EV_CONFIG = {
-  version: '3.7.0',
+  version: '3.8.0',
   versionHistory: [
+    {version:'3.8',date:'24/08/2026',description:'Ida e volta com data e horário independentes para o retorno e dois mapas separados: ida e volta, mantendo a coloração energética e a rota de retorno em azul.'},
     {version:'3.7',date:'24/08/2026',description:'Versão única no topo, autonomia INMETRO + referência do painel, horário de retorno, rota de volta em azul com lógica energética própria e estratégia automática de parada por nível de bateria.'},
     {version:'3.6',date:'24/08/2026',description:'Dados de autonomia priorizando INMETRO/PBEV, compatibilidade real de recarga por veículo (AC/DC), bloqueio de carregadores incompatíveis e rastreabilidade da fonte dos dados.'},
     {version:'3.5',date:'24/08/2026',description:'Distribuição inteligente de eletropostos ao longo de toda a rota, busca reforçada no trecho final/destino e versão centralizada em uma única fonte.'},

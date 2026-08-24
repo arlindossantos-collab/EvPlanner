@@ -1,3 +1,13 @@
+# EV Planner Pro — Histórico de versões
+
+## 3.8.0 — 24/08/2026
+- “Ida e volta” agora exige **data e horário de saída da volta**.
+- Validação para impedir data de retorno anterior à data da ida.
+- Ida e volta passam a ser obtidas como rotas independentes, preservando o planejamento energético existente.
+- Novo segundo mapa exclusivo para a volta.
+- Mapa da ida e mapa da volta usam a mesma lógica de cores por autonomia/combustível, com a volta diferenciada em azul.
+- Mantidas todas as funcionalidades anteriores.
+
 # EV Planner Pro — Changelog
 
 ## 3.6 — 24/08/2026

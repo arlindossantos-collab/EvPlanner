@@ -90,7 +90,7 @@
         <div id="waypoints" class="stack"></div>
         <div class="two"><button id="addDestinationBtn" class="btn secondary">+ Adicionar destino</button><button id="addStopBtn" class="btn warning">+ Adicionar parada</button></div>
         <div class="two route-options"><div><label>Data da viagem</label><input id="departureDate" type="date"></div><div><label>Hora de saída</label><input id="departureTime" type="time" value="08:00"></div></div>
-        <div id="returnTimeRow" class="two route-options hidden"><div><label>Hora de saída da volta</label><input id="returnDepartureTime" type="time" value="14:00"></div><div class="return-time-note">🔵 A rota de volta será diferenciada visualmente e seguirá a mesma lógica energética.</div></div>
+        <div id="returnScheduleRow" class="two route-options hidden"><div><label>Data da volta</label><input id="returnDepartureDate" type="date"></div><div><label>Hora de saída da volta</label><input id="returnDepartureTime" type="time" value="14:00"></div></div><div id="returnTimeNote" class="return-time-note hidden">🔵 A rota de volta será apresentada em um segundo mapa, em azul, mantendo a mesma lógica energética.</div>
         <div class="two route-options"><div><label>Modo de condução</label><select id="driveMode"><option value="1">Eco</option><option value="1.08" selected>Normal</option><option value="1.15">Sport</option></select></div><div><label>Climatização</label><select id="acMode"><option value="1">Desligado</option><option value="1.10" selected>Ligado</option><option value="1.18">Máximo</option></select></div></div>
         <div class="checks"><label><input id="rainMode" type="checkbox"> 🌧️ Chuva</label><label><input id="elevationMode" type="checkbox" checked> ⛰️ Relevo / serra</label><label><input id="trafficMode" type="checkbox" checked> 🚗 Trânsito</label></div>
         <div id="weatherBox" class="weather hidden"></div>
@@ -115,9 +115,15 @@
 
     <section class="right-column">
       <section class="card map-card">
-        <div class="section-head"><h2><i class="fa-solid fa-map-location-dot"></i> MAPA DA ROTA</h2><div class="checks map-filters"><label><input id="filterDC" type="checkbox" checked> ⚡ DC</label><label><input id="filterAC" type="checkbox" checked> 🔌 AC</label><label><input id="showRange" type="checkbox" checked> 🔋 Alcance</label></div></div>
+        <div class="section-head"><h2><i class="fa-solid fa-map-location-dot"></i> MAPA DA IDA</h2><div class="checks map-filters"><label><input id="filterDC" type="checkbox" checked> ⚡ DC</label><label><input id="filterAC" type="checkbox" checked> 🔌 AC</label><label><input id="showRange" type="checkbox" checked> 🔋 Alcance</label></div></div>
         <div id="map"></div><div class="route-legend"><span><i class="legend-dot route-safe"></i> Ida segura</span><span><i class="legend-dot route-warning"></i> Reserva / recarga</span><span><i class="legend-dot route-return"></i> Volta</span><span><i class="legend-dot route-fuel"></i> Trecho com combustível</span><span><i class="legend-dot route-danger"></i> Autonomia insuficiente</span></div>
         <div id="mapPickerHint" class="map-picker-hint hidden">📍 Modo de seleção ativo: clique no mapa para escolher o endereço do ponto.</div>
+      </section>
+
+      <section id="returnMapCard" class="card map-card hidden">
+        <div class="section-head"><h2><i class="fa-solid fa-route"></i> MAPA DA VOLTA</h2><span class="return-map-badge">🔵 Volta</span></div>
+        <div id="mapReturn"></div>
+        <div class="route-legend return-legend"><span><i class="legend-dot route-return"></i> Volta segura</span><span><i class="legend-dot route-return-warning"></i> Reserva / recarga</span><span><i class="legend-dot route-fuel"></i> Trecho com combustível</span><span><i class="legend-dot route-danger"></i> Autonomia insuficiente</span></div>
       </section>
 
       <section class="card stations-card no-print">
