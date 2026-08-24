@@ -12,7 +12,7 @@ const ufMap = {
   "Sergipe": "SE", "Tocantins": "TO"
 };
 
-// Base estendida de suporte para grandes rodovias interestaduais (BR-101 / BR-116 / BR-381 / BR-242)
+// Base estendida de referência para grandes rodovias interestaduais
 const manualStationsDatabase = [
   { name: "Planeta Charger - Rei das Coxinhas (Pedras de Fogo)", cityState: "Pedras de Fogo / PB", lat: -7.3957, lng: -34.9552, power: "CCS2 Ultra-Rápido DC (60kW)", type: "DC", operationalStatus: "Disponível" },
   { name: "Planeta Charger - Rei das Coxinhas (Gravatá)", cityState: "Gravatá / PE", lat: -8.1888, lng: -35.5069, power: "CCS2 Ultra-Rápido DC (120kW)", type: "DC", operationalStatus: "Disponível" },
@@ -28,7 +28,8 @@ const manualStationsDatabase = [
   { name: "Eletroposto Graal 56 (Jundiaí - Rod. Anhanguera)", cityState: "Jundiaí / SP", lat: -23.1864, lng: -46.8842, power: "CCS2 Ultra-Rápido DC (150kW)", type: "DC", operationalStatus: "Disponível" }
 ];
 
-let map, waypoints = [];
+let map;
+let waypoints = [];
 let waypointMarkers = [];
 let selectedCar = null;
 let stationMarkers = [];
@@ -37,17 +38,17 @@ let currentPolyline = null;
 let isochronePolygon = null;
 let activeRouteData = null;
 let evDatabase = {};
+let favoritePlaces = [];
+let favoriteCar = null;
 
-async function loadVehicles() {
-  try {
-    const response = await fetch('vehicles.json');
-    evDatabase = await response.json();
-    initVehicleSelectors();
-  } catch (error) {
-    console.error("Erro ao carregar banco de veículos:", error);
-  }
-}
+let currentTripStats = {
+  totalKm: 0,
+  savings: 0,
+  co2Saved: 0,
+  tripsCount: 0
+};
 
+// Inicialização Principal
 async function initMap() {
   map = L.map('map').setView([-8.0476, -34.8770], 8);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
@@ -57,12 +58,95 @@ async function initMap() {
   initRouteControls();
   initDefaultDepartureDate();
   initBatteryValidation();
+  initExtraButtonsAndModals();
+  loadEsgStats();
 
   waypoints = [
     { address: "", coords: null, type: "origin", label: "Origem" },
     { address: "", coords: null, type: "destination", label: "Destino 1" }
   ];
   renderWaypointsInputs();
+}
+
+// Carregamento de veículos a partir do JSON
+async function loadVehicles() {
+  try {
+    const response = await fetch('vehicles.json');
+    evDatabase = await response.json();
+    initVehicleSelectors();
+  } catch (error) {
+    console.error("Erro ao carregar veículos:", error);
+  }
+}
+
+function initVehicleSelectors() {
+  const brandSelect = document.getElementById('brandSelect');
+  const modelSelect = document.getElementById('modelSelect');
+  if (!brandSelect || !modelSelect) return;
+
+  brandSelect.innerHTML = '<option value="">Selecione a marca...</option>';
+  Object.keys(evDatabase).sort().forEach(brand => {
+    const option = document.createElement('option');
+    option.value = brand;
+    option.textContent = brand;
+    brandSelect.appendChild(option);
+  });
+
+  brandSelect.addEventListener('change', (e) => {
+    const brand = e.target.value;
+    modelSelect.innerHTML = '<option value="">Selecione modelo...</option>';
+    if (!brand) { modelSelect.disabled = true; return; }
+    modelSelect.disabled = false;
+    
+    if (evDatabase[brand]) {
+      evDatabase[brand].forEach((car, index) => {
+        const option = document.createElement('option');
+        option.value = index;
+        option.textContent = `${car.model} (${car.type ? car.type.split(' ')[0] : 'EV'})`;
+        modelSelect.appendChild(option);
+      });
+    }
+  });
+
+  modelSelect.addEventListener('change', (e) => {
+    const brand = brandSelect.value;
+    const index = e.target.value;
+    if (brand && index !== "" && evDatabase[brand]) {
+      selectedCar = evDatabase[brand][index];
+      updateCarSpecsUI();
+    }
+  });
+
+  // Seleção padrão inicial
+  if (evDatabase["BYD"]) {
+    brandSelect.value = "BYD";
+    brandSelect.dispatchEvent(new Event('change'));
+    modelSelect.value = "2";
+    modelSelect.dispatchEvent(new Event('change'));
+  }
+}
+
+function updateCarSpecsUI() {
+  if (!selectedCar) return;
+  const specType = document.getElementById('specType');
+  const specBattery = document.getElementById('specBattery');
+  const specRange = document.getElementById('specRange');
+  const specConsumption = document.getElementById('specConsumption');
+
+  if (specType) specType.innerText = selectedCar.type || '-';
+  if (specBattery) specBattery.innerText = `${selectedCar.battery || '-'} kWh`;
+  if (specRange) specRange.innerText = `${selectedCar.range || '-'} km`;
+  if (specConsumption) specConsumption.innerText = `${selectedCar.consumption || '-'} kWh/100km`;
+
+  const fuelContainer = document.getElementById('fuelContainer');
+  const hybridWrapper = document.getElementById('hybridConsumptionWrapper');
+  if (selectedCar.isHybrid) {
+    if (fuelContainer) fuelContainer.classList.remove('hidden');
+    if (hybridWrapper) hybridWrapper.classList.remove('hidden');
+  } else {
+    if (fuelContainer) fuelContainer.classList.add('hidden');
+    if (hybridWrapper) hybridWrapper.classList.add('hidden');
+  }
 }
 
 function initBatteryValidation() {
@@ -81,62 +165,6 @@ function initDefaultDepartureDate() {
   if (dateInput) {
     const today = new Date().toISOString().split('T')[0];
     dateInput.value = today;
-  }
-}
-
-function initVehicleSelectors() {
-  const brandSelect = document.getElementById('brandSelect');
-  const modelSelect = document.getElementById('modelSelect');
-  if (!brandSelect || !modelSelect) return;
-
-  brandSelect.innerHTML = '<option value="">Selecione a marca...</option>';
-  Object.keys(evDatabase).sort().forEach(brand => {
-    const option = document.createElement('option');
-    option.value = brand; 
-    option.textContent = brand;
-    brandSelect.appendChild(option);
-  });
-
-  brandSelect.addEventListener('change', (e) => {
-    const brand = e.target.value;
-    modelSelect.innerHTML = '<option value="">Selecione modelo...</option>';
-    if (!brand) { modelSelect.disabled = true; return; }
-    modelSelect.disabled = false;
-    evDatabase[brand].forEach((car, index) => {
-      const option = document.createElement('option');
-      option.value = index; 
-      option.textContent = `${car.model} (${car.type.split(' ')[0]})`;
-      modelSelect.appendChild(option);
-    });
-  });
-
-  modelSelect.addEventListener('change', (e) => {
-    const brand = brandSelect.value;
-    const index = e.target.value;
-    if (brand && index !== "") {
-      selectedCar = evDatabase[brand][index];
-      document.getElementById('specType').innerText = selectedCar.type;
-      document.getElementById('specBattery').innerText = `${selectedCar.battery} kWh`;
-      document.getElementById('specRange').innerText = `${selectedCar.range} km`;
-      document.getElementById('specConsumption').innerText = `${selectedCar.consumption} kWh/100km`;
-
-      const fuelContainer = document.getElementById('fuelContainer');
-      const hybridWrapper = document.getElementById('hybridConsumptionWrapper');
-      if (selectedCar.isHybrid) {
-        if (fuelContainer) fuelContainer.classList.remove('hidden');
-        if (hybridWrapper) hybridWrapper.classList.remove('hidden');
-      } else {
-        if (fuelContainer) fuelContainer.classList.add('hidden');
-        if (hybridWrapper) hybridWrapper.classList.add('hidden');
-      }
-    }
-  });
-
-  if (evDatabase["BYD"]) {
-    brandSelect.value = "BYD";
-    brandSelect.dispatchEvent(new Event('change'));
-    modelSelect.value = "2";
-    modelSelect.dispatchEvent(new Event('change'));
   }
 }
 
@@ -162,6 +190,30 @@ function initUserFavorites() {
       }
     });
   }
+
+  const setWorkBtn = document.getElementById('setWorkBtn');
+  if (setWorkBtn) {
+    setWorkBtn.addEventListener('click', () => {
+      const work = localStorage.getItem('hv_work_address');
+      if (work) {
+        askTargetWaypointAndSet(work);
+      } else {
+        const newWork = prompt("Digite seu endereço de Trabalho:");
+        if (newWork) {
+          localStorage.setItem('hv_work_address', newWork);
+          askTargetWaypointAndSet(newWork);
+        }
+      }
+    });
+  }
+}
+
+function askTargetWaypointAndSet(addressStr) {
+  if (waypoints.length > 0) {
+    waypoints[0].address = addressStr;
+    renderWaypointsInputs();
+    geocodeFast(addressStr).then(c => { waypoints[0].coords = c; updateWaypointMarkers(); });
+  }
 }
 
 function initRouteControls() {
@@ -183,17 +235,24 @@ function initRouteControls() {
     });
   }
 
+  const roundTripBtn = document.getElementById('roundTripBtn');
+  if (roundTripBtn) {
+    roundTripBtn.addEventListener('click', () => {
+      if (waypoints.length >= 2 && waypoints[0].address) {
+        const originAddr = waypoints[0].address;
+        const originCoords = waypoints[0].coords;
+        waypoints.push({ address: originAddr, coords: originCoords, type: "destination", label: "Retorno (Origem)" });
+        renderWaypointsInputs();
+        updateWaypointMarkers();
+      } else {
+        alert("Defina o ponto de origem antes de criar o retorno.");
+      }
+    });
+  }
+
   const calcBtn = document.getElementById('calcBtn');
   if (calcBtn) {
     calcBtn.addEventListener('click', calculateMultiRoute);
-  }
-}
-
-function askTargetWaypointAndSet(addressStr) {
-  if (waypoints.length > 0) {
-    waypoints[0].address = addressStr;
-    renderWaypointsInputs();
-    geocodeFast(addressStr).then(c => { waypoints[0].coords = c; updateWaypointMarkers(); });
   }
 }
 
@@ -361,7 +420,7 @@ function getMinDistanceToRouteInKm(lat, lng, routeCoords) {
   let minDistance = Infinity;
   let closestPointIndex = 0;
   let accumulatedDist = 0;
-  const step = Math.max(1, Math.floor(routeCoords.length / 300));
+  const step = Math.max(1, Math.floor(routeCoords.length / 250));
 
   for (let i = 0; i < routeCoords.length - step; i += step) {
     const ptA = L.latLng(routeCoords[i][1], routeCoords[i][0]);
@@ -377,22 +436,7 @@ function getMinDistanceToRouteInKm(lat, lng, routeCoords) {
   return { minDistance, routeKm: Math.round(closestPointIndex) };
 }
 
-async function fetchCityStateFromCoords(lat, lng) {
-  try {
-    const res = await fetch(`https://photon.komoot.io/reverse?lat=${lat}&lon=${lng}`);
-    const data = await res.json();
-    if (data && data.features && data.features.length > 0) {
-      const props = data.features[0].properties;
-      const city = props.city || props.town || props.village || props.county || "Localidade";
-      const stateFull = props.state || "";
-      const uf = ufMap[stateFull] || stateFull || "BR";
-      return `${city} / ${uf}`;
-    }
-  } catch (e) {}
-  return "Rodovia / BR";
-}
-
-// OTIMIZAÇÃO CRÍTICA DE ALTA VELOCIDADE PARA ROTAS LONGAS
+// Otimização de busca em lote leve para eletropostos em rotas longas
 async function fetchRouteStationsFromOSM(routeGeometry) {
   const countLabel = document.getElementById('stationsCount');
   if (countLabel) countLabel.innerText = "Buscando eletropostos na rota...";
@@ -412,28 +456,26 @@ async function fetchRouteStationsFromOSM(routeGeometry) {
     }
   }
 
-  // 2. Coleta de Amostras ao longo de rotas longas para acelerar resposta
+  // 2. Coleta direcionada por amostra sem gerar gargalo/timeout na API
   const samplePoints = [];
-  const numSamples = Math.min(10, Math.max(3, Math.floor(routeCoords.length / 150)));
+  const numSamples = Math.min(8, Math.max(2, Math.floor(routeCoords.length / 200)));
   const step = Math.floor(routeCoords.length / numSamples);
 
   for (let i = 0; i < routeCoords.length; i += step) {
     samplePoints.push(routeCoords[i]);
   }
-  if (routeCoords.length > 0) samplePoints.push(routeCoords[routeCoords.length - 1]);
 
-  // Consulta paralela otimizada por bounding box focalizada
   const queryPromises = samplePoints.map(async (pt) => {
     const lat = pt[1];
     const lng = pt[0];
-    const bbox = `${lat - 0.8},${lng - 0.8},${lat + 0.8},${lng + 0.8}`;
+    const bbox = `${lat - 0.7},${lng - 0.7},${lat + 0.7},${lng + 0.7}`;
 
     const query = `[out:json][timeout:6];
     (
       node["amenity"="charging_station"](${bbox});
       node["amenity"="ev_charging"](${bbox});
     );
-    out body 40;`;
+    out body 35;`;
 
     try {
       const res = await fetch('https://overpass-api.de/api/interpreter', { method: 'POST', body: query });
@@ -454,7 +496,7 @@ async function fetchRouteStationsFromOSM(routeGeometry) {
               const isDC = tags['socket:ccs'] || tags['socket:type2_combo'] || (tags.description && tags.description.toLowerCase().includes('dc'));
 
               uniqueMap.set(key, {
-                id: item.id, name: name, cityState: `${elLat.toFixed(2)}, ${elLng.toFixed(2)}`,
+                id: item.id, name: name, cityState: `Lat/Lng: ${elLat.toFixed(2)}, ${elLng.toFixed(2)}`,
                 lat: elLat, lng: elLng,
                 power: isDC ? 'CCS2 Ultra-Rápido DC (50-150kW)' : 'AC Wallbox (7-22kW)',
                 type: isDC ? 'DC' : 'AC', distToRoute: routeMatch.minDistance, routeKm: routeMatch.routeKm,
@@ -506,7 +548,7 @@ function renderStationsOnMapAndTable(totalDistKm, initialRangeKm) {
     if (station.routeKm > initialRangeKm) {
       battAtArrival = 0;
       const deficitKm = station.routeKm - initialRangeKm;
-      const neededRechargePct = Math.min(100, Math.ceil((deficitKm / selectedCar.range) * 100));
+      const neededRechargePct = Math.min(100, Math.ceil((deficitKm / (selectedCar ? selectedCar.range : 250)) * 100));
       operationMsg = `⚠️ Recarregar +${neededRechargePct}% aqui`;
     }
 
@@ -633,6 +675,13 @@ async function calculateMultiRoute() {
       const totalCostElem = document.getElementById('totalCost');
       if (totalCostElem) totalCostElem.innerText = `R$ ${totalCost.toFixed(2)}`;
 
+      // Atualiza telemetria ESG
+      currentTripStats.totalKm += distKm;
+      currentTripStats.savings += Math.max(0, (distKm * 0.45)); // estimativa
+      currentTripStats.co2Saved += Math.round(distKm * 0.12);
+      currentTripStats.tripsCount += 1;
+      saveEsgStats();
+
       if (toast) {
         toast.classList.remove('hidden');
         setTimeout(() => toast.classList.add('hidden'), 4000);
@@ -646,6 +695,86 @@ async function calculateMultiRoute() {
     if (calcBtnIcon) calcBtnIcon.className = "fa-solid fa-calculator";
     if (progressBar) progressBar.classList.add('hidden');
   }
+}
+
+// Ouvintes de Modais e Botões Adicionais (Google Maps, Waze, ESG, PDF)
+function initExtraButtonsAndModals() {
+  const gmapsBtn = document.getElementById('openGoogleMapsBtn');
+  if (gmapsBtn) {
+    gmapsBtn.addEventListener('click', () => {
+      const validCoords = waypoints.filter(w => w.coords).map(w => `${w.coords[0]},${w.coords[1]}`);
+      if (validCoords.length < 2) return alert("Calcule uma rota para abrir no Google Maps.");
+      const url = `https://www.google.com/maps/dir/${validCoords.join('/')}`;
+      window.open(url, '_blank');
+    });
+  }
+
+  const wazeBtn = document.getElementById('openWazeBtn');
+  if (wazeBtn) {
+    wazeBtn.addEventListener('click', () => {
+      const dest = waypoints.find(w => w.type === 'destination' && w.coords);
+      if (!dest) return alert("Defina um destino para abrir no Waze.");
+      const url = `https://waze.com/ul?ll=${dest.coords[0]},${dest.coords[1]}&navigate=yes`;
+      window.open(url, '_blank');
+    });
+  }
+
+  const pdfBtn = document.getElementById('exportPdfBtn');
+  if (pdfBtn) {
+    pdfBtn.addEventListener('click', () => {
+      window.print();
+    });
+  }
+
+  const openStatsBtn = document.getElementById('openStatsModalBtn');
+  const closeStatsBtn = document.getElementById('closeStatsModalBtn');
+  const statsModal = document.getElementById('statsModal');
+
+  if (openStatsBtn && statsModal) {
+    openStatsBtn.addEventListener('click', () => {
+      updateEsgUI();
+      statsModal.classList.remove('hidden');
+    });
+  }
+
+  if (closeStatsBtn && statsModal) {
+    closeStatsBtn.addEventListener('click', () => {
+      statsModal.classList.add('hidden');
+    });
+  }
+
+  const resetEsgBtn = document.getElementById('resetEsgBtn');
+  if (resetEsgBtn) {
+    resetEsgBtn.addEventListener('click', () => {
+      currentTripStats = { totalKm: 0, savings: 0, co2Saved: 0, tripsCount: 0 };
+      saveEsgStats();
+      updateEsgUI();
+      alert("Histórico ESG zerado com sucesso.");
+    });
+  }
+}
+
+function loadEsgStats() {
+  const saved = localStorage.getItem('hv_esg_stats');
+  if (saved) {
+    try { currentTripStats = JSON.parse(saved); } catch (e) {}
+  }
+}
+
+function saveEsgStats() {
+  localStorage.setItem('hv_esg_stats', JSON.stringify(currentTripStats));
+}
+
+function updateEsgUI() {
+  const savingsElem = document.getElementById('esgSavingsTotal');
+  const co2Elem = document.getElementById('esgCo2Saved');
+  const kmElem = document.getElementById('esgTotalKm');
+  const tripsElem = document.getElementById('esgTripsCount');
+
+  if (savingsElem) savingsElem.innerText = `R$ ${currentTripStats.savings.toFixed(2)}`;
+  if (co2Elem) co2Elem.innerText = `${currentTripStats.co2Saved} kg`;
+  if (kmElem) kmElem.innerText = `${currentTripStats.totalKm} km`;
+  if (tripsElem) tripsElem.innerText = `${currentTripStats.tripsCount}`;
 }
 
 window.onload = initMap;
