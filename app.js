@@ -23,6 +23,18 @@ function fuelFactor(){
  const drive=Number($('driveMode')?.value)||1;
  return drive*($('rainMode')?.checked?1.10:1)*($('elevationMode')?.checked?1.08:1);
 }
+function fuelProfile(car=selectedCar){
+ const type=car?.type;
+ if(!['PHEV','PHEV Flex','REEV','HEV','MHEV'].includes(type)) return {available:false,kpl:0,source:'none',fuel:'gasoline'};
+ const fuelType=$('fuelType')?.value||'gasoline';
+ // Para planejamento rodoviário, usamos o consumo rodoviário PBEV quando disponível.
+ // Nunca misturamos autonomia NEDC/WLTP com autonomia elétrica INMETRO.
+ const candidates=fuelType==='ethanol'
+   ? [car.ethanolKm,car.ethanolRoad,car.ethanolConsumption]
+   : [car.gasKm,car.fuelConsumptionRoad,car.fuelConsumption,car.gasolineKm];
+ const kpl=Number(candidates.find(v=>Number(v)>0)||0);
+ return {available:kpl>0,kpl,source:car.fuelDataSource||'PBEV',fuel:fuelType};
+}
 function routeEnergyLimits(){
  const car=selectedCar||{};
  const km=Number(route?.distance||0)/1000;
@@ -36,12 +48,14 @@ function routeEnergyLimits(){
  const effectiveFullElectricRange=baseRange/electricFactor;
  const electricRange=effectiveFullElectricRange*start/100;
  const electricReserveRange=effectiveFullElectricRange*Math.max(0,start-reserve)/100;
- const kplBase=Number(car.fuelConsumption)||Number(car.gasKm)||0;
- const kpl=kplBase? kplBase/fuelFactor():0;
+ const fp=fuelProfile(car);
+ const kpl=fp.kpl?fp.kpl/fuelFactor():0;
  const fuelRange=kpl?fuelStart*kpl:0;
  const fuelReserveRange=Math.max(0,fuelRange*(1-reserve/100));
- const totalRange=electricRange+fuelRange;
- return {km,start,reserve,battery:Number(car.battery)||0,electricRange,electricReserveRange,fuelStart,kpl,fuelRange,fuelReserveRange,totalRange,effectiveFullElectricRange,electricFactor,fuelFactor:fuelFactor()};
+ // Para PHEV/REEV, a autonomia operacional é sequencial: bateria disponível + combustível disponível.
+ const totalRange=hasElectric?electricRange+fuelRange:fuelRange;
+ const safeTotalRange=hasElectric?electricRange+fuelReserveRange:fuelReserveRange;
+ return {km,start,reserve,battery:Number(car.battery)||0,electricRange,electricReserveRange,fuelStart,kpl,fuelRange,fuelReserveRange,totalRange,safeTotalRange,effectiveFullElectricRange,electricFactor,fuelFactor:fuelFactor(),fuelKnown:fp.available,fuelSource:fp.source,fuelType:fp.fuel};
 }
 function getRange(car=selectedCar){const r=Number(car?.inmetroRange||car?.range);return Number.isFinite(r)&&r>0?r:null}
 function chargingProfile(car=selectedCar){if(!car)return {ac:false,dc:false,acOnly:false,label:'Não informado'};if(car.charging)return car.charging;const t=car.type;if(t==='HEV'||t==='MHEV')return {ac:false,dc:false,acOnly:false,label:'Não recarrega externamente'};if(t==='PHEV'||t==='PHEV Flex')return {ac:true,dc:false,acOnly:true,label:'Somente AC'};if(t==='REEV')return {ac:true,dc:true,acOnly:false,label:'AC + DC'};return {ac:true,dc:true,acOnly:false,label:'AC + DC'}}
@@ -111,13 +125,17 @@ function updateFuelBox(){
  const fuelCar=isFuelCar();
  box.classList.toggle('hidden',!fuelCar);
  input.required=fuelCar;
+ const tank=Number(selectedCar?.tank||selectedCar?.fuelTank||0);
+ if(tank>0){input.max=String(tank);input.title=`Tanque: ${num(tank)} L`;if(Number(input.value)>tank)input.value=tank;}
+ else input.removeAttribute('max');
  if(fuelCar){
    const label=selectedCar?.type==='HEV'||selectedCar?.type==='MHEV'?'Combustível inicial para a viagem':'Combustível disponível no início';
    const title=box.querySelector('.fuel-title'); if(title) title.innerHTML='<i class="fa-solid fa-gas-pump"></i> '+label;
-   if(hint)hint.textContent=`O plano combinará ${selectedCar?.type==='BEV'?'energia elétrica':'autonomia elétrica e combustão'}. Informe os litros reais disponíveis.`;
+   const fp=fuelProfile(selectedCar);
+   if(hint)hint.textContent=fp.available?`Informe os litros reais disponíveis. O plano somará a autonomia elétrica restante à autonomia com ${fp.fuel==='ethanol'?'etanol':'gasolina'} (${num(fp.kpl)} km/L ajustados na rota).${tank?` Tanque: ${num(tank)} L.`:''}`:`Informe os litros reais disponíveis. O modelo ainda não possui consumo de combustível PBEV cadastrado; a autonomia de combustão não será inventada.`;
  }else if(input.value!==String(C.defaults?.startFuel??'')){ input.value=''; }
 }
-function updateCarUI(){if(!selectedCar)return;const range=getRange(selectedCar);const estimated=!selectedCar.consumption&&selectedCar.battery&&range;const consumption=selectedCar.consumption||(estimated?selectedCar.battery/range*100:null);selectedCar._calcConsumption=consumption;const cp=chargingProfile(selectedCar);const rangeText=range?num(range)+' km':'Não informado';const panel=getPanelRange();const source=selectedCar.rangeSource==='INMETRO'?'INMETRO/PBEV 2026':'INMETRO não localizado — não usado no cálculo';const specs=[['Propulsão',typeName(selectedCar.type)],['Bateria',selectedCar.battery?num(selectedCar.battery)+' kWh':'—'],['Autonomia INMETRO',rangeText],['Recarga',cp.label||((cp.dc?'AC + DC':'AC'))],['Consumo',consumption?num(consumption)+' kWh/100 km':'—'],['Potência',selectedCar.power||'—']];$('carSpecs').innerHTML=specs.map(x=>`<div class="spec"><span>${x[0]}</span><b>${safe(x[1])}</b></div>`).join('');$('inmetroRangeValue').textContent=range?num(range)+' km':'Não informado';$('panelRangeInput').value=panel||'';$('dataQuality').innerHTML=`<span class="${selectedCar.rangeSource==='INMETRO'?'data-ok':'data-warn'}">${safe(source)}</span>${selectedCar.catalogRange&&!range?` · valor de catálogo ${num(selectedCar.catalogRange)} km foi descartado.`:''}`;updateFuelBox();updateChargingUI();}
+function updateCarUI(){if(!selectedCar)return;const range=getRange(selectedCar);const estimated=!selectedCar.consumption&&selectedCar.battery&&range;const consumption=selectedCar.consumption||(estimated?selectedCar.battery/range*100:null);selectedCar._calcConsumption=consumption;const cp=chargingProfile(selectedCar);const rangeText=range?num(range)+' km':'Não informado';const panel=getPanelRange();const source=selectedCar.rangeSource==='INMETRO'?'INMETRO/PBEV 2026':'INMETRO não localizado — não usado no cálculo';const fp=fuelProfile(selectedCar);const specs=[['Propulsão',typeName(selectedCar.type)],['Bateria',selectedCar.battery?num(selectedCar.battery)+' kWh':'—'],['Autonomia INMETRO',rangeText],['Recarga',cp.label||((cp.dc?'AC + DC':'AC'))],['Consumo elétrico',consumption?num(consumption)+' kWh/100 km':'—'],...(isFuelCar()?[['Combustão',fp.available?num(fp.kpl)+' km/L':'Não cadastrado'],['Tanque',selectedCar.tank?num(selectedCar.tank)+' L':'—']]:[]),['Potência',selectedCar.power||'—']];$('carSpecs').innerHTML=specs.map(x=>`<div class="spec"><span>${x[0]}</span><b>${safe(x[1])}</b></div>`).join('');$('inmetroRangeValue').textContent=range?num(range)+' km':'Não informado';$('panelRangeInput').value=panel||'';$('dataQuality').innerHTML=`<span class="${selectedCar.rangeSource==='INMETRO'?'data-ok':'data-warn'}">${safe(source)}</span>${selectedCar.catalogRange&&!range?` · valor de catálogo ${num(selectedCar.catalogRange)} km foi descartado.`:''}`;updateFuelBox();updateChargingUI();}
 function updateChargingUI(){const cp=chargingProfile();const dc=$('filterDC'),ac=$('filterAC');if(dc){dc.disabled=!cp.dc;dc.checked=cp.dc;if(!cp.dc)dc.parentElement.title='Este veículo não aceita carregamento DC.'}if(ac){ac.disabled=!cp.ac;ac.checked=cp.ac;if(!cp.ac)ac.parentElement.title='Este veículo não possui carregamento AC externo.'}const f=$('stationConnectorFilter');if(f)f.disabled=!(cp.ac||cp.dc);}
 
 function isFavoriteCar(){const fav=JSON.parse(localStorage.getItem('evp3_car')||'null');return !!(fav&&selectedCar&&fav.brand===selectedCar.brand&&fav.model===selectedCar.model&&fav.version===selectedCar.version)}
@@ -238,49 +256,54 @@ function calculateEnergy(){
  const cap=Number(selectedCar.battery)||0;
  const kwhPrice=Number($('kwhPrice').value)||0,gasPrice=Number($('gasPrice').value)||0,ethPrice=Number($('ethanolPrice').value)||0;
  const fuelStart=isFuelCar()?Math.max(0,Number($('startFuel').value)||0):0;
- const fuelKplBase=Number(selectedCar.fuelConsumption)||Number(selectedCar.gasKm)||0;
- const effectiveFuelKpl=fuelKplBase?fuelKplBase/fuelFactor():0;
- let electricKm=0,fuelKm=0,kwh=0,fuel=0,battery=start;
+ const fp=fuelProfile(selectedCar);
+ const effectiveFuelKpl=fp.kpl?fp.kpl/fuelFactor():0;
  const electricTypes=['BEV','PHEV','PHEV Flex','REEV'];
+ let electricKm=0,fuelKm=0,kwh=0,fuel=0,battery=start;
+ let electricEndKm=null,remainingFuelRangeAtElectricEnd=0,totalAvailableRange=0,fuelDeficitKm=0;
+ const effectiveElectricRange=electricTypes.includes(selectedCar.type)?Number(getRange(selectedCar)||0)/Math.max(0.01,factors()):0;
+ const electricAvailableRange=electricTypes.includes(selectedCar.type)?effectiveElectricRange*start/100:0;
+ const fuelAvailableRange=effectiveFuelKpl?fuelStart*effectiveFuelKpl:0;
+ totalAvailableRange=electricAvailableRange+fuelAvailableRange;
  if(electricTypes.includes(selectedCar.type)){
-   const effectiveElectricRange=Number(getRange(selectedCar)||0)/Math.max(0.01,factors());
-   const availableElectricKm=effectiveElectricRange*start/100;
-   electricKm=Math.min(km,availableElectricKm);
+   electricKm=Math.min(km,electricAvailableRange);
    fuelKm=Math.max(0,km-electricKm);
-   kwh=electricConsumption?electricKm*electricConsumption/100:0;
+   kwh=electricConsumption?electricKm*electricConsumption/100:(cap&&effectiveElectricRange?electricKm/effectiveElectricRange*cap:0);
    if(fuelKm>0 && effectiveFuelKpl>0) fuel=fuelKm/effectiveFuelKpl;
+   else if(fuelKm>0) fuel=Infinity;
+   if(effectiveElectricRange>0) electricEndKm=Math.min(km,electricAvailableRange);
+   remainingFuelRangeAtElectricEnd=Math.max(0,fuelAvailableRange-Math.max(0,km-electricAvailableRange));
    if(cap&&electricConsumption>0) battery=Math.max(0,start-kwh/cap*100);
-   else battery=km<=availableElectricKm?Math.max(0,start*(1-km/Math.max(1,availableElectricKm))):0;
+   else battery=km<=electricAvailableRange?Math.max(0,start*(1-km/Math.max(1,electricAvailableRange))):0;
+   if(km>totalAvailableRange) fuelDeficitKm=km-totalAvailableRange;
  }else{
    fuelKm=km;
    fuel=effectiveFuelKpl?km/effectiveFuelKpl:Infinity;
    battery=100;
+   if(km>fuelAvailableRange)fuelDeficitKm=km-fuelAvailableRange;
  }
  const fuelDeficit=Number.isFinite(fuel)?Math.max(0,fuel-fuelStart):Infinity;
  const arrivalFuel=Number.isFinite(fuel)?Math.max(0,fuelStart-fuel):0;
- const fuelAvailableRange=effectiveFuelKpl?fuelStart*effectiveFuelKpl:0;
- const electricAvailableRange=electricTypes.includes(selectedCar.type)?(Number(getRange(selectedCar)||0)/Math.max(0.01,factors()))*start/100:0;
- const totalAvailableRange=electricAvailableRange+fuelAvailableRange;
  const evCost=kwh*kwhPrice;
  const gasCost=Number.isFinite(fuel)?fuel*gasPrice:0;
- const ethKm=Number(selectedCar.ethanolKm)||Number(selectedCar.gasKm)||0;
- const ethCost=Number.isFinite(fuel)&&ethKm>0?fuel*ethPrice:0;
- const fuelCost=Number($('fuelType')?.value==='ethanol'?ethCost:gasCost);
+ const ethCost=Number.isFinite(fuel)?fuel*ethPrice:0;
+ const fuelCost=$('fuelType')?.value==='ethanol'?ethCost:gasCost;
  const total=evCost+fuelCost;
- const gasEquivalent=Number(selectedCar.gasKm)>0?km/(Number(selectedCar.gasKm)||12)*gasPrice:0;
+ const referenceGasKpl=Number(selectedCar.gasKm||selectedCar.fuelConsumptionRoad||selectedCar.fuelConsumption||0);
+ const gasEquivalent=referenceGasKpl>0?km/referenceGasKpl*gasPrice:0;
  const saving=Math.max(0,gasEquivalent-total);
- lastEnergy={km,electricKm,fuelKm,kwh,fuel,battery,evCost,gasCost,ethCost,total,saving,f:electricConsumption,startFuel,arrivalFuel,fuelDeficit,fuelAvailableRange,electricAvailableRange,totalAvailableRange,effectiveFuelKpl,effectiveElectricRange:electricAvailableRange/(start/100||1),fuelFactor:fuelFactor(),fuelType:$('fuelType')?.value||'gasoline'};
+ lastEnergy={km,electricKm,fuelKm,kwh,fuel,battery,evCost,gasCost,ethCost,total,saving,f:electricConsumption,startFuel,arrivalFuel,fuelDeficit,fuelAvailableRange,electricAvailableRange,totalAvailableRange,effectiveFuelKpl,effectiveElectricRange,fuelFactor:fuelFactor(),fuelType:$('fuelType')?.value||'gasoline',fuelKnown:fp.available,fuelSource:fp.source,electricEndKm,remainingFuelRangeAtElectricEnd,fuelDeficitKm};
  renderEnergy();drawRange();drawRoute();renderSmartPlan();
 }
 function renderEnergy(){const d=lastEnergy;if(!d)return;$('batteryPercent').textContent=Math.round(d.battery)+'%';$('batteryBar').style.width=Math.max(0,Math.min(100,d.battery))+'%';$('batteryBar').style.background=d.battery<=15?'#fb7185':d.battery<=30?'#fbbf24':'#34d399';$('distanceResult').textContent=num(d.km)+' km';$('timeResult').textContent=formatTime(route?.duration||0);$('arrivalBattery').textContent=Math.round(d.battery)+'%';$('arrivalFuel').textContent=isFuelCar()?num(d.arrivalFuel)+' L':'Não se aplica';
  $('costPanel').innerHTML=`<div class="cost-line"><span>Energia elétrica</span><b class="green">${money(d.evCost)}</b></div><div class="cost-line"><span>Gasolina equivalente</span><b>${money(d.gasCost)}</b></div><div class="cost-line"><span>Etanol equivalente</span><b>${money(d.ethCost)}</b></div><div class="cost-line total"><span>Custo estimado da viagem</span><b class="green">${money(d.total)}</b></div><div class="cost-line"><span>Economia vs. gasolina</span><b class="green">${money(d.saving)}</b></div>`;
- $('summaryGrid').innerHTML=[['Distância total',num(d.km)+' km'],['Tempo estimado',formatTime(route?.duration||0)],['Bateria inicial',Math.round(clampBattery($('startBattery').value))+'%'],['Bateria na chegada',Math.round(d.battery)+'%'],['Energia elétrica',num(d.kwh)+' kWh'],['Trecho elétrico',num(d.electricKm)+' km'],['Trecho com combustível',num(d.fuelKm)+' km'],['Combustível usado',isFuelCar()?num(d.fuel)+' L':'Não se aplica'],['Combustível na chegada',isFuelCar()?num(d.arrivalFuel)+' L':'Não se aplica'],['Autonomia total disponível',isFuelCar()?num(d.totalAvailableRange)+' km':'—'],['Combustível necessário',isFuelCar()?num(d.fuel)+' L':'—'],['Custo total',money(d.total)],['Economia estimada',money(d.saving)],['Consumo ajustado',num(d.f)+' kWh/100 km']].map(x=>`<div class="summary-item"><span>${x[0]}</span><b>${safe(x[1])}</b></div>`).join('');
+ $('summaryGrid').innerHTML=[['Distância total',num(d.km)+' km'],['Tempo estimado',formatTime(route?.duration||0)],['Bateria inicial',Math.round(clampBattery($('startBattery').value))+'%'],['Bateria na chegada',Math.round(d.battery)+'%'],['Energia elétrica',num(d.kwh)+' kWh'],['Trecho elétrico',num(d.electricKm)+' km'],['Trecho com combustível',num(d.fuelKm)+' km'],['Combustível usado',isFuelCar()?num(d.fuel)+' L':'Não se aplica'],['Combustível na chegada',isFuelCar()?num(d.arrivalFuel)+' L':'Não se aplica'],['Autonomia elétrica disponível',selectedCar&&['PHEV','PHEV Flex','REEV'].includes(selectedCar.type)?num(d.electricAvailableRange)+' km':(selectedCar?.type==='BEV'?num(d.electricAvailableRange)+' km':'—')],['Autonomia com combustível',isFuelCar()?num(d.fuelAvailableRange)+' km':'—'],['Autonomia total disponível',isFuelCar()?num(d.totalAvailableRange)+' km':'—'],['Fim da autonomia elétrica',selectedCar&&['PHEV','PHEV Flex','REEV'].includes(selectedCar.type)?(d.electricEndKm==null?'—':`km ${num(d.electricEndKm)}`):'—'],['Autonomia de combustível após fim elétrico',selectedCar&&['PHEV','PHEV Flex','REEV'].includes(selectedCar.type)?num(Math.max(0,d.fuelAvailableRange))+' km':'—'],['Combustível necessário',isFuelCar()&&Number.isFinite(d.fuel)?num(d.fuel)+' L':'—'],['Custo total',money(d.total)],['Economia estimada',money(d.saving)],['Consumo ajustado',num(d.f)+' kWh/100 km']].map(x=>`<div class="summary-item"><span>${x[0]}</span><b>${safe(x[1])}</b></div>`).join('');
  const badge=$('statusBadge'),box=$('statusBox');
  const lim=routeEnergyLimits();
  const fuelReserve=lim.fuelStart>0?lim.fuelStart*(lim.reserve/100):0;
  let ok=true,msg='✅ Estimativa energética dentro dos parâmetros.';
  if(selectedCar.type==='BEV'){ok=d.battery>=lim.reserve;msg=ok?`✅ Chegada estimada em ${Math.round(d.battery)}%, acima da reserva de ${lim.reserve}%.`:`⚠️ Chegada estimada em ${Math.round(d.battery)}%, abaixo da reserva. Planeje uma recarga.`}
- else if(['PHEV','PHEV Flex','REEV'].includes(selectedCar.type)){ok=(d.battery>=lim.reserve)||(lim.kpl>0&&d.arrivalFuel>=fuelReserve&&d.fuelKm>0);msg=ok?`✅ Viagem validada com autonomia elétrica${d.fuelKm>0?' + combustível':''}.`:`⚠️ A combinação de energia elétrica e combustível não deixa a margem configurada. Planeje uma parada.`}
+ else if(['PHEV','PHEV Flex','REEV'].includes(selectedCar.type)){ok=lim.totalRange>=lim.km&&d.fuelKnown||d.fuelKm===0;msg=ok?(d.fuelKm>0?`✅ Viagem validada: ${num(d.electricKm)} km elétricos + ${num(d.fuelKm)} km com combustível. A autonomia elétrica termina no km ${num(d.electricEndKm)}.`:`✅ Viagem validada dentro da autonomia elétrica.`):`⚠️ A bateria elétrica termina antes do destino e não há autonomia de combustível PBEV suficiente/cadastrada para completar a rota.`}
  else if(['HEV','MHEV'].includes(selectedCar.type)){ok=lim.kpl>0&&d.arrivalFuel>=fuelReserve;msg=ok?`✅ Combustível estimado na chegada: ${num(d.arrivalFuel)} L.`:`⚠️ Combustível insuficiente ou consumo não cadastrado para validar a chegada.`}
  badge.className='status '+(ok?'good':'bad');badge.textContent=ok?'Viagem viável':'Recarga/abastecimento necessário';box.textContent=msg;
 }
@@ -295,6 +318,14 @@ function returnStrategyText(){
  const expected=range ? Math.max(0,start*(1-(Number(station.routeKm)||0)/range)) : start;
  const target=Math.min(90,Math.max(threshold+5,67));
  return `Pare em ${station.name} no km ${num(station.routeKm)} da volta, quando a bateria estiver próxima de ${Math.round(expected)}%. Recarregue até aproximadamente ${target}% para seguir com margem de segurança; carregador ${station.type}, ${num(station.power)} kW.`;
+}
+function kmWithinRange(totalRange,routeKm,reserve,last){
+ const km=Number(routeKm||0);
+ if(!Number.isFinite(totalRange)||totalRange<=0)return false;
+ // Se a viagem termina ainda no trecho elétrico, preservamos a reserva da bateria.
+ if(km<=Number(last?.electricAvailableRange||0)) return km<=Number(last?.electricAvailableRange||0) && Number(last?.battery||0)>=reserve;
+ // Se ultrapassa a autonomia elétrica, a bateria pode chegar a 0%: o combustível assume o restante.
+ return km<=Number(last?.electricAvailableRange||0)+Number(last?.fuelAvailableRange||0)*(1-reserve/100);
 }
 function renderSmartPlan(){
  const box=$('smartPlanContent'),badge=$('smartPlanBadge');
@@ -312,11 +343,12 @@ function renderSmartPlan(){
    else if(arrivalBattery<=getStopThreshold()){safety='Média';recommendation=`A chegada estimada é de ${Math.round(arrivalBattery)}%, próxima do limite estratégico de ${getStopThreshold()}%.`;action=findRecommendedCharge(true);}
  }else if(['PHEV','PHEV Flex','REEV'].includes(selectedCar.type)){
    const fuelKnown=lim.kpl>0;
-   feasible=arrivalBattery>=reserve || (fuelKnown && arrivalFuel>=fuelReserveLiters && lastEnergy.fuelKm>0);
-   if(!fuelKnown && lastEnergy.fuelKm>0){feasible=false;safety='Baixa';recommendation='O trecho elétrico não cobre toda a rota e o consumo de combustível não está cadastrado com segurança.';action=findRecommendedFuelOrCharge();}
-   else if(!feasible){safety='Baixa';recommendation=`A energia disponível não deixa margem suficiente: bateria ${Math.round(arrivalBattery)}% e combustível ${num(arrivalFuel)} L na chegada.`;action=findRecommendedFuelOrCharge();}
-   else if(arrivalBattery<=getStopThreshold() && lastEnergy.fuelKm===0){safety='Média';recommendation=`A chegada elétrica prevista é ${Math.round(arrivalBattery)}%, próxima do limite estratégico.`;action=findRecommendedCharge(true);}
-   else if(lastEnergy.fuelKm>0){recommendation=`Viagem viável combinando ${num(lastEnergy.electricKm)} km elétricos e ${num(lastEnergy.fuelKm)} km com combustível.`;}
+   const totalRange=lim.totalRange;
+   feasible=kmWithinRange(totalRange,route?.distance/1000,reserve,lastEnergy);
+   if(!fuelKnown && lastEnergy.fuelKm>0){feasible=false;safety='Baixa';recommendation='A autonomia elétrica termina antes do destino, mas o consumo de combustível PBEV deste modelo não está cadastrado. Não é seguro inventar a autonomia restante.';action=findRecommendedFuelOrCharge();}
+   else if(!feasible){safety='Baixa';recommendation=`A autonomia combinada disponível é de ${num(totalRange)} km e a rota tem ${num(lim.km)} km. Faltam aproximadamente ${num(lastEnergy.fuelDeficitKm)} km para a autonomia combinada terminar.`;action=findRecommendedFuelOrCharge();}
+   else if(lastEnergy.fuelKm>0){safety='Alta';recommendation=`Viagem viável: ${num(lastEnergy.electricKm)} km serão cobertos pela bateria e aproximadamente ${num(lastEnergy.fuelKm)} km pelo combustível. A bateria chega a 0% por volta do km ${num(lastEnergy.electricEndKm)}; ainda restam aproximadamente ${num(Math.max(0,lastEnergy.fuelAvailableRange-lastEnergy.fuelKm))} km de autonomia de combustível.`;}
+   else if(arrivalBattery<=getStopThreshold()){safety='Média';recommendation=`A chegada ainda é possível no modo elétrico, mas a bateria estimada é ${Math.round(arrivalBattery)}%.` ;action=findRecommendedCharge(true);}
  }else if(['HEV','MHEV'].includes(selectedCar.type)){
    feasible=lim.kpl>0 && arrivalFuel>=fuelReserveLiters;
    if(!lim.kpl){feasible=false;safety='Baixa';recommendation='Consumo de combustível não cadastrado; não é possível validar a autonomia com segurança.';action=findRecommendedFuel();}
@@ -332,7 +364,7 @@ function renderSmartPlan(){
  box.innerHTML=`<div class="smart-verdict ${feasible?'smart-ok':'smart-risk'}"><div class="smart-icon">${feasible?'✓':'!'}</div><div><strong>${safe(recommendation)}</strong><span>Segurança operacional: <b>${safety}</b></span></div></div><div class="smart-metric"><span><i class="fa-solid fa-location-dot"></i> Parada recomendada</span><b>${safe(stopText)}</b><small>${safe(triggerText)}</small></div><div class="smart-metric"><span><i class="fa-solid fa-clock"></i> Tempo total</span><b>${formatTime(route.duration)}</b></div><div class="smart-metric"><span><i class="fa-solid fa-wallet"></i> Custo estimado</span><b>${money(lastEnergy.total)}</b><small>${safe(economy)}</small></div><div class="smart-metric"><span><i class="fa-solid fa-battery-three-quarters"></i> Estratégia energética</span><b>${smartEnergyStrategy()}</b><small>${isFuelCar()?`Combustível inicial: ${num(lastEnergy.startFuel)} L · chegada estimada: ${num(lastEnergy.arrivalFuel)} L`:`Bateria inicial: ${Math.round(lim.start)}% · chegada: ${Math.round(lastEnergy.battery)}%`}</small></div><div class="smart-metric"><span><i class="fa-solid fa-shield-halved"></i> Opção mais segura/econômica</span><b>${safe(bestStrategy())}</b><small>${compatibleStations().length} carregador(es) compatível(is) na ida${roundTrip?' · '+returnStations.filter(stationCompatible).length+' na volta':''} e ${fuelStations.length} posto(s) de combustível encontrados.</small></div>${roundTrip?'<div class="smart-metric"><span><i class="fa-solid fa-arrow-rotate-left"></i> Estratégia da volta</span><b>'+safe(returnStrategyText())+'</b><small>O planejamento da volta é calculado separadamente.</small></div>':''}`;
 }
 function bestReturnChargeStation(){const compatible=returnStations.filter(stationCompatible);if(!compatible.length||!routeBack)return null;const threshold=getStopThreshold(),start=Math.max(0,lastEnergy?.battery??routeEnergyLimits().start),range=getRange(selectedCar)||0;const maxSafeKm=range?Math.max(0,(start-threshold)/100*range):Infinity;const candidates=compatible.filter(x=>x.routeKm<=maxSafeKm);return [...(candidates.length?candidates:compatible)].sort((a,b)=>Math.abs(a.routeKm-maxSafeKm*.72)-Math.abs(b.routeKm-maxSafeKm*.72)+(a.power<50?15:0)-(b.power<50?15:0))[0]||null}
-function smartEnergyStrategy(){const threshold=getStopThreshold();if(selectedCar.type==='BEV')return lastEnergy.battery<=threshold?'Recarregar imediatamente':'Manter condução econômica; programar parada antes de '+threshold+'%';if(['PHEV','PHEV Flex','REEV'].includes(selectedCar.type))return lastEnergy.electricKm<lastEnergy.km?'Preservar combustível e recarregar quando conveniente':'Priorizar modo elétrico';return lastEnergy.arrivalFuel<=lastEnergy.startFuel*(C.reservePercent/100)?'Abastecer preventivamente':'Manter ritmo econômico'}
+function smartEnergyStrategy(){const threshold=getStopThreshold();if(selectedCar.type==='BEV')return lastEnergy.battery<=threshold?'Recarregar imediatamente':'Manter condução econômica; programar parada antes de '+threshold+'%';if(['PHEV','PHEV Flex','REEV'].includes(selectedCar.type)){if(lastEnergy.electricKm<lastEnergy.km)return `Bateria termina por volta do km ${num(lastEnergy.electricEndKm)}; seguir com combustível por até ${num(Math.max(0,lastEnergy.fuelAvailableRange-lastEnergy.fuelKm))} km restantes.`;return 'Priorizar modo elétrico e preservar o combustível.';}return lastEnergy.arrivalFuel<=lastEnergy.startFuel*(C.reservePercent/100)?'Abastecer preventivamente':'Manter ritmo econômico'}
 function bestChargeStation(preferReserve=false){const compatible=compatibleStations();if(!compatible.length)return null;const lim=routeEnergyLimits();const target=preferReserve?Math.max(0,lim.electricReserveRange):Math.max(0,lim.electricRange*0.65);return [...compatible].sort((a,b)=>{const sa=Math.abs(a.routeKm-target)+(a.power<50?15:0)+(a.price||0)*2;const sb=Math.abs(b.routeKm-target)+(b.power<50?15:0)+(b.price||0)*2;return sa-sb})[0]}
 function findRecommendedCharge(preferReserve=false){const s=bestChargeStation(preferReserve);return s?`${s.name} · km ${num(s.routeKm)} · ${num(s.power)} kW`:'Buscar mais eletropostos antes da autonomia acabar.'}
 function findRecommendedFuel(preferReserve=false){if(!fuelStations.length)return 'Abastecer antes de atingir a reserva de combustível.';const lim=routeEnergyLimits(),target=preferReserve?lim.fuelReserveRange:lim.fuelRange*0.65,s=[...fuelStations].sort((a,b)=>Math.abs(a.routeKm-target)-Math.abs(b.routeKm-target))[0];return s?`${s.name} · km ${num(s.routeKm)} da rota`:'Abastecer antes de atingir a reserva de combustível.'}

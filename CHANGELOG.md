@@ -1,5 +1,16 @@
 # EV Planner Pro — Changelog
 
+## 3.9.2 — 25/08/2026
+- Revisada a lógica de PHEV, PHEV Flex e REEV: a autonomia da viagem passa a considerar sequencialmente a autonomia elétrica disponível + a autonomia proporcionada pelos litros de combustível informados.
+- A bateria pode chegar a 0% no meio/final da rota sem tornar a viagem automaticamente inviável, desde que exista autonomia de combustível suficiente para completar o trecho.
+- O Plano Inteligente informa aproximadamente em qual km a autonomia elétrica termina e quantos km de autonomia de combustível permanecem.
+- A validação não exige mais que a bateria permaneça acima da reserva quando o trecho restante é coberto pelo motor a combustão.
+- Adicionados dados PBEV/INMETRO de consumo e tanque para vários PHEV presentes no cadastro, sem misturar autonomia elétrica INMETRO com autonomia combinada NEDC/WLTP.
+- Modelos híbridos sem consumo PBEV cadastrado continuam sendo tratados de forma conservadora, sem inventar autonomia de combustível.
+- Campo de combustível passa a respeitar a capacidade do tanque quando esse dado está cadastrado.
+- Service Worker atualizado para 3.9.2.
+
+
 ## 3.9.1 — 25/08/2026
 - Corrigida a validação do Plano Inteligente: uma chegada com bateria acima da reserva não gera mais recomendação indevida de nova carga.
 - A decisão de recarregar/abastecer passa a usar o estado energético estimado na chegada, e não apenas a existência de carregadores na rota.

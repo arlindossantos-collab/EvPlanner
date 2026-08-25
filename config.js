@@ -1,6 +1,7 @@
 window.EV_CONFIG = {
-  version: '3.9.1',
+  version: '3.9.2',
   versionHistory: [
+    {version:'3.9.2',date:'25/08/2026',description:'Revisão completa da autonomia de híbridos: a rota agora soma a autonomia elétrica disponível e a autonomia de combustível informada, permitindo que a bateria chegue a 0% e a combustão assuma o restante. O plano informa o km aproximado em que termina a autonomia elétrica e quantos km de combustível ainda restam.'},
     {version:'3.9.1',date:'25/08/2026',description:'Correção da validação do plano inteligente: a recomendação de recarga agora usa a bateria/combustível realmente estimados na chegada; híbridos exibem automaticamente o campo de litros e combinam autonomia elétrica e combustão de forma consistente.'},
     {version:'3.9.0',date:'25/08/2026',description:'Revisão geral dos cálculos de viagem: autonomia elétrica baseada no INMETRO/PBEV, combinação correta de energia elétrica + combustível para veículos híbridos, entrada de litros iniciais e tratamento mais conservador quando não há consumo de combustível confiável.'},
     {version:'3.8.4',date:'25/08/2026',description:'Híbridos passam a combinar a autonomia elétrica disponível com os litros de combustível informados pelo usuário, calculando autonomia total, combustível necessário, eventual déficit e combustível estimado na chegada.'},
