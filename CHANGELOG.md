@@ -1,3 +1,14 @@
+# EV Planner Pro — Changelog
+
+## 3.9.0 — 25/08/2026
+- Revisão dos cálculos de autonomia e viabilidade de viagem.
+- Autonomia elétrica prioriza exclusivamente os dados INMETRO/PBEV cadastrados.
+- Para veículos híbridos que utilizam combustível, os litros informados pelo usuário entram na autonomia geral da viagem.
+- A autonomia combinada considera a parcela elétrica disponível e a autonomia proporcionada pelo combustível.
+- O cálculo deixa de usar consumo de combustível genérico quando não há dado confiável cadastrado.
+- Mantida a entrada de litros iniciais para veículos com motor a combustão.
+- Mantidas as funcionalidades de mapas, ida e volta, eletropostos, estratégia de parada, compatibilidade AC/DC e histórico de versões.
+
 ## 3.8.3 — 24/08/2026
 - Corrigido o erro `returnText is not defined` ao renderizar o planejamento inteligente.
 - Criada uma função própria para gerar a estratégia da volta sem depender de variável inexistente.
@@ -26,7 +37,7 @@
 - Mapa da ida e mapa da volta usam a mesma lógica de cores por autonomia/combustível, com a volta diferenciada em azul.
 - Mantidas todas as funcionalidades anteriores.
 
-# EV Planner Pro — Changelog
+
 
 ## 3.8.4 — 25/08/2026
 - Híbridos plug-in e REEV passam a combinar a autonomia elétrica disponível com o combustível informado no início da viagem.
