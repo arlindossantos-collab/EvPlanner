@@ -1,6 +1,7 @@
 window.EV_CONFIG = {
-  version: '3.8.3',
+  version: '3.8.4',
   versionHistory: [
+    {version:'3.8.4',date:'25/08/2026',description:'Híbridos passam a combinar a autonomia elétrica disponível com os litros de combustível informados pelo usuário, calculando autonomia total, combustível necessário, eventual déficit e combustível estimado na chegada.'},
     {version:'3.8.3',date:'24/08/2026',description:'Correção da estratégia da volta: elimina a referência inexistente returnText e gera uma recomendação segura de parada/recarga com base nos carregadores compatíveis encontrados.'},
     {version:'3.8.2',date:'24/08/2026',description:'Eletropostos também mapeados na rota de volta e estratégia inteligente de parada/recarga para a volta, mantendo a bateria acima da reserva de segurança.'},
     {version:'3.8.1',date:'24/08/2026',description:'Correção do cálculo energético da rota de ida e volta e carregamento confiável do segundo mapa da volta.'},

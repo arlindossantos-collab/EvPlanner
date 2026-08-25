@@ -28,6 +28,14 @@
 
 # EV Planner Pro — Changelog
 
+## 3.8.4 — 25/08/2026
+- Híbridos plug-in e REEV passam a combinar a autonomia elétrica disponível com o combustível informado no início da viagem.
+- A autonomia total disponível passa a ser calculada como autonomia elétrica restante + autonomia proporcionada pelos litros de combustível disponíveis.
+- O cálculo informa litros de combustível necessários, combustível estimado na chegada e eventual déficit de combustível quando a rota excede a autonomia disponível.
+- O painel de resumo passa a mostrar a autonomia total disponível para veículos híbridos e o combustível adicional necessário, quando aplicável.
+- A estratégia de viabilidade passa a considerar explicitamente a autonomia combinada antes de classificar a viagem como inviável.
+
+
 ## 3.8.1 — 24/08/2026
 - Corrigida a referência ausente `routeEnergyLimits`, que causava o erro ao calcular viagens de ida e volta.
 - Corrigido o fluxo de renderização do segundo mapa, garantindo `invalidateSize()` após o card da volta ficar visível.
