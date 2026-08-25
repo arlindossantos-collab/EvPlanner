@@ -1,5 +1,15 @@
 # EV Planner Pro — Changelog
 
+## 3.9.3 — 25/08/2026
+- Ampliação da base dos veículos híbridos/PHEV/REEV/MHEV.
+- Inclusão de capacidade do tanque e consumo rodoviário por combustível quando encontrado.
+- Cálculo automático de **autonomia teórica com tanque cheio**.
+- A ficha do veículo e o resumo passam a exibir a autonomia de tanque cheio.
+- A autonomia elétrica continua priorizando INMETRO/PBEV; autonomia combinada do planejamento continua sendo calculada a partir da bateria disponível + combustível informado.
+- Dados sem confirmação suficiente permanecem explicitamente marcados para não inventar consumo.
+
+# EV Planner Pro — Changelog
+
 ## 3.9.2 — 25/08/2026
 - Revisada a lógica de PHEV, PHEV Flex e REEV: a autonomia da viagem passa a considerar sequencialmente a autonomia elétrica disponível + a autonomia proporcionada pelos litros de combustível informados.
 - A bateria pode chegar a 0% no meio/final da rota sem tornar a viagem automaticamente inviável, desde que exista autonomia de combustível suficiente para completar o trecho.
@@ -8,7 +18,7 @@
 - Adicionados dados PBEV/INMETRO de consumo e tanque para vários PHEV presentes no cadastro, sem misturar autonomia elétrica INMETRO com autonomia combinada NEDC/WLTP.
 - Modelos híbridos sem consumo PBEV cadastrado continuam sendo tratados de forma conservadora, sem inventar autonomia de combustível.
 - Campo de combustível passa a respeitar a capacidade do tanque quando esse dado está cadastrado.
-- Service Worker atualizado para 3.9.2.
+- Service Worker atualizado para 3.9.3.
 
 
 ## 3.9.1 — 25/08/2026

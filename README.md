@@ -1,9 +1,9 @@
-# EV Planner Pro 3.8.1
+# EV Planner Pro 3.9.3
 
 Planejador de viagens para veículos elétricos, híbridos, plug-in e REEV.
 
 ## Política de autonomia
-A versão 3.7 usa **somente autonomia identificada como INMETRO/PBEV** nos cálculos de rota e energia. Dados CLTC, NEDC, WLTP ou números de catálogo sem confirmação no PBEV ficam preservados como `catalogRange`, apenas para referência, e não são usados como fallback.
+A versão 3.9.3 usa **somente autonomia identificada como INMETRO/PBEV** nos cálculos de rota e energia. Dados CLTC, NEDC, WLTP ou números de catálogo sem confirmação no PBEV ficam preservados como `catalogRange`, apenas para referência, e não são usados como fallback.
 
 O Inmetro informa que o PBEV é a base oficial de dados dos veículos leves participantes do Programa Brasileiro de Etiquetagem. A página oficial disponibiliza o ciclo 2026 e suas atualizações.
 
@@ -12,6 +12,15 @@ A compatibilidade AC/DC é armazenada por veículo. PHEV/PHEV Flex são AC-only 
 
 ## Versão
 A única fonte do número da versão é `config.js`. O histórico também fica no `versionHistory` desse arquivo. O `index.html` apenas exibe a versão carregada em runtime.
+
+## Novidades da 3.9.3
+- Base de veículos ampliada para 41 versões com propulsão que utiliza combustível.
+- 39 versões possuem capacidade de tanque cadastrada.
+- 36 versões possuem consumo rodoviário de combustível cadastrado.
+- A ficha do veículo calcula e exibe a autonomia teórica com tanque cheio.
+- Para veículos flex, gasolina e etanol são tratados separadamente quando há dado disponível.
+- A autonomia elétrica continua sendo a referência INMETRO/PBEV; dados NEDC/WLTP permanecem apenas como referência de catálogo.
+- Quando o consumo não foi confirmado com segurança, o sistema mantém o campo sem valor em vez de inventar uma autonomia.
 
 ## Novidades da 3.8.1
 - Uma única indicação visual de versão no topo, alimentada por `config.js`.

@@ -1,6 +1,7 @@
 window.EV_CONFIG = {
-  version: '3.9.2',
+  version: '3.9.3',
   versionHistory: [
+    {version:'3.9.3',date:'25/08/2026',description:'Base de veículos ampliada: modelos com combustão passam a registrar capacidade do tanque, consumo rodoviário por combustível quando disponível e autonomia teórica com tanque cheio. O resumo e a ficha do veículo exibem a autonomia de tanque cheio sem substituir a autonomia elétrica INMETRO/PBEV.'},
     {version:'3.9.2',date:'25/08/2026',description:'Revisão completa da autonomia de híbridos: a rota agora soma a autonomia elétrica disponível e a autonomia de combustível informada, permitindo que a bateria chegue a 0% e a combustão assuma o restante. O plano informa o km aproximado em que termina a autonomia elétrica e quantos km de combustível ainda restam.'},
     {version:'3.9.1',date:'25/08/2026',description:'Correção da validação do plano inteligente: a recomendação de recarga agora usa a bateria/combustível realmente estimados na chegada; híbridos exibem automaticamente o campo de litros e combinam autonomia elétrica e combustão de forma consistente.'},
     {version:'3.9.0',date:'25/08/2026',description:'Revisão geral dos cálculos de viagem: autonomia elétrica baseada no INMETRO/PBEV, combinação correta de energia elétrica + combustível para veículos híbridos, entrada de litros iniciais e tratamento mais conservador quando não há consumo de combustível confiável.'},
