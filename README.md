@@ -1,41 +1,19 @@
-# EV Planner Pro 3.9.3
+# EV Planner Pro 3.10
 
-Planejador de viagens para veículos elétricos, híbridos, plug-in e REEV.
+Versão orientada à decisão: a aplicação responde se a viagem é viável, onde parar, quanto gastar, quanto tempo levar e qual estratégia é mais adequada.
 
-## Política de autonomia
-A versão 3.9.3 usa **somente autonomia identificada como INMETRO/PBEV** nos cálculos de rota e energia. Dados CLTC, NEDC, WLTP ou números de catálogo sem confirmação no PBEV ficam preservados como `catalogRange`, apenas para referência, e não são usados como fallback.
+## Principais melhorias
+- Visão essencial/detalhada para reduzir sobrecarga visual.
+- Plano inteligente com quatro perspectivas: mais rápida, mais barata, mais segura e menos paradas.
+- Cálculo híbrido revisado: autonomia elétrica + autonomia a combustão, respeitando os litros informados.
+- Quando a bateria elétrica acaba, o plano informa o km aproximado e a autonomia restante a combustível.
+- Campo automático de combustível para veículos com combustão e consumo km/L editável quando a base não possui dado.
+- Autonomia elétrica exibida como referência INMETRO quando disponível na base.
+- Controle de versão centralizado em `config.js`; `index.html` não mantém cópia do número.
+- Service Worker atualizado para 3.10.0.
 
-O Inmetro informa que o PBEV é a base oficial de dados dos veículos leves participantes do Programa Brasileiro de Etiquetagem. A página oficial disponibiliza o ciclo 2026 e suas atualizações.
+## Execução
+Sirva a pasta por HTTP/HTTPS, por exemplo: `python -m http.server 8080`.
 
-## Recarga
-A compatibilidade AC/DC é armazenada por veículo. PHEV/PHEV Flex são AC-only por padrão, REEV é AC+DC por padrão e BEV é AC+DC por padrão, com possibilidade de exceções por modelo. O sistema não recomenda DC para um veículo AC-only.
-
-## Versão
-A única fonte do número da versão é `config.js`. O histórico também fica no `versionHistory` desse arquivo. O `index.html` apenas exibe a versão carregada em runtime.
-
-## Novidades da 3.9.3
-- Base de veículos ampliada para 41 versões com propulsão que utiliza combustível.
-- 39 versões possuem capacidade de tanque cadastrada.
-- 36 versões possuem consumo rodoviário de combustível cadastrado.
-- A ficha do veículo calcula e exibe a autonomia teórica com tanque cheio.
-- Para veículos flex, gasolina e etanol são tratados separadamente quando há dado disponível.
-- A autonomia elétrica continua sendo a referência INMETRO/PBEV; dados NEDC/WLTP permanecem apenas como referência de catálogo.
-- Quando o consumo não foi confirmado com segurança, o sistema mantém o campo sem valor em vez de inventar uma autonomia.
-
-## Novidades da 3.8.1
-- Uma única indicação visual de versão no topo, alimentada por `config.js`.
-- Regra de versionamento minor/patch documentada para alterações no `index.html` e nos arquivos auxiliares.
-- Ícones de data e horário com contraste reforçado.
-- Ida e volta com horário de saída da volta.
-- Rota de volta em azul, mantendo a lógica de reserva, recarga, combustível e risco.
-- Exibição simultânea de autonomia INMETRO/PBEV e autonomia informada pelo painel do veículo.
-- Autonomia do painel é armazenada por veículo e serve como referência; o cálculo oficial continua baseado no INMETRO/PBEV.
-- Estratégia de parada configurável por percentual de bateria, com indicação do ponto compatível recomendado próximo do gatilho.
-
-
-## 3.8.1 — Ida e volta com mapas separados
-- Ao ativar “Ida e volta”, o sistema solicita **data e horário da volta**.
-- A ida e a volta são calculadas como rotas independentes para visualização.
-- O painel passa a exibir **dois mapas**, um para a ida e outro para a volta.
-- A volta permanece azul e aplica a mesma lógica dinâmica de consumo, reserva, combustível e autonomia insuficiente.
-- A versão continua centralizada em `config.js`; o `index.html` não mantém número de versão duplicado.
+## Observação
+A aplicação não inventa disponibilidade em tempo real de eletropostos. Quando a fonte não fornece ocupação, ela é tratada como “não informada”. Autonomias e consumos devem ser interpretados conforme a qualidade dos dados da base.

@@ -34,6 +34,7 @@
           <div id="versionHistoryList"></div>
         </div>
       </details>
+      <span id="versionBadge" class="version-badge">PRO —</span><button id="viewModeBtn" class="btn ghost view-mode-btn" title="Alternar visão">Visão essencial</button>
       <button id="installBtn" class="btn ghost hidden"><i class="fa-solid fa-download"></i> Instalar</button>
       <button id="importBtn" class="btn ghost"><i class="fa-solid fa-upload"></i> Importar</button>
       <button id="exportBtn" class="btn ghost"><i class="fa-solid fa-file-export"></i> Backup</button>
@@ -52,11 +53,6 @@
         <label>Modelo / versão</label><select id="modelSelect" disabled></select>
         <div id="carSpecs" class="spec-grid"></div>
         <div id="dataQuality" class="hint"></div>
-        <div class="range-reference">
-          <div><span>Autonomia INMETRO/PBEV</span><b id="inmetroRangeValue">—</b></div>
-          <div><span>Autonomia indicada no painel</span><div class="range-panel-edit"><input id="panelRangeInput" type="number" min="0" max="2000" step="1" placeholder="Ex.: 380"><b>km</b></div></div>
-          <small>O INMETRO continua sendo a referência oficial usada nos cálculos. A autonomia do painel é uma referência complementar personalizada.</small>
-        </div>
       </article>
 
       <article class="card energy-card compact-card">
@@ -68,10 +64,8 @@
           <div class="battery-scale"><span>0%</span><span>25%</span><span>50%</span><span>75%</span><span>100%</span></div>
           <p>Valor limitado automaticamente entre 0% e 100%.</p>
         </div>
-        <div id="fuelBox" class="fuel-box hidden"><div class="fuel-title"><i class="fa-solid fa-gas-pump"></i> Combustível inicial</div><label>Litros no início da viagem</label><input id="startFuel" type="number" min="0" step="0.1" inputmode="decimal" placeholder="Ex.: 35"><select id="fuelType" aria-label="Tipo de combustível"><option value="gasoline" selected>Gasolina</option><option value="ethanol">Etanol</option></select><small id="fuelHint">Informe a quantidade disponível.</small></div>
-        <div class="strategy-box"><label>Parar para recarregar abaixo de</label><div class="strategy-input"><input id="stopBatteryThreshold" type="number" min="5" max="80" step="1" value="20"><strong>%</strong></div><small>O sistema procurará um ponto compatível próximo desse nível de bateria.</small></div>
-        <div class="three price-grid"><div><label>R$/kWh</label><input id="kwhPrice" type="number" min="0" step="0.01"></div><div><label>Gasolina</label><input id="gasPrice" type="number" min="0" step="0.01"></div><div><label>Etanol</label><input id="ethanolPrice" type="number" min="0" step="0.01"></div></div>
-        <div class="three"><div><label>Adultos</label><select id="adults"><option>1</option><option selected>2</option><option>3</option><option>4</option><option>5</option></select></div><div><label>Crianças</label><select id="children"><option selected>0</option><option>1</option><option>2</option><option>3</option></select></div><div><label>Pets</label><select id="pets"><option selected>0</option><option>1</option><option>2</option></select></div></div>
+        <div id="fuelBox" class="fuel-box hidden"><div class="fuel-title"><i class="fa-solid fa-gas-pump"></i> Combustível inicial</div><div class="fuel-input-grid"><div><label>Litros no início da viagem</label><input id="startFuel" type="number" min="0" step="0.1" inputmode="decimal" placeholder="Ex.: 35"></div><div><label>Consumo a combustão (km/L)</label><input id="fuelConsumptionInput" type="number" min="1" max="40" step="0.1" inputmode="decimal" placeholder="Auto / informe"></div></div><small id="fuelHint">Informe os litros disponíveis. Se o consumo não estiver cadastrado, você poderá informá-lo aqui para melhorar a precisão.</small><div id="fuelRangePreview" class="fuel-range-preview"></div></div>
+        <details class="advanced-settings"><summary><i class="fa-solid fa-sliders"></i> Opções avançadas</summary><div class="advanced-body"><div class="three price-grid"><div><label>R$/kWh</label><input id="kwhPrice" type="number" min="0" step="0.01"></div><div><label>Gasolina</label><input id="gasPrice" type="number" min="0" step="0.01"></div><div><label>Etanol</label><input id="ethanolPrice" type="number" min="0" step="0.01"></div></div><div class="three"><div><label>Adultos</label><select id="adults"><option>1</option><option selected>2</option><option>3</option><option>4</option><option>5</option></select></div><div><label>Crianças</label><select id="children"><option selected>0</option><option>1</option><option>2</option><option>3</option></select></div><div><label>Pets</label><select id="pets"><option selected>0</option><option>1</option><option>2</option></select></div></div></div></details>
       </article>
 
       <article class="card telemetry-card compact-card">
@@ -90,9 +84,9 @@
         <div id="waypoints" class="stack"></div>
         <div class="two"><button id="addDestinationBtn" class="btn secondary">+ Adicionar destino</button><button id="addStopBtn" class="btn warning">+ Adicionar parada</button></div>
         <div class="two route-options"><div><label>Data da viagem</label><input id="departureDate" type="date"></div><div><label>Hora de saída</label><input id="departureTime" type="time" value="08:00"></div></div>
-        <div id="returnScheduleRow" class="two route-options hidden"><div><label>Data da volta</label><input id="returnDepartureDate" type="date"></div><div><label>Hora de saída da volta</label><input id="returnDepartureTime" type="time" value="14:00"></div></div><div id="returnTimeNote" class="return-time-note hidden">🔵 A rota de volta será apresentada em um segundo mapa, em azul, mantendo a mesma lógica energética.</div>
-        <div class="two route-options"><div><label>Modo de condução</label><select id="driveMode"><option value="1">Eco</option><option value="1.08" selected>Normal</option><option value="1.15">Sport</option></select></div><div><label>Climatização</label><select id="acMode"><option value="1">Desligado</option><option value="1.10" selected>Ligado</option><option value="1.18">Máximo</option></select></div></div>
+        <details class="advanced-settings route-advanced"><summary><i class="fa-solid fa-sliders"></i> Condições e ajustes</summary><div class="advanced-body"><div class="two route-options"><div><label>Modo de condução</label><select id="driveMode"><option value="1">Eco</option><option value="1.08" selected>Normal</option><option value="1.15">Sport</option></select></div><div><label>Climatização</label><select id="acMode"><option value="1">Desligado</option><option value="1.10" selected>Ligado</option><option value="1.18">Máximo</option></select></div></div>
         <div class="checks"><label><input id="rainMode" type="checkbox"> 🌧️ Chuva</label><label><input id="elevationMode" type="checkbox" checked> ⛰️ Relevo / serra</label><label><input id="trafficMode" type="checkbox" checked> 🚗 Trânsito</label></div>
+        </div></details>
         <div id="weatherBox" class="weather hidden"></div>
         <button id="calculateBtn" class="btn primary full calculate-btn"><i class="fa-solid fa-bolt"></i> Calcular viagem</button>
         <div id="calculationDone" class="calculation-done hidden"><i class="fa-solid fa-circle-check"></i> Cálculo concluído</div>
@@ -103,7 +97,7 @@
         <div id="recentTripsList" class="recent-trips"><div class="empty">As viagens calculadas aparecerão aqui.</div></div>
       </section>
 
-      <section id="smartPlan" class="card smart-plan-card"><div class="section-head"><h2><i class="fa-solid fa-route"></i> PLANO INTELIGENTE DA VIAGEM</h2><span id="smartPlanBadge" class="status neutral">Aguardando</span></div><div id="smartPlanContent" class="smart-plan-grid"><div class="empty">Calcule a viagem para descobrir se ela é viável, onde parar, quanto gastar e qual estratégia é mais segura e econômica.</div></div></section>
+      <section id="smartPlan" class="card smart-plan-card"><div class="section-head"><h2><i class="fa-solid fa-route"></i> PLANO INTELIGENTE</h2><span id="smartPlanBadge" class="status neutral">Aguardando</span></div><div id="decisionHeadline" class="decision-headline"><span class="decision-icon">✓</span><div><b>Calcule a viagem</b><small>O sistema vai responder se a viagem é viável, onde parar, quanto gastar e qual estratégia é melhor.</small></div></div><div id="smartPlanContent" class="smart-plan-grid"><div class="empty">Calcule a viagem para descobrir se ela é viável, onde parar, quanto gastar e qual estratégia é mais segura e econômica.</div></div></section>
 
       <section id="tripSummary" class="card summary-card">
         <div class="section-head"><h2><i class="fa-solid fa-clipboard-check"></i> RESUMO DETALHADO DA VIAGEM</h2><button id="copySummaryBtn" class="btn ghost no-print"><i class="fa-regular fa-copy"></i> Copiar</button></div>
@@ -115,16 +109,9 @@
 
     <section class="right-column">
       <section class="card map-card">
-        <div class="section-head"><h2><i class="fa-solid fa-map-location-dot"></i> MAPA DA IDA</h2><div class="checks map-filters"><label><input id="filterDC" type="checkbox" checked> ⚡ DC</label><label><input id="filterAC" type="checkbox" checked> 🔌 AC</label><label><input id="showRange" type="checkbox" checked> 🔋 Alcance</label></div></div>
-        <div id="map"></div><div class="route-legend"><span><i class="legend-dot route-safe"></i> Ida segura</span><span><i class="legend-dot route-warning"></i> Reserva / recarga</span><span><i class="legend-dot route-return"></i> Volta</span><span><i class="legend-dot route-fuel"></i> Trecho com combustível</span><span><i class="legend-dot route-danger"></i> Autonomia insuficiente</span></div>
+        <div class="section-head"><h2><i class="fa-solid fa-map-location-dot"></i> MAPA DA ROTA</h2><div class="checks map-filters"><label><input id="filterDC" type="checkbox" checked> ⚡ DC</label><label><input id="filterAC" type="checkbox" checked> 🔌 AC</label><label><input id="showRange" type="checkbox" checked> 🔋 Alcance</label></div></div>
+        <div id="map"></div><div class="route-legend"><span><i class="legend-dot route-safe"></i> Dentro da autonomia</span><span><i class="legend-dot route-warning"></i> Reserva / recarga recomendada</span><span><i class="legend-dot route-fuel"></i> Trecho com combustível</span><span><i class="legend-dot route-danger"></i> Autonomia insuficiente</span></div>
         <div id="mapPickerHint" class="map-picker-hint hidden">📍 Modo de seleção ativo: clique no mapa para escolher o endereço do ponto.</div>
-      </section>
-
-      <section id="returnMapCard" class="card map-card hidden">
-        <div class="section-head"><h2><i class="fa-solid fa-route"></i> MAPA DA VOLTA</h2><span class="return-map-badge">🔵 Volta</span></div>
-        <div id="mapReturn"></div>
-        <div class="return-stations-strip"><div><b>⚡ Pontos de carregamento na volta</b><span id="returnStationCount" class="counter">0</span></div><div id="returnStationsList" class="stations-list compact-return"><div class="empty">Calcule a viagem para localizar pontos na volta.</div></div></div>
-        <div class="route-legend return-legend"><span><i class="legend-dot route-return"></i> Volta segura</span><span><i class="legend-dot route-return-warning"></i> Reserva / recarga</span><span><i class="legend-dot route-fuel"></i> Trecho com combustível</span><span><i class="legend-dot route-danger"></i> Autonomia insuficiente</span></div>
       </section>
 
       <section class="card stations-card no-print">

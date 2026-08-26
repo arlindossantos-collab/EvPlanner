@@ -7,25 +7,13 @@ window.EV_VEHICLES = [
     "engine": "",
     "power": "75 cv",
     "battery": 38.0,
-    "range": 280,
+    "range": 281.0,
     "totalRange": null,
     "consumption": null,
     "fuelConsumption": "",
     "traction": "FWD",
     "zero100": "",
-    "price": "",
-    "catalogRange": 281.0,
-    "rangeSource": "INMETRO",
-    "rangeCycle": "PBEV 2026",
-    "rangeVerifiedDate": "19/08/2026",
-    "charging": {
-      "ac": true,
-      "dc": true,
-      "acOnly": false,
-      "acPowerKw": null,
-      "dcPowerKw": null,
-      "source": "propulsion-default"
-    }
+    "price": ""
   },
   {
     "brand": "BYD",
@@ -35,25 +23,13 @@ window.EV_VEHICLES = [
     "engine": "",
     "power": "95 cv",
     "battery": 44.9,
-    "range": null,
+    "range": 292.0,
     "totalRange": null,
     "consumption": null,
     "fuelConsumption": "",
     "traction": "FWD",
     "zero100": "",
-    "price": "",
-    "catalogRange": 292.0,
-    "rangeSource": "INMETRO_NOT_FOUND",
-    "rangeCycle": "PBEV 2026",
-    "rangeVerifiedDate": null,
-    "charging": {
-      "ac": true,
-      "dc": true,
-      "acOnly": false,
-      "acPowerKw": null,
-      "dcPowerKw": null,
-      "source": "propulsion-default"
-    }
+    "price": ""
   },
   {
     "brand": "BYD",
@@ -63,25 +39,13 @@ window.EV_VEHICLES = [
     "engine": "",
     "power": "204 cv",
     "battery": 60.4,
-    "range": null,
+    "range": 429.0,
     "totalRange": null,
     "consumption": null,
     "fuelConsumption": "",
     "traction": "FWD",
     "zero100": "",
-    "price": "",
-    "catalogRange": 429.0,
-    "rangeSource": "INMETRO_NOT_FOUND",
-    "rangeCycle": "PBEV 2026",
-    "rangeVerifiedDate": null,
-    "charging": {
-      "ac": true,
-      "dc": true,
-      "acOnly": false,
-      "acPowerKw": null,
-      "dcPowerKw": null,
-      "source": "propulsion-default"
-    }
+    "price": ""
   },
   {
     "brand": "BYD",
@@ -91,25 +55,13 @@ window.EV_VEHICLES = [
     "engine": "",
     "power": "177 cv",
     "battery": 45.1,
-    "range": null,
+    "range": 320.0,
     "totalRange": null,
     "consumption": null,
     "fuelConsumption": "",
     "traction": "FWD",
     "zero100": "",
-    "price": "",
-    "catalogRange": 320.0,
-    "rangeSource": "INMETRO_NOT_FOUND",
-    "rangeCycle": "PBEV 2026",
-    "rangeVerifiedDate": null,
-    "charging": {
-      "ac": true,
-      "dc": true,
-      "acOnly": false,
-      "acPowerKw": null,
-      "dcPowerKw": null,
-      "source": "propulsion-default"
-    }
+    "price": ""
   },
   {
     "brand": "BYD",
@@ -119,25 +71,13 @@ window.EV_VEHICLES = [
     "engine": "",
     "power": "531 cv",
     "battery": 82.5,
-    "range": 372,
+    "range": 372.0,
     "totalRange": null,
     "consumption": null,
     "fuelConsumption": "",
     "traction": "AWD",
     "zero100": "",
-    "price": "",
-    "catalogRange": 372.0,
-    "rangeSource": "INMETRO",
-    "rangeCycle": "PBEV 2026",
-    "rangeVerifiedDate": "19/08/2026",
-    "charging": {
-      "ac": true,
-      "dc": true,
-      "acOnly": false,
-      "acPowerKw": null,
-      "dcPowerKw": null,
-      "source": "propulsion-default"
-    }
+    "price": ""
   },
   {
     "brand": "BYD",
@@ -147,25 +87,13 @@ window.EV_VEHICLES = [
     "engine": "",
     "power": "530 cv",
     "battery": 82.56,
-    "range": null,
+    "range": 500.0,
     "totalRange": null,
     "consumption": null,
     "fuelConsumption": "",
     "traction": "AWD",
     "zero100": "",
-    "price": "",
-    "catalogRange": 500.0,
-    "rangeSource": "INMETRO_NOT_FOUND",
-    "rangeCycle": "PBEV 2026",
-    "rangeVerifiedDate": null,
-    "charging": {
-      "ac": true,
-      "dc": true,
-      "acOnly": false,
-      "acPowerKw": null,
-      "dcPowerKw": null,
-      "source": "propulsion-default"
-    }
+    "price": ""
   },
   {
     "brand": "BYD",
@@ -175,25 +103,13 @@ window.EV_VEHICLES = [
     "engine": "",
     "power": "517 cv",
     "battery": 108.8,
-    "range": 430,
+    "range": 435.0,
     "totalRange": null,
     "consumption": null,
     "fuelConsumption": "",
     "traction": "AWD",
     "zero100": "",
-    "price": "",
-    "catalogRange": 435.0,
-    "rangeSource": "INMETRO",
-    "rangeCycle": "PBEV 2026",
-    "rangeVerifiedDate": "19/08/2026",
-    "charging": {
-      "ac": true,
-      "dc": true,
-      "acOnly": false,
-      "acPowerKw": null,
-      "dcPowerKw": null,
-      "source": "propulsion-default"
-    }
+    "price": ""
   },
   {
     "brand": "BYD",
@@ -202,32 +118,14 @@ window.EV_VEHICLES = [
     "type": "PHEV",
     "engine": "",
     "power": "209 cv",
-    "battery": 8.3,
-    "range": 35,
+    "battery": null,
+    "range": 80.0,
     "totalRange": null,
     "consumption": null,
     "fuelConsumption": "",
     "traction": "FWD",
     "zero100": "",
-    "price": "",
-    "catalogRange": 80.0,
-    "rangeSource": "INMETRO",
-    "rangeCycle": "PBEV 2026",
-    "rangeVerifiedDate": "19/08/2026",
-    "charging": {
-      "ac": true,
-      "dc": false,
-      "acOnly": true,
-      "acPowerKw": null,
-      "dcPowerKw": null,
-      "source": "propulsion-default"
-    },
-    "tank": 48,
-    "gasKm": 14.3,
-    "fuelDataSource": "PBEV 2025 / INMETRO",
-    "fuelConsumptionRoad": 14.3,
-    "gasolineKm": 14.3,
-    "fullTankRangeGasolineRoad": 686.4
+    "price": ""
   },
   {
     "brand": "BYD",
@@ -236,32 +134,14 @@ window.EV_VEHICLES = [
     "type": "PHEV",
     "engine": "",
     "power": "235 cv",
-    "battery": 18.3,
-    "range": 78,
+    "battery": null,
+    "range": 80.0,
     "totalRange": null,
     "consumption": null,
     "fuelConsumption": "",
     "traction": "FWD",
     "zero100": "",
-    "price": "",
-    "catalogRange": 80.0,
-    "rangeSource": "INMETRO",
-    "rangeCycle": "PBEV 2026",
-    "rangeVerifiedDate": "19/08/2026",
-    "charging": {
-      "ac": true,
-      "dc": false,
-      "acOnly": true,
-      "acPowerKw": null,
-      "dcPowerKw": null,
-      "source": "propulsion-default"
-    },
-    "tank": 48,
-    "gasKm": 14.7,
-    "fuelDataSource": "PBEV 2025 / INMETRO",
-    "fuelConsumptionRoad": 14.7,
-    "gasolineKm": 14.7,
-    "fullTankRangeGasolineRoad": 705.6
+    "price": ""
   },
   {
     "brand": "BYD",
@@ -271,31 +151,13 @@ window.EV_VEHICLES = [
     "engine": "",
     "power": "",
     "battery": null,
-    "range": 49,
+    "range": null,
     "totalRange": null,
     "consumption": null,
     "fuelConsumption": "",
     "traction": "FWD",
     "zero100": "",
-    "price": "",
-    "catalogRange": null,
-    "rangeSource": "INMETRO",
-    "rangeCycle": "PBEV 2026",
-    "rangeVerifiedDate": "19/08/2026",
-    "charging": {
-      "ac": true,
-      "dc": false,
-      "acOnly": true,
-      "acPowerKw": null,
-      "dcPowerKw": null,
-      "source": "propulsion-default"
-    },
-    "tank": 52,
-    "gasKm": 12.6,
-    "fuelDataSource": "PBEV 2025 / INMETRO",
-    "fuelConsumptionRoad": 12.6,
-    "gasolineKm": 12.6,
-    "fullTankRangeGasolineRoad": 655.2
+    "price": ""
   },
   {
     "brand": "BYD",
@@ -305,31 +167,13 @@ window.EV_VEHICLES = [
     "engine": "",
     "power": "219 cv",
     "battery": null,
-    "range": 62,
+    "range": 72.0,
     "totalRange": null,
     "consumption": null,
     "fuelConsumption": "",
     "traction": "FWD",
     "zero100": "",
-    "price": "",
-    "catalogRange": 72.0,
-    "rangeSource": "INMETRO",
-    "rangeCycle": "PBEV 2026",
-    "rangeVerifiedDate": "19/08/2026",
-    "charging": {
-      "ac": true,
-      "dc": false,
-      "acOnly": true,
-      "acPowerKw": null,
-      "dcPowerKw": null,
-      "source": "propulsion-default"
-    },
-    "tank": 52,
-    "gasKm": 12.2,
-    "fuelDataSource": "PBEV 2025 / INMETRO",
-    "fuelConsumptionRoad": 12.2,
-    "gasolineKm": 12.2,
-    "fullTankRangeGasolineRoad": 634.4
+    "price": ""
   },
   {
     "brand": "BYD",
@@ -339,31 +183,13 @@ window.EV_VEHICLES = [
     "engine": "",
     "power": "245 cv",
     "battery": null,
-    "range": 63,
+    "range": 110.0,
     "totalRange": null,
     "consumption": null,
     "fuelConsumption": "",
     "traction": "FWD",
     "zero100": "",
-    "price": "",
-    "catalogRange": 110.0,
-    "rangeSource": "INMETRO",
-    "rangeCycle": "PBEV 2026",
-    "rangeVerifiedDate": "19/08/2026",
-    "charging": {
-      "ac": true,
-      "dc": false,
-      "acOnly": true,
-      "acPowerKw": null,
-      "dcPowerKw": null,
-      "source": "propulsion-default"
-    },
-    "tank": 52,
-    "gasKm": 12.1,
-    "fuelDataSource": "PBEV 2026 / INMETRO",
-    "fuelConsumptionRoad": 12.1,
-    "gasolineKm": 12.1,
-    "fullTankRangeGasolineRoad": 629.2
+    "price": ""
   },
   {
     "brand": "BYD",
@@ -373,31 +199,13 @@ window.EV_VEHICLES = [
     "engine": "",
     "power": "324 cv",
     "battery": 26.6,
-    "range": 87,
+    "range": 87.0,
     "totalRange": null,
     "consumption": null,
     "fuelConsumption": "",
     "traction": "AWD",
     "zero100": "",
-    "price": "",
-    "catalogRange": 87.0,
-    "rangeSource": "INMETRO",
-    "rangeCycle": "PBEV 2026",
-    "rangeVerifiedDate": "19/08/2026",
-    "charging": {
-      "ac": true,
-      "dc": false,
-      "acOnly": true,
-      "acPowerKw": null,
-      "dcPowerKw": null,
-      "source": "propulsion-default"
-    },
-    "tank": 57,
-    "gasKm": 10.1,
-    "fuelDataSource": "PBEV 2026 / referência técnica 2026",
-    "fuelConsumptionRoad": 10.1,
-    "gasolineKm": 10.1,
-    "fullTankRangeGasolineRoad": 575.7
+    "price": ""
   },
   {
     "brand": "BYD",
@@ -407,31 +215,13 @@ window.EV_VEHICLES = [
     "engine": "",
     "power": "437 cv",
     "battery": null,
-    "range": null,
+    "range": 100.0,
     "totalRange": null,
     "consumption": null,
     "fuelConsumption": "",
     "traction": "AWD",
     "zero100": "",
-    "price": "",
-    "catalogRange": 100.0,
-    "rangeSource": "INMETRO_NOT_FOUND",
-    "rangeCycle": "PBEV 2026",
-    "rangeVerifiedDate": null,
-    "charging": {
-      "ac": true,
-      "dc": false,
-      "acOnly": true,
-      "acPowerKw": null,
-      "dcPowerKw": null,
-      "source": "propulsion-default"
-    },
-    "tank": 57,
-    "gasKm": 7.7,
-    "fuelDataSource": "PBEV / INMETRO",
-    "fuelConsumptionRoad": 7.7,
-    "gasolineKm": 7.7,
-    "fullTankRangeGasolineRoad": 438.9
+    "price": ""
   },
   {
     "brand": "Leapmotor",
@@ -441,25 +231,13 @@ window.EV_VEHICLES = [
     "engine": "",
     "power": "218 cv",
     "battery": 56.2,
-    "range": 288,
+    "range": 288.0,
     "totalRange": null,
     "consumption": null,
     "fuelConsumption": "",
     "traction": "FWD",
     "zero100": "",
-    "price": "",
-    "catalogRange": 288.0,
-    "rangeSource": "INMETRO",
-    "rangeCycle": "PBEV 2026",
-    "rangeVerifiedDate": "19/08/2026",
-    "charging": {
-      "ac": true,
-      "dc": true,
-      "acOnly": false,
-      "acPowerKw": null,
-      "dcPowerKw": null,
-      "source": "propulsion-default"
-    }
+    "price": ""
   },
   {
     "brand": "Leapmotor",
@@ -469,25 +247,13 @@ window.EV_VEHICLES = [
     "engine": "",
     "power": "218 cv",
     "battery": 69.9,
-    "range": 338,
+    "range": null,
     "totalRange": null,
     "consumption": null,
     "fuelConsumption": "",
     "traction": "FWD",
     "zero100": "",
-    "price": "",
-    "catalogRange": null,
-    "rangeSource": "INMETRO",
-    "rangeCycle": "PBEV 2026",
-    "rangeVerifiedDate": "19/08/2026",
-    "charging": {
-      "ac": true,
-      "dc": true,
-      "acOnly": false,
-      "acPowerKw": null,
-      "dcPowerKw": null,
-      "source": "propulsion-default"
-    }
+    "price": ""
   },
   {
     "brand": "Leapmotor",
@@ -497,31 +263,13 @@ window.EV_VEHICLES = [
     "engine": "1.5 gerador",
     "power": "215 cv",
     "battery": 28.4,
-    "range": 111,
+    "range": null,
     "totalRange": null,
     "consumption": null,
     "fuelConsumption": "",
     "traction": "RWD",
     "zero100": "",
-    "price": "",
-    "catalogRange": null,
-    "rangeSource": "INMETRO",
-    "rangeCycle": "PBEV 2026",
-    "rangeVerifiedDate": "19/08/2026",
-    "charging": {
-      "ac": true,
-      "dc": true,
-      "acOnly": false,
-      "acPowerKw": null,
-      "dcPowerKw": null,
-      "source": "propulsion-default"
-    },
-    "tank": 50,
-    "gasKm": 12.8,
-    "fuelDataSource": "INMETRO / ficha técnica 2026",
-    "fuelConsumptionRoad": 12.8,
-    "gasolineKm": 12.8,
-    "fullTankRangeGasolineRoad": 640.0
+    "price": ""
   },
   {
     "brand": "Geely",
@@ -531,25 +279,13 @@ window.EV_VEHICLES = [
     "engine": "",
     "power": "116 cv",
     "battery": 39.4,
-    "range": null,
+    "range": 288.0,
     "totalRange": null,
     "consumption": null,
     "fuelConsumption": "",
     "traction": "FWD",
     "zero100": "",
-    "price": "",
-    "catalogRange": 288.0,
-    "rangeSource": "INMETRO_NOT_FOUND",
-    "rangeCycle": "PBEV 2026",
-    "rangeVerifiedDate": null,
-    "charging": {
-      "ac": true,
-      "dc": true,
-      "acOnly": false,
-      "acPowerKw": null,
-      "dcPowerKw": null,
-      "source": "propulsion-default"
-    }
+    "price": ""
   },
   {
     "brand": "Geely",
@@ -559,25 +295,13 @@ window.EV_VEHICLES = [
     "engine": "",
     "power": "116 cv",
     "battery": 39.4,
-    "range": null,
+    "range": 288.0,
     "totalRange": null,
     "consumption": null,
     "fuelConsumption": "",
     "traction": "FWD",
     "zero100": "",
-    "price": "",
-    "catalogRange": 288.0,
-    "rangeSource": "INMETRO_NOT_FOUND",
-    "rangeCycle": "PBEV 2026",
-    "rangeVerifiedDate": null,
-    "charging": {
-      "ac": true,
-      "dc": true,
-      "acOnly": false,
-      "acPowerKw": null,
-      "dcPowerKw": null,
-      "source": "propulsion-default"
-    }
+    "price": ""
   },
   {
     "brand": "Geely",
@@ -587,25 +311,13 @@ window.EV_VEHICLES = [
     "engine": "",
     "power": "218 cv",
     "battery": 60.22,
-    "range": null,
+    "range": 400.0,
     "totalRange": null,
     "consumption": null,
     "fuelConsumption": "",
     "traction": "FWD",
     "zero100": "",
-    "price": "",
-    "catalogRange": 400.0,
-    "rangeSource": "INMETRO_NOT_FOUND",
-    "rangeCycle": "PBEV 2026",
-    "rangeVerifiedDate": null,
-    "charging": {
-      "ac": true,
-      "dc": true,
-      "acOnly": false,
-      "acPowerKw": null,
-      "dcPowerKw": null,
-      "source": "propulsion-default"
-    }
+    "price": ""
   },
   {
     "brand": "Geely",
@@ -615,25 +327,13 @@ window.EV_VEHICLES = [
     "engine": "",
     "power": "218 cv",
     "battery": 60.22,
-    "range": null,
+    "range": 400.0,
     "totalRange": null,
     "consumption": null,
     "fuelConsumption": "",
     "traction": "FWD",
     "zero100": "",
-    "price": "",
-    "catalogRange": 400.0,
-    "rangeSource": "INMETRO_NOT_FOUND",
-    "rangeCycle": "PBEV 2026",
-    "rangeVerifiedDate": null,
-    "charging": {
-      "ac": true,
-      "dc": true,
-      "acOnly": false,
-      "acPowerKw": null,
-      "dcPowerKw": null,
-      "source": "propulsion-default"
-    }
+    "price": ""
   },
   {
     "brand": "Geely",
@@ -643,31 +343,13 @@ window.EV_VEHICLES = [
     "engine": "",
     "power": "262 cv",
     "battery": 18.4,
-    "range": 65,
+    "range": 65.0,
     "totalRange": null,
     "consumption": null,
     "fuelConsumption": "",
     "traction": "FWD",
     "zero100": "",
-    "price": "",
-    "catalogRange": 65.0,
-    "rangeSource": "INMETRO",
-    "rangeCycle": "PBEV 2026",
-    "rangeVerifiedDate": "19/08/2026",
-    "charging": {
-      "ac": true,
-      "dc": false,
-      "acOnly": true,
-      "acPowerKw": null,
-      "dcPowerKw": null,
-      "source": "propulsion-default"
-    },
-    "tank": 60,
-    "gasKm": 13.3,
-    "fuelDataSource": "Geely / INMETRO",
-    "fuelConsumptionRoad": 13.3,
-    "gasolineKm": 13.3,
-    "fullTankRangeGasolineRoad": 798.0
+    "price": ""
   },
   {
     "brand": "Geely",
@@ -677,31 +359,13 @@ window.EV_VEHICLES = [
     "engine": "",
     "power": "262 cv",
     "battery": 18.4,
-    "range": 65,
+    "range": 65.0,
     "totalRange": null,
     "consumption": null,
     "fuelConsumption": "",
     "traction": "FWD",
     "zero100": "",
-    "price": "",
-    "catalogRange": 65.0,
-    "rangeSource": "INMETRO",
-    "rangeCycle": "PBEV 2026",
-    "rangeVerifiedDate": "19/08/2026",
-    "charging": {
-      "ac": true,
-      "dc": false,
-      "acOnly": true,
-      "acPowerKw": null,
-      "dcPowerKw": null,
-      "source": "propulsion-default"
-    },
-    "tank": 60,
-    "gasKm": 13.3,
-    "fuelDataSource": "Geely / INMETRO",
-    "fuelConsumptionRoad": 13.3,
-    "gasolineKm": 13.3,
-    "fullTankRangeGasolineRoad": 798.0
+    "price": ""
   },
   {
     "brand": "Geely",
@@ -711,31 +375,13 @@ window.EV_VEHICLES = [
     "engine": "",
     "power": "262 cv",
     "battery": 29.8,
-    "range": 112,
+    "range": 112.0,
     "totalRange": null,
     "consumption": null,
     "fuelConsumption": "",
     "traction": "FWD",
     "zero100": "",
-    "price": "",
-    "catalogRange": 112.0,
-    "rangeSource": "INMETRO",
-    "rangeCycle": "PBEV 2026",
-    "rangeVerifiedDate": "19/08/2026",
-    "charging": {
-      "ac": true,
-      "dc": false,
-      "acOnly": true,
-      "acPowerKw": null,
-      "dcPowerKw": null,
-      "source": "propulsion-default"
-    },
-    "tank": 60,
-    "gasKm": 13.1,
-    "fuelDataSource": "Geely / INMETRO",
-    "fuelConsumptionRoad": 13.1,
-    "gasolineKm": 13.1,
-    "fullTankRangeGasolineRoad": 786.0
+    "price": ""
   },
   {
     "brand": "GWM",
@@ -745,25 +391,13 @@ window.EV_VEHICLES = [
     "engine": "",
     "power": "171 cv",
     "battery": 48.0,
-    "range": null,
+    "range": 312.0,
     "totalRange": null,
     "consumption": null,
     "fuelConsumption": "",
     "traction": "FWD",
     "zero100": "",
-    "price": "",
-    "catalogRange": 312.0,
-    "rangeSource": "INMETRO_NOT_FOUND",
-    "rangeCycle": "PBEV 2026",
-    "rangeVerifiedDate": null,
-    "charging": {
-      "ac": true,
-      "dc": true,
-      "acOnly": false,
-      "acPowerKw": null,
-      "dcPowerKw": null,
-      "source": "propulsion-default"
-    }
+    "price": ""
   },
   {
     "brand": "GWM",
@@ -773,25 +407,13 @@ window.EV_VEHICLES = [
     "engine": "",
     "power": "171 cv",
     "battery": 58.0,
-    "range": null,
+    "range": 315.0,
     "totalRange": null,
     "consumption": null,
     "fuelConsumption": "",
     "traction": "FWD",
     "zero100": "",
-    "price": "",
-    "catalogRange": 315.0,
-    "rangeSource": "INMETRO_NOT_FOUND",
-    "rangeCycle": "PBEV 2026",
-    "rangeVerifiedDate": null,
-    "charging": {
-      "ac": true,
-      "dc": true,
-      "acOnly": false,
-      "acPowerKw": null,
-      "dcPowerKw": null,
-      "source": "propulsion-default"
-    }
+    "price": ""
   },
   {
     "brand": "GWM",
@@ -801,25 +423,13 @@ window.EV_VEHICLES = [
     "engine": "",
     "power": "171 cv",
     "battery": 63.0,
-    "range": null,
+    "range": 397.0,
     "totalRange": null,
     "consumption": null,
     "fuelConsumption": "",
     "traction": "FWD",
     "zero100": "",
-    "price": "",
-    "catalogRange": 397.0,
-    "rangeSource": "INMETRO_NOT_FOUND",
-    "rangeCycle": "PBEV 2026",
-    "rangeVerifiedDate": null,
-    "charging": {
-      "ac": true,
-      "dc": true,
-      "acOnly": false,
-      "acPowerKw": null,
-      "dcPowerKw": null,
-      "source": "propulsion-default"
-    }
+    "price": ""
   },
   {
     "brand": "GWM",
@@ -835,25 +445,7 @@ window.EV_VEHICLES = [
     "fuelConsumption": "",
     "traction": "FWD",
     "zero100": "",
-    "price": "",
-    "catalogRange": null,
-    "rangeSource": "INMETRO_NOT_FOUND",
-    "rangeCycle": "PBEV 2026",
-    "rangeVerifiedDate": null,
-    "charging": {
-      "ac": false,
-      "dc": false,
-      "acOnly": false,
-      "acPowerKw": null,
-      "dcPowerKw": null,
-      "source": "not-plug-in"
-    },
-    "tank": 61,
-    "gasKm": 11.4,
-    "fuelDataSource": "INMETRO / ficha técnica",
-    "fuelConsumptionRoad": 11.4,
-    "gasolineKm": 11.4,
-    "fullTankRangeGasolineRoad": 695.4
+    "price": ""
   },
   {
     "brand": "GWM",
@@ -869,25 +461,7 @@ window.EV_VEHICLES = [
     "fuelConsumption": "",
     "traction": "FWD",
     "zero100": "",
-    "price": "",
-    "catalogRange": null,
-    "rangeSource": "INMETRO_NOT_FOUND",
-    "rangeCycle": "PBEV 2026",
-    "rangeVerifiedDate": null,
-    "charging": {
-      "ac": false,
-      "dc": false,
-      "acOnly": false,
-      "acPowerKw": null,
-      "dcPowerKw": null,
-      "source": "not-plug-in"
-    },
-    "tank": 61,
-    "gasKm": 11.4,
-    "fuelDataSource": "INMETRO / ficha técnica",
-    "fuelConsumptionRoad": 11.4,
-    "gasolineKm": 11.4,
-    "fullTankRangeGasolineRoad": 695.4
+    "price": ""
   },
   {
     "brand": "GWM",
@@ -903,25 +477,7 @@ window.EV_VEHICLES = [
     "fuelConsumption": "",
     "traction": "AWD",
     "zero100": "",
-    "price": "",
-    "catalogRange": null,
-    "rangeSource": "INMETRO_NOT_FOUND",
-    "rangeCycle": "PBEV 2026",
-    "rangeVerifiedDate": null,
-    "charging": {
-      "ac": true,
-      "dc": false,
-      "acOnly": true,
-      "acPowerKw": null,
-      "dcPowerKw": null,
-      "source": "propulsion-default"
-    },
-    "tank": 55,
-    "gasKm": 11.9,
-    "fuelDataSource": "GWM / INMETRO",
-    "fuelConsumptionRoad": 11.9,
-    "gasolineKm": 11.9,
-    "fullTankRangeGasolineRoad": 654.5
+    "price": ""
   },
   {
     "brand": "GWM",
@@ -937,25 +493,7 @@ window.EV_VEHICLES = [
     "fuelConsumption": "",
     "traction": "AWD",
     "zero100": "",
-    "price": "",
-    "catalogRange": null,
-    "rangeSource": "INMETRO_NOT_FOUND",
-    "rangeCycle": "PBEV 2026",
-    "rangeVerifiedDate": null,
-    "charging": {
-      "ac": true,
-      "dc": false,
-      "acOnly": true,
-      "acPowerKw": null,
-      "dcPowerKw": null,
-      "source": "propulsion-default"
-    },
-    "tank": 55,
-    "gasKm": 10.9,
-    "fuelDataSource": "GWM / INMETRO",
-    "fuelConsumptionRoad": 10.9,
-    "gasolineKm": 10.9,
-    "fullTankRangeGasolineRoad": 599.5
+    "price": ""
   },
   {
     "brand": "GWM",
@@ -971,25 +509,7 @@ window.EV_VEHICLES = [
     "fuelConsumption": "",
     "traction": "AWD",
     "zero100": "",
-    "price": "",
-    "catalogRange": null,
-    "rangeSource": "INMETRO_NOT_FOUND",
-    "rangeCycle": "PBEV 2026",
-    "rangeVerifiedDate": null,
-    "charging": {
-      "ac": true,
-      "dc": false,
-      "acOnly": true,
-      "acPowerKw": null,
-      "dcPowerKw": null,
-      "source": "propulsion-default"
-    },
-    "tank": 55,
-    "gasKm": 10.9,
-    "fuelDataSource": "GWM / INMETRO",
-    "fuelConsumptionRoad": 10.9,
-    "gasolineKm": 10.9,
-    "fullTankRangeGasolineRoad": 599.5
+    "price": ""
   },
   {
     "brand": "GWM",
@@ -1005,25 +525,7 @@ window.EV_VEHICLES = [
     "fuelConsumption": "",
     "traction": "AWD",
     "zero100": "",
-    "price": "",
-    "catalogRange": null,
-    "rangeSource": "INMETRO_NOT_FOUND",
-    "rangeCycle": "PBEV 2026",
-    "rangeVerifiedDate": null,
-    "charging": {
-      "ac": true,
-      "dc": false,
-      "acOnly": true,
-      "acPowerKw": null,
-      "dcPowerKw": null,
-      "source": "propulsion-default"
-    },
-    "tank": 55,
-    "gasKm": 10.4,
-    "fuelDataSource": "GWM / ficha técnica",
-    "fuelConsumptionRoad": 10.4,
-    "gasolineKm": 10.4,
-    "fullTankRangeGasolineRoad": 572.0
+    "price": ""
   },
   {
     "brand": "GAC/AION",
@@ -1033,25 +535,13 @@ window.EV_VEHICLES = [
     "engine": "",
     "power": "204 cv",
     "battery": 44.12,
-    "range": 253,
+    "range": 253.0,
     "totalRange": null,
     "consumption": null,
     "fuelConsumption": "",
     "traction": "FWD",
     "zero100": "",
-    "price": "",
-    "catalogRange": 253.0,
-    "rangeSource": "INMETRO",
-    "rangeCycle": "PBEV 2026",
-    "rangeVerifiedDate": "19/08/2026",
-    "charging": {
-      "ac": true,
-      "dc": true,
-      "acOnly": false,
-      "acPowerKw": null,
-      "dcPowerKw": null,
-      "source": "propulsion-default"
-    }
+    "price": ""
   },
   {
     "brand": "GAC/AION",
@@ -1061,25 +551,13 @@ window.EV_VEHICLES = [
     "engine": "",
     "power": "204 cv",
     "battery": 60.0,
-    "range": 310,
+    "range": 310.0,
     "totalRange": null,
     "consumption": null,
     "fuelConsumption": "",
     "traction": "FWD",
     "zero100": "",
-    "price": "",
-    "catalogRange": 310.0,
-    "rangeSource": "INMETRO",
-    "rangeCycle": "PBEV 2026",
-    "rangeVerifiedDate": "19/08/2026",
-    "charging": {
-      "ac": true,
-      "dc": true,
-      "acOnly": false,
-      "acPowerKw": null,
-      "dcPowerKw": null,
-      "source": "propulsion-default"
-    }
+    "price": ""
   },
   {
     "brand": "GAC/AION",
@@ -1089,25 +567,13 @@ window.EV_VEHICLES = [
     "engine": "",
     "power": "136 cv",
     "battery": 55.2,
-    "range": 314,
+    "range": 314.0,
     "totalRange": null,
     "consumption": null,
     "fuelConsumption": "",
     "traction": "FWD",
     "zero100": "",
-    "price": "",
-    "catalogRange": 314.0,
-    "rangeSource": "INMETRO",
-    "rangeCycle": "PBEV 2026",
-    "rangeVerifiedDate": "19/08/2026",
-    "charging": {
-      "ac": true,
-      "dc": true,
-      "acOnly": false,
-      "acPowerKw": null,
-      "dcPowerKw": null,
-      "source": "propulsion-default"
-    }
+    "price": ""
   },
   {
     "brand": "GAC/AION",
@@ -1117,25 +583,13 @@ window.EV_VEHICLES = [
     "engine": "",
     "power": "204 cv",
     "battery": 63.2,
-    "range": null,
+    "range": 316.0,
     "totalRange": null,
     "consumption": null,
     "fuelConsumption": "",
     "traction": "FWD",
     "zero100": "",
-    "price": "",
-    "catalogRange": 316.0,
-    "rangeSource": "INMETRO_NOT_FOUND",
-    "rangeCycle": "PBEV 2026",
-    "rangeVerifiedDate": null,
-    "charging": {
-      "ac": true,
-      "dc": true,
-      "acOnly": false,
-      "acPowerKw": null,
-      "dcPowerKw": null,
-      "source": "propulsion-default"
-    }
+    "price": ""
   },
   {
     "brand": "GAC/AION",
@@ -1145,25 +599,13 @@ window.EV_VEHICLES = [
     "engine": "",
     "power": "204 cv",
     "battery": 75.3,
-    "range": null,
+    "range": 392.0,
     "totalRange": null,
     "consumption": null,
     "fuelConsumption": "",
     "traction": "FWD",
     "zero100": "",
-    "price": "",
-    "catalogRange": 392.0,
-    "rangeSource": "INMETRO_NOT_FOUND",
-    "rangeCycle": "PBEV 2026",
-    "rangeVerifiedDate": null,
-    "charging": {
-      "ac": true,
-      "dc": true,
-      "acOnly": false,
-      "acPowerKw": null,
-      "dcPowerKw": null,
-      "source": "propulsion-default"
-    }
+    "price": ""
   },
   {
     "brand": "GAC/AION",
@@ -1173,25 +615,13 @@ window.EV_VEHICLES = [
     "engine": "",
     "power": "245 cv",
     "battery": 72.7,
-    "range": 431,
+    "range": 362.0,
     "totalRange": null,
     "consumption": null,
     "fuelConsumption": "",
     "traction": "RWD",
     "zero100": "",
-    "price": "",
-    "catalogRange": 362.0,
-    "rangeSource": "INMETRO",
-    "rangeCycle": "PBEV 2026",
-    "rangeVerifiedDate": "19/08/2026",
-    "charging": {
-      "ac": true,
-      "dc": true,
-      "acOnly": false,
-      "acPowerKw": null,
-      "dcPowerKw": null,
-      "source": "propulsion-default"
-    }
+    "price": ""
   },
   {
     "brand": "OMODA",
@@ -1207,25 +637,7 @@ window.EV_VEHICLES = [
     "fuelConsumption": "",
     "traction": "FWD",
     "zero100": "",
-    "price": "",
-    "catalogRange": null,
-    "rangeSource": "INMETRO_NOT_FOUND",
-    "rangeCycle": "PBEV 2026",
-    "rangeVerifiedDate": null,
-    "charging": {
-      "ac": false,
-      "dc": false,
-      "acOnly": false,
-      "acPowerKw": null,
-      "dcPowerKw": null,
-      "source": "not-plug-in"
-    },
-    "tank": 51,
-    "gasKm": 13.2,
-    "fuelDataSource": "INMETRO / imprensa especializada",
-    "fuelConsumptionRoad": 13.2,
-    "gasolineKm": 13.2,
-    "fullTankRangeGasolineRoad": 673.2
+    "price": ""
   },
   {
     "brand": "OMODA",
@@ -1241,25 +653,7 @@ window.EV_VEHICLES = [
     "fuelConsumption": "",
     "traction": "FWD",
     "zero100": "",
-    "price": "",
-    "catalogRange": null,
-    "rangeSource": "INMETRO_NOT_FOUND",
-    "rangeCycle": "PBEV 2026",
-    "rangeVerifiedDate": null,
-    "charging": {
-      "ac": false,
-      "dc": false,
-      "acOnly": false,
-      "acPowerKw": null,
-      "dcPowerKw": null,
-      "source": "not-plug-in"
-    },
-    "tank": 51,
-    "gasKm": 13.2,
-    "fuelDataSource": "INMETRO / imprensa especializada",
-    "fuelConsumptionRoad": 13.2,
-    "gasolineKm": 13.2,
-    "fullTankRangeGasolineRoad": 673.2
+    "price": ""
   },
   {
     "brand": "JAECOO",
@@ -1269,31 +663,13 @@ window.EV_VEHICLES = [
     "engine": "",
     "power": "339 cv",
     "battery": 18.3,
-    "range": null,
+    "range": 79.0,
     "totalRange": null,
     "consumption": null,
     "fuelConsumption": "",
     "traction": "FWD",
     "zero100": "",
-    "price": "",
-    "catalogRange": 79.0,
-    "rangeSource": "INMETRO_NOT_FOUND",
-    "rangeCycle": "PBEV 2026",
-    "rangeVerifiedDate": null,
-    "charging": {
-      "ac": true,
-      "dc": false,
-      "acOnly": true,
-      "acPowerKw": null,
-      "dcPowerKw": null,
-      "source": "propulsion-default"
-    },
-    "tank": 60,
-    "gasKm": 16.9,
-    "fuelDataSource": "ficha técnica / teste 2026",
-    "fuelConsumptionRoad": 16.9,
-    "gasolineKm": 16.9,
-    "fullTankRangeGasolineRoad": 1014.0
+    "price": ""
   },
   {
     "brand": "CAOA Chery",
@@ -1309,29 +685,7 @@ window.EV_VEHICLES = [
     "fuelConsumption": "",
     "traction": "FWD",
     "zero100": "",
-    "price": "",
-    "catalogRange": null,
-    "rangeSource": "INMETRO_NOT_FOUND",
-    "rangeCycle": "PBEV 2026",
-    "rangeVerifiedDate": null,
-    "charging": {
-      "ac": false,
-      "dc": false,
-      "acOnly": false,
-      "acPowerKw": null,
-      "dcPowerKw": null,
-      "source": "not-plug-in"
-    },
-    "tank": 51,
-    "gasKm": 11.7,
-    "ethanolKm": 8.0,
-    "fuelDataSource": "INMETRO / ficha técnica",
-    "fuelConsumptionRoad": 11.7,
-    "gasolineKm": 11.7,
-    "ethanolRoad": 8.0,
-    "ethanolConsumption": 8.0,
-    "fullTankRangeGasolineRoad": 596.7,
-    "fullTankRangeEthanolRoad": 408.0
+    "price": ""
   },
   {
     "brand": "CAOA Chery",
@@ -1347,29 +701,7 @@ window.EV_VEHICLES = [
     "fuelConsumption": "",
     "traction": "FWD",
     "zero100": "",
-    "price": "",
-    "catalogRange": null,
-    "rangeSource": "INMETRO_NOT_FOUND",
-    "rangeCycle": "PBEV 2026",
-    "rangeVerifiedDate": null,
-    "charging": {
-      "ac": false,
-      "dc": false,
-      "acOnly": false,
-      "acPowerKw": null,
-      "dcPowerKw": null,
-      "source": "not-plug-in"
-    },
-    "tank": 51,
-    "gasKm": 11.6,
-    "ethanolKm": 8.3,
-    "fuelDataSource": "INMETRO / ficha técnica",
-    "fuelConsumptionRoad": 11.6,
-    "gasolineKm": 11.6,
-    "ethanolRoad": 8.3,
-    "ethanolConsumption": 8.3,
-    "fullTankRangeGasolineRoad": 591.6,
-    "fullTankRangeEthanolRoad": 423.3
+    "price": ""
   },
   {
     "brand": "FIAT",
@@ -1385,29 +717,7 @@ window.EV_VEHICLES = [
     "fuelConsumption": "",
     "traction": "FWD",
     "zero100": "",
-    "price": "",
-    "catalogRange": null,
-    "rangeSource": "INMETRO_NOT_FOUND",
-    "rangeCycle": "PBEV 2026",
-    "rangeVerifiedDate": null,
-    "charging": {
-      "ac": false,
-      "dc": false,
-      "acOnly": false,
-      "acPowerKw": null,
-      "dcPowerKw": null,
-      "source": "not-plug-in"
-    },
-    "tank": 45,
-    "gasKm": 14.4,
-    "ethanolKm": 10.2,
-    "fuelDataSource": "PBEV 2026 / INMETRO",
-    "fuelConsumptionRoad": 14.4,
-    "gasolineKm": 14.4,
-    "ethanolRoad": 10.2,
-    "ethanolConsumption": 10.2,
-    "fullTankRangeGasolineRoad": 648.0,
-    "fullTankRangeEthanolRoad": 459.0
+    "price": ""
   },
   {
     "brand": "FIAT",
@@ -1423,29 +733,7 @@ window.EV_VEHICLES = [
     "fuelConsumption": "",
     "traction": "FWD",
     "zero100": "",
-    "price": "",
-    "catalogRange": null,
-    "rangeSource": "INMETRO_NOT_FOUND",
-    "rangeCycle": "PBEV 2026",
-    "rangeVerifiedDate": null,
-    "charging": {
-      "ac": false,
-      "dc": false,
-      "acOnly": false,
-      "acPowerKw": null,
-      "dcPowerKw": null,
-      "source": "not-plug-in"
-    },
-    "tank": 45,
-    "gasKm": 14.4,
-    "ethanolKm": 10.2,
-    "fuelDataSource": "PBEV 2026 / INMETRO",
-    "fuelConsumptionRoad": 14.4,
-    "gasolineKm": 14.4,
-    "ethanolRoad": 10.2,
-    "ethanolConsumption": 10.2,
-    "fullTankRangeGasolineRoad": 648.0,
-    "fullTankRangeEthanolRoad": 459.0
+    "price": ""
   },
   {
     "brand": "FIAT",
@@ -1461,29 +749,7 @@ window.EV_VEHICLES = [
     "fuelConsumption": "",
     "traction": "FWD",
     "zero100": "",
-    "price": "",
-    "catalogRange": null,
-    "rangeSource": "INMETRO_NOT_FOUND",
-    "rangeCycle": "PBEV 2026",
-    "rangeVerifiedDate": null,
-    "charging": {
-      "ac": false,
-      "dc": false,
-      "acOnly": false,
-      "acPowerKw": null,
-      "dcPowerKw": null,
-      "source": "not-plug-in"
-    },
-    "tank": 47,
-    "gasKm": 13.9,
-    "ethanolKm": 9.8,
-    "fuelDataSource": "PBEV 2026 / INMETRO",
-    "fuelConsumptionRoad": 13.9,
-    "gasolineKm": 13.9,
-    "ethanolRoad": 9.8,
-    "ethanolConsumption": 9.8,
-    "fullTankRangeGasolineRoad": 653.3,
-    "fullTankRangeEthanolRoad": 460.6
+    "price": ""
   },
   {
     "brand": "FIAT",
@@ -1499,29 +765,7 @@ window.EV_VEHICLES = [
     "fuelConsumption": "",
     "traction": "FWD",
     "zero100": "",
-    "price": "",
-    "catalogRange": null,
-    "rangeSource": "INMETRO_NOT_FOUND",
-    "rangeCycle": "PBEV 2026",
-    "rangeVerifiedDate": null,
-    "charging": {
-      "ac": false,
-      "dc": false,
-      "acOnly": false,
-      "acPowerKw": null,
-      "dcPowerKw": null,
-      "source": "not-plug-in"
-    },
-    "tank": 47,
-    "gasKm": 13.9,
-    "ethanolKm": 9.8,
-    "fuelDataSource": "PBEV 2026 / INMETRO",
-    "fuelConsumptionRoad": 13.9,
-    "gasolineKm": 13.9,
-    "ethanolRoad": 9.8,
-    "ethanolConsumption": 9.8,
-    "fullTankRangeGasolineRoad": 653.3,
-    "fullTankRangeEthanolRoad": 460.6
+    "price": ""
   },
   {
     "brand": "TOYOTA",
@@ -1537,29 +781,7 @@ window.EV_VEHICLES = [
     "fuelConsumption": "",
     "traction": "FWD",
     "zero100": "",
-    "price": "",
-    "catalogRange": null,
-    "rangeSource": "INMETRO_NOT_FOUND",
-    "rangeCycle": "PBEV 2026",
-    "rangeVerifiedDate": null,
-    "charging": {
-      "ac": false,
-      "dc": false,
-      "acOnly": false,
-      "acPowerKw": null,
-      "dcPowerKw": null,
-      "source": "not-plug-in"
-    },
-    "tank": 43,
-    "gasKm": 15.7,
-    "ethanolKm": 11.1,
-    "fuelDataSource": "PBEV / INMETRO",
-    "fuelConsumptionRoad": 15.7,
-    "gasolineKm": 15.7,
-    "ethanolRoad": 11.1,
-    "ethanolConsumption": 11.1,
-    "fullTankRangeGasolineRoad": 675.1,
-    "fullTankRangeEthanolRoad": 477.3
+    "price": ""
   },
   {
     "brand": "TOYOTA",
@@ -1575,29 +797,7 @@ window.EV_VEHICLES = [
     "fuelConsumption": "",
     "traction": "FWD",
     "zero100": "",
-    "price": "",
-    "catalogRange": null,
-    "rangeSource": "INMETRO_NOT_FOUND",
-    "rangeCycle": "PBEV 2026",
-    "rangeVerifiedDate": null,
-    "charging": {
-      "ac": false,
-      "dc": false,
-      "acOnly": false,
-      "acPowerKw": null,
-      "dcPowerKw": null,
-      "source": "not-plug-in"
-    },
-    "tank": 36,
-    "gasKm": 14.7,
-    "ethanolKm": 9.7,
-    "fuelDataSource": "PBEV / INMETRO",
-    "fuelConsumptionRoad": 14.7,
-    "gasolineKm": 14.7,
-    "ethanolRoad": 9.7,
-    "ethanolConsumption": 9.7,
-    "fullTankRangeGasolineRoad": 529.2,
-    "fullTankRangeEthanolRoad": 349.2
+    "price": ""
   },
   {
     "brand": "TOYOTA",
@@ -1613,25 +813,7 @@ window.EV_VEHICLES = [
     "fuelConsumption": "",
     "traction": "AWD",
     "zero100": "",
-    "price": "",
-    "catalogRange": null,
-    "rangeSource": "INMETRO_NOT_FOUND",
-    "rangeCycle": "PBEV 2026",
-    "rangeVerifiedDate": null,
-    "charging": {
-      "ac": false,
-      "dc": false,
-      "acOnly": false,
-      "acPowerKw": null,
-      "dcPowerKw": null,
-      "source": "not-plug-in"
-    },
-    "tank": 55,
-    "gasKm": 14.1,
-    "fuelDataSource": "PBEV / ficha técnica",
-    "fuelConsumptionRoad": 14.1,
-    "gasolineKm": 14.1,
-    "fullTankRangeGasolineRoad": 775.5
+    "price": ""
   },
   {
     "brand": "TOYOTA",
@@ -1647,21 +829,7 @@ window.EV_VEHICLES = [
     "fuelConsumption": "",
     "traction": "AWD",
     "zero100": "",
-    "price": "",
-    "catalogRange": null,
-    "rangeSource": "INMETRO_NOT_FOUND",
-    "rangeCycle": "PBEV 2026",
-    "rangeVerifiedDate": null,
-    "charging": {
-      "ac": true,
-      "dc": false,
-      "acOnly": true,
-      "acPowerKw": null,
-      "dcPowerKw": null,
-      "source": "propulsion-default"
-    },
-    "tank": 55,
-    "fuelDataSource": "capacidade técnica; consumo PBEV específico não confirmado"
+    "price": ""
   },
   {
     "brand": "TOYOTA",
@@ -1671,25 +839,13 @@ window.EV_VEHICLES = [
     "engine": "",
     "power": "343 cv",
     "battery": 73.1,
-    "range": null,
+    "range": 361.0,
     "totalRange": null,
     "consumption": null,
     "fuelConsumption": "",
     "traction": "AWD",
     "zero100": "",
-    "price": "",
-    "catalogRange": 361.0,
-    "rangeSource": "INMETRO_NOT_FOUND",
-    "rangeCycle": "PBEV 2026",
-    "rangeVerifiedDate": null,
-    "charging": {
-      "ac": true,
-      "dc": true,
-      "acOnly": false,
-      "acPowerKw": null,
-      "dcPowerKw": null,
-      "source": "propulsion-default"
-    }
+    "price": ""
   },
   {
     "brand": "HONDA",
@@ -1705,25 +861,7 @@ window.EV_VEHICLES = [
     "fuelConsumption": "",
     "traction": "FWD",
     "zero100": "",
-    "price": "",
-    "catalogRange": null,
-    "rangeSource": "INMETRO_NOT_FOUND",
-    "rangeCycle": "PBEV 2026",
-    "rangeVerifiedDate": null,
-    "charging": {
-      "ac": false,
-      "dc": false,
-      "acOnly": false,
-      "acPowerKw": null,
-      "dcPowerKw": null,
-      "source": "not-plug-in"
-    },
-    "tank": 40.0,
-    "gasKm": 15.7,
-    "fuelDataSource": "ficha técnica de mercado; confirmar ciclo PBEV da versão",
-    "fuelConsumptionRoad": 15.7,
-    "gasolineKm": 15.7,
-    "fullTankRangeGasolineRoad": 628.0
+    "price": ""
   },
   {
     "brand": "HONDA",
@@ -1739,25 +877,7 @@ window.EV_VEHICLES = [
     "fuelConsumption": "",
     "traction": "FWD",
     "zero100": "",
-    "price": "",
-    "catalogRange": null,
-    "rangeSource": "INMETRO_NOT_FOUND",
-    "rangeCycle": "PBEV 2026",
-    "rangeVerifiedDate": null,
-    "charging": {
-      "ac": false,
-      "dc": false,
-      "acOnly": false,
-      "acPowerKw": null,
-      "dcPowerKw": null,
-      "source": "not-plug-in"
-    },
-    "tank": 48.5,
-    "gasKm": 15.6,
-    "fuelDataSource": "ficha técnica de mercado; confirmar ciclo PBEV da versão",
-    "fuelConsumptionRoad": 15.6,
-    "gasolineKm": 15.6,
-    "fullTankRangeGasolineRoad": 756.6
+    "price": ""
   },
   {
     "brand": "HONDA",
@@ -1773,25 +893,7 @@ window.EV_VEHICLES = [
     "fuelConsumption": "",
     "traction": "AWD",
     "zero100": "",
-    "price": "",
-    "catalogRange": null,
-    "rangeSource": "INMETRO_NOT_FOUND",
-    "rangeCycle": "PBEV 2026",
-    "rangeVerifiedDate": null,
-    "charging": {
-      "ac": false,
-      "dc": false,
-      "acOnly": false,
-      "acPowerKw": null,
-      "dcPowerKw": null,
-      "source": "not-plug-in"
-    },
-    "tank": 53,
-    "gasKm": 14.1,
-    "fuelDataSource": "ficha técnica de mercado; confirmar ciclo PBEV da versão",
-    "fuelConsumptionRoad": 14.1,
-    "gasolineKm": 14.1,
-    "fullTankRangeGasolineRoad": 747.3
+    "price": ""
   },
   {
     "brand": "HYUNDAI",
@@ -1807,25 +909,7 @@ window.EV_VEHICLES = [
     "fuelConsumption": "",
     "traction": "FWD",
     "zero100": "",
-    "price": "",
-    "catalogRange": null,
-    "rangeSource": "INMETRO_NOT_FOUND",
-    "rangeCycle": "PBEV 2026",
-    "rangeVerifiedDate": null,
-    "charging": {
-      "ac": false,
-      "dc": false,
-      "acOnly": false,
-      "acPowerKw": null,
-      "dcPowerKw": null,
-      "source": "not-plug-in"
-    },
-    "tank": 38,
-    "gasKm": 17.2,
-    "fuelDataSource": "ficha técnica de mercado",
-    "fuelConsumptionRoad": 17.2,
-    "gasolineKm": 17.2,
-    "fullTankRangeGasolineRoad": 653.6
+    "price": ""
   },
   {
     "brand": "HYUNDAI",
@@ -1841,25 +925,7 @@ window.EV_VEHICLES = [
     "fuelConsumption": "",
     "traction": "FWD",
     "zero100": "",
-    "price": "",
-    "catalogRange": null,
-    "rangeSource": "INMETRO_NOT_FOUND",
-    "rangeCycle": "PBEV 2026",
-    "rangeVerifiedDate": null,
-    "charging": {
-      "ac": false,
-      "dc": false,
-      "acOnly": false,
-      "acPowerKw": null,
-      "dcPowerKw": null,
-      "source": "not-plug-in"
-    },
-    "tank": 38,
-    "gasKm": 17.2,
-    "fuelDataSource": "ficha técnica de mercado",
-    "fuelConsumptionRoad": 17.2,
-    "gasolineKm": 17.2,
-    "fullTankRangeGasolineRoad": 653.6
+    "price": ""
   },
   {
     "brand": "HYUNDAI",
@@ -1869,25 +935,13 @@ window.EV_VEHICLES = [
     "engine": "",
     "power": "325 cv",
     "battery": 84.0,
-    "range": null,
+    "range": 374.0,
     "totalRange": null,
     "consumption": null,
     "fuelConsumption": "",
     "traction": "AWD",
     "zero100": "",
-    "price": "",
-    "catalogRange": 374.0,
-    "rangeSource": "INMETRO_NOT_FOUND",
-    "rangeCycle": "PBEV 2026",
-    "rangeVerifiedDate": null,
-    "charging": {
-      "ac": true,
-      "dc": true,
-      "acOnly": false,
-      "acPowerKw": null,
-      "dcPowerKw": null,
-      "source": "propulsion-default"
-    }
+    "price": ""
   },
   {
     "brand": "KIA",
@@ -1903,25 +957,7 @@ window.EV_VEHICLES = [
     "fuelConsumption": "",
     "traction": "FWD",
     "zero100": "",
-    "price": "",
-    "catalogRange": null,
-    "rangeSource": "INMETRO_NOT_FOUND",
-    "rangeCycle": "PBEV 2026",
-    "rangeVerifiedDate": null,
-    "charging": {
-      "ac": false,
-      "dc": false,
-      "acOnly": false,
-      "acPowerKw": null,
-      "dcPowerKw": null,
-      "source": "not-plug-in"
-    },
-    "tank": 42,
-    "gasKm": 17.7,
-    "fuelDataSource": "ficha técnica de mercado",
-    "fuelConsumptionRoad": 17.7,
-    "gasolineKm": 17.7,
-    "fullTankRangeGasolineRoad": 743.4
+    "price": ""
   },
   {
     "brand": "KIA",
@@ -1937,25 +973,7 @@ window.EV_VEHICLES = [
     "fuelConsumption": "",
     "traction": "FWD",
     "zero100": "",
-    "price": "",
-    "catalogRange": null,
-    "rangeSource": "INMETRO_NOT_FOUND",
-    "rangeCycle": "PBEV 2026",
-    "rangeVerifiedDate": null,
-    "charging": {
-      "ac": false,
-      "dc": false,
-      "acOnly": false,
-      "acPowerKw": null,
-      "dcPowerKw": null,
-      "source": "not-plug-in"
-    },
-    "tank": 42,
-    "gasKm": 17.7,
-    "fuelDataSource": "ficha técnica de mercado",
-    "fuelConsumptionRoad": 17.7,
-    "gasolineKm": 17.7,
-    "fullTankRangeGasolineRoad": 743.4
+    "price": ""
   },
   {
     "brand": "KIA",
@@ -1965,25 +983,13 @@ window.EV_VEHICLES = [
     "engine": "",
     "power": "217 cv",
     "battery": 88.16,
-    "range": 402,
+    "range": 406.0,
     "totalRange": null,
     "consumption": null,
     "fuelConsumption": "",
     "traction": "FWD",
     "zero100": "",
-    "price": "",
-    "catalogRange": 406.0,
-    "rangeSource": "INMETRO",
-    "rangeCycle": "PBEV 2026",
-    "rangeVerifiedDate": "19/08/2026",
-    "charging": {
-      "ac": true,
-      "dc": true,
-      "acOnly": false,
-      "acPowerKw": null,
-      "dcPowerKw": null,
-      "source": "propulsion-default"
-    }
+    "price": ""
   },
   {
     "brand": "KIA",
@@ -1993,25 +999,13 @@ window.EV_VEHICLES = [
     "engine": "",
     "power": "384 cv",
     "battery": 99.0,
-    "range": 436,
+    "range": 436.0,
     "totalRange": null,
     "consumption": null,
     "fuelConsumption": "",
     "traction": "AWD",
     "zero100": "",
-    "price": "",
-    "catalogRange": 436.0,
-    "rangeSource": "INMETRO",
-    "rangeCycle": "PBEV 2026",
-    "rangeVerifiedDate": "19/08/2026",
-    "charging": {
-      "ac": true,
-      "dc": true,
-      "acOnly": false,
-      "acPowerKw": null,
-      "dcPowerKw": null,
-      "source": "propulsion-default"
-    }
+    "price": ""
   },
   {
     "brand": "MG",
@@ -2021,25 +1015,13 @@ window.EV_VEHICLES = [
     "engine": "",
     "power": "150 cv",
     "battery": 43.0,
-    "range": 299,
+    "range": 299.0,
     "totalRange": null,
     "consumption": null,
     "fuelConsumption": "",
     "traction": "RWD",
     "zero100": "",
-    "price": "",
-    "catalogRange": 299.0,
-    "rangeSource": "INMETRO",
-    "rangeCycle": "PBEV 2026",
-    "rangeVerifiedDate": "19/08/2026",
-    "charging": {
-      "ac": true,
-      "dc": true,
-      "acOnly": false,
-      "acPowerKw": null,
-      "dcPowerKw": null,
-      "source": "propulsion-default"
-    }
+    "price": ""
   },
   {
     "brand": "MG",
@@ -2049,25 +1031,13 @@ window.EV_VEHICLES = [
     "engine": "",
     "power": "150 cv",
     "battery": 43.0,
-    "range": 358,
+    "range": 299.0,
     "totalRange": null,
     "consumption": null,
     "fuelConsumption": "",
     "traction": "RWD",
     "zero100": "",
-    "price": "",
-    "catalogRange": 299.0,
-    "rangeSource": "INMETRO",
-    "rangeCycle": "PBEV 2026",
-    "rangeVerifiedDate": "19/08/2026",
-    "charging": {
-      "ac": true,
-      "dc": true,
-      "acOnly": false,
-      "acPowerKw": null,
-      "dcPowerKw": null,
-      "source": "propulsion-default"
-    }
+    "price": ""
   },
   {
     "brand": "MG",
@@ -2077,25 +1047,13 @@ window.EV_VEHICLES = [
     "engine": "",
     "power": "160 cv",
     "battery": 54.0,
-    "range": 358,
+    "range": 358.0,
     "totalRange": null,
     "consumption": null,
     "fuelConsumption": "",
     "traction": "RWD",
     "zero100": "",
-    "price": "",
-    "catalogRange": 358.0,
-    "rangeSource": "INMETRO",
-    "rangeCycle": "PBEV 2026",
-    "rangeVerifiedDate": "19/08/2026",
-    "charging": {
-      "ac": true,
-      "dc": true,
-      "acOnly": false,
-      "acPowerKw": null,
-      "dcPowerKw": null,
-      "source": "propulsion-default"
-    }
+    "price": ""
   },
   {
     "brand": "MG",
@@ -2105,25 +1063,13 @@ window.EV_VEHICLES = [
     "engine": "",
     "power": "204 cv",
     "battery": 64.0,
-    "range": 364,
+    "range": 364.0,
     "totalRange": null,
     "consumption": null,
     "fuelConsumption": "",
     "traction": "RWD",
     "zero100": "",
-    "price": "",
-    "catalogRange": 364.0,
-    "rangeSource": "INMETRO",
-    "rangeCycle": "PBEV 2026",
-    "rangeVerifiedDate": "19/08/2026",
-    "charging": {
-      "ac": true,
-      "dc": true,
-      "acOnly": false,
-      "acPowerKw": null,
-      "dcPowerKw": null,
-      "source": "propulsion-default"
-    }
+    "price": ""
   },
   {
     "brand": "RENAULT",
@@ -2133,25 +1079,13 @@ window.EV_VEHICLES = [
     "engine": "",
     "power": "65 cv",
     "battery": 26.8,
-    "range": null,
+    "range": 180.0,
     "totalRange": null,
     "consumption": null,
     "fuelConsumption": "",
     "traction": "FWD",
     "zero100": "",
-    "price": "",
-    "catalogRange": 180.0,
-    "rangeSource": "INMETRO_NOT_FOUND",
-    "rangeCycle": "PBEV 2026",
-    "rangeVerifiedDate": null,
-    "charging": {
-      "ac": true,
-      "dc": true,
-      "acOnly": false,
-      "acPowerKw": null,
-      "dcPowerKw": null,
-      "source": "propulsion-default"
-    }
+    "price": ""
   },
   {
     "brand": "RENAULT",
@@ -2161,25 +1095,13 @@ window.EV_VEHICLES = [
     "engine": "",
     "power": "218 cv",
     "battery": 60.0,
-    "range": null,
+    "range": 248.0,
     "totalRange": null,
     "consumption": null,
     "fuelConsumption": "",
     "traction": "FWD",
     "zero100": "",
-    "price": "",
-    "catalogRange": 248.0,
-    "rangeSource": "INMETRO_NOT_FOUND",
-    "rangeCycle": "PBEV 2026",
-    "rangeVerifiedDate": null,
-    "charging": {
-      "ac": true,
-      "dc": true,
-      "acOnly": false,
-      "acPowerKw": null,
-      "dcPowerKw": null,
-      "source": "propulsion-default"
-    }
+    "price": ""
   },
   {
     "brand": "VOLVO",
@@ -2189,25 +1111,13 @@ window.EV_VEHICLES = [
     "engine": "",
     "power": "272 cv",
     "battery": 51.0,
-    "range": null,
+    "range": 250.0,
     "totalRange": null,
     "consumption": null,
     "fuelConsumption": "",
     "traction": "RWD",
     "zero100": "",
-    "price": "",
-    "catalogRange": 250.0,
-    "rangeSource": "INMETRO_NOT_FOUND",
-    "rangeCycle": "PBEV 2026",
-    "rangeVerifiedDate": null,
-    "charging": {
-      "ac": true,
-      "dc": true,
-      "acOnly": false,
-      "acPowerKw": null,
-      "dcPowerKw": null,
-      "source": "propulsion-default"
-    }
+    "price": ""
   },
   {
     "brand": "VOLVO",
@@ -2217,25 +1127,13 @@ window.EV_VEHICLES = [
     "engine": "",
     "power": "428 cv",
     "battery": 69.0,
-    "range": null,
+    "range": 316.0,
     "totalRange": null,
     "consumption": null,
     "fuelConsumption": "",
     "traction": "AWD",
     "zero100": "",
-    "price": "",
-    "catalogRange": 316.0,
-    "rangeSource": "INMETRO_NOT_FOUND",
-    "rangeCycle": "PBEV 2026",
-    "rangeVerifiedDate": null,
-    "charging": {
-      "ac": true,
-      "dc": true,
-      "acOnly": false,
-      "acPowerKw": null,
-      "dcPowerKw": null,
-      "source": "propulsion-default"
-    }
+    "price": ""
   },
   {
     "brand": "VOLVO",
@@ -2245,25 +1143,13 @@ window.EV_VEHICLES = [
     "engine": "",
     "power": "428 cv",
     "battery": 69.0,
-    "range": null,
+    "range": 327.0,
     "totalRange": null,
     "consumption": null,
     "fuelConsumption": "",
     "traction": "AWD",
     "zero100": "",
-    "price": "",
-    "catalogRange": 327.0,
-    "rangeSource": "INMETRO_NOT_FOUND",
-    "rangeCycle": "PBEV 2026",
-    "rangeVerifiedDate": null,
-    "charging": {
-      "ac": true,
-      "dc": true,
-      "acOnly": false,
-      "acPowerKw": null,
-      "dcPowerKw": null,
-      "source": "propulsion-default"
-    }
+    "price": ""
   },
   {
     "brand": "CHEVROLET",
@@ -2273,25 +1159,13 @@ window.EV_VEHICLES = [
     "engine": "",
     "power": "102 cv",
     "battery": 41.9,
-    "range": null,
+    "range": 260.0,
     "totalRange": null,
     "consumption": null,
     "fuelConsumption": "",
     "traction": "FWD",
     "zero100": "",
-    "price": "",
-    "catalogRange": 260.0,
-    "rangeSource": "INMETRO_NOT_FOUND",
-    "rangeCycle": "PBEV 2026",
-    "rangeVerifiedDate": null,
-    "charging": {
-      "ac": true,
-      "dc": true,
-      "acOnly": false,
-      "acPowerKw": null,
-      "dcPowerKw": null,
-      "source": "propulsion-default"
-    }
+    "price": ""
   },
   {
     "brand": "CHEVROLET",
@@ -2301,25 +1175,13 @@ window.EV_VEHICLES = [
     "engine": "",
     "power": "292 cv",
     "battery": 85.0,
-    "range": null,
+    "range": 442.0,
     "totalRange": null,
     "consumption": null,
     "fuelConsumption": "",
     "traction": "FWD",
     "zero100": "",
-    "price": "",
-    "catalogRange": 442.0,
-    "rangeSource": "INMETRO_NOT_FOUND",
-    "rangeCycle": "PBEV 2026",
-    "rangeVerifiedDate": null,
-    "charging": {
-      "ac": true,
-      "dc": true,
-      "acOnly": false,
-      "acPowerKw": null,
-      "dcPowerKw": null,
-      "source": "propulsion-default"
-    }
+    "price": ""
   },
   {
     "brand": "SUZUKI",
@@ -2329,25 +1191,13 @@ window.EV_VEHICLES = [
     "engine": "",
     "power": "184 cv",
     "battery": 61.0,
-    "range": null,
+    "range": 293.0,
     "totalRange": null,
     "consumption": null,
     "fuelConsumption": "",
     "traction": "AWD",
     "zero100": "",
-    "price": "",
-    "catalogRange": 293.0,
-    "rangeSource": "INMETRO_NOT_FOUND",
-    "rangeCycle": "PBEV 2026",
-    "rangeVerifiedDate": null,
-    "charging": {
-      "ac": true,
-      "dc": true,
-      "acOnly": false,
-      "acPowerKw": null,
-      "dcPowerKw": null,
-      "source": "propulsion-default"
-    }
+    "price": ""
   },
   {
     "brand": "JETOUR",
@@ -2357,27 +1207,13 @@ window.EV_VEHICLES = [
     "engine": "",
     "power": "315 cv",
     "battery": 26.7,
-    "range": null,
+    "range": 88.0,
     "totalRange": null,
     "consumption": null,
     "fuelConsumption": "",
     "traction": "AWD",
     "zero100": "",
-    "price": "",
-    "catalogRange": 88.0,
-    "rangeSource": "INMETRO_NOT_FOUND",
-    "rangeCycle": "PBEV 2026",
-    "rangeVerifiedDate": null,
-    "charging": {
-      "ac": true,
-      "dc": false,
-      "acOnly": true,
-      "acPowerKw": null,
-      "dcPowerKw": null,
-      "source": "propulsion-default"
-    },
-    "tank": 60,
-    "fuelDataSource": "capacidade técnica; consumo PBEV específico não confirmado"
+    "price": ""
   },
   {
     "brand": "JETOUR",
@@ -2387,27 +1223,13 @@ window.EV_VEHICLES = [
     "engine": "",
     "power": "339 cv",
     "battery": 26.7,
-    "range": null,
+    "range": 75.0,
     "totalRange": null,
     "consumption": null,
     "fuelConsumption": "",
     "traction": "AWD",
     "zero100": "",
-    "price": "",
-    "catalogRange": 75.0,
-    "rangeSource": "INMETRO_NOT_FOUND",
-    "rangeCycle": "PBEV 2026",
-    "rangeVerifiedDate": null,
-    "charging": {
-      "ac": true,
-      "dc": false,
-      "acOnly": true,
-      "acPowerKw": null,
-      "dcPowerKw": null,
-      "source": "propulsion-default"
-    },
-    "tank": 60,
-    "fuelDataSource": "capacidade técnica; consumo PBEV específico não confirmado"
+    "price": ""
   },
   {
     "brand": "DENZA",
@@ -2417,26 +1239,13 @@ window.EV_VEHICLES = [
     "engine": "",
     "power": "677 cv",
     "battery": 31.8,
-    "range": null,
+    "range": 74.0,
     "totalRange": null,
     "consumption": null,
     "fuelConsumption": "",
     "traction": "AWD",
     "zero100": "",
-    "price": "",
-    "catalogRange": 74.0,
-    "rangeSource": "INMETRO_NOT_FOUND",
-    "rangeCycle": "PBEV 2026",
-    "rangeVerifiedDate": null,
-    "charging": {
-      "ac": true,
-      "dc": false,
-      "acOnly": true,
-      "acPowerKw": null,
-      "dcPowerKw": null,
-      "source": "propulsion-default"
-    },
-    "fuelDataSource": "consumo/capacidade não confirmado no PBEV consultado"
+    "price": ""
   },
   {
     "brand": "DENZA",
@@ -2446,25 +1255,13 @@ window.EV_VEHICLES = [
     "engine": "",
     "power": "965 cv",
     "battery": 100.0,
-    "range": null,
+    "range": 440.0,
     "totalRange": null,
     "consumption": null,
     "fuelConsumption": "",
     "traction": "AWD",
     "zero100": "",
-    "price": "",
-    "catalogRange": 440.0,
-    "rangeSource": "INMETRO_NOT_FOUND",
-    "rangeCycle": "PBEV 2026",
-    "rangeVerifiedDate": null,
-    "charging": {
-      "ac": true,
-      "dc": true,
-      "acOnly": false,
-      "acPowerKw": null,
-      "dcPowerKw": null,
-      "source": "propulsion-default"
-    }
+    "price": ""
   },
   {
     "brand": "AVATR",
@@ -2474,25 +1271,13 @@ window.EV_VEHICLES = [
     "engine": "",
     "power": "585 cv",
     "battery": 116.0,
-    "range": null,
+    "range": 550.0,
     "totalRange": null,
     "consumption": null,
     "fuelConsumption": "",
     "traction": "AWD",
     "zero100": "",
-    "price": "",
-    "catalogRange": 550.0,
-    "rangeSource": "INMETRO_NOT_FOUND",
-    "rangeCycle": "PBEV 2026",
-    "rangeVerifiedDate": null,
-    "charging": {
-      "ac": true,
-      "dc": true,
-      "acOnly": false,
-      "acPowerKw": null,
-      "dcPowerKw": null,
-      "source": "propulsion-default"
-    }
+    "price": ""
   },
   {
     "brand": "AVATR",
@@ -2502,25 +1287,13 @@ window.EV_VEHICLES = [
     "engine": "",
     "power": "585 cv",
     "battery": 116.0,
-    "range": null,
+    "range": 550.0,
     "totalRange": null,
     "consumption": null,
     "fuelConsumption": "",
     "traction": "AWD",
     "zero100": "",
-    "price": "",
-    "catalogRange": 550.0,
-    "rangeSource": "INMETRO_NOT_FOUND",
-    "rangeCycle": "PBEV 2026",
-    "rangeVerifiedDate": null,
-    "charging": {
-      "ac": true,
-      "dc": true,
-      "acOnly": false,
-      "acPowerKw": null,
-      "dcPowerKw": null,
-      "source": "propulsion-default"
-    }
+    "price": ""
   },
   {
     "brand": "LEXUS",
@@ -2536,20 +1309,7 @@ window.EV_VEHICLES = [
     "fuelConsumption": "",
     "traction": "FWD",
     "zero100": "",
-    "price": "",
-    "catalogRange": null,
-    "rangeSource": "INMETRO_NOT_FOUND",
-    "rangeCycle": "PBEV 2026",
-    "rangeVerifiedDate": null,
-    "charging": {
-      "ac": false,
-      "dc": false,
-      "acOnly": false,
-      "acPowerKw": null,
-      "dcPowerKw": null,
-      "source": "not-plug-in"
-    },
-    "fuelDataSource": "PBEV/INMETRO — dados específicos não confirmados nesta atualização"
+    "price": ""
   },
   {
     "brand": "PEUGEOT",
@@ -2565,19 +1325,7 @@ window.EV_VEHICLES = [
     "fuelConsumption": "",
     "traction": "FWD",
     "zero100": "",
-    "price": "",
-    "catalogRange": null,
-    "rangeSource": "INMETRO_NOT_FOUND",
-    "rangeCycle": "PBEV 2026",
-    "rangeVerifiedDate": null,
-    "charging": {
-      "ac": true,
-      "dc": true,
-      "acOnly": false,
-      "acPowerKw": null,
-      "dcPowerKw": null,
-      "source": "propulsion-default"
-    }
+    "price": ""
   },
   {
     "brand": "PEUGEOT",
@@ -2593,19 +1341,7 @@ window.EV_VEHICLES = [
     "fuelConsumption": "",
     "traction": "FWD",
     "zero100": "",
-    "price": "",
-    "catalogRange": null,
-    "rangeSource": "INMETRO_NOT_FOUND",
-    "rangeCycle": "PBEV 2026",
-    "rangeVerifiedDate": null,
-    "charging": {
-      "ac": true,
-      "dc": true,
-      "acOnly": false,
-      "acPowerKw": null,
-      "dcPowerKw": null,
-      "source": "propulsion-default"
-    }
+    "price": ""
   },
   {
     "brand": "PEUGEOT",
@@ -2621,18 +1357,6 @@ window.EV_VEHICLES = [
     "fuelConsumption": "",
     "traction": "FWD",
     "zero100": "",
-    "price": "",
-    "catalogRange": null,
-    "rangeSource": "INMETRO_NOT_FOUND",
-    "rangeCycle": "PBEV 2026",
-    "rangeVerifiedDate": null,
-    "charging": {
-      "ac": true,
-      "dc": true,
-      "acOnly": false,
-      "acPowerKw": null,
-      "dcPowerKw": null,
-      "source": "propulsion-default"
-    }
+    "price": ""
   }
 ];
