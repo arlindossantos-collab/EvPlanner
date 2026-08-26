@@ -1,6 +1,7 @@
 window.EV_CONFIG = {
-  version: '3.10.0',
+  version: '4.0.0',
   versionHistory: [
+    {version:'4.0',date:'26/08/2026',description:'Assistente de viagem em tempo real: GPS, progresso da rota, autonomia dinâmica, alertas, próxima parada, plano B, orientações por voz, explicação das decisões e preparação para fontes externas de trânsito, clima e disponibilidade.'},
     {version:'3.10',date:'26/08/2026',description:'Experiência orientada à decisão: visão essencial/detalhada, plano inteligente mais objetivo, cálculo híbrido revisado com autonomia elétrica + combustível, validação de dados e menor carga visual.'},
     {version:'3.9',date:'25/08/2026',description:'Correções e refinamentos do planejamento híbrido, combustível inicial automático e estratégia de viagem.'},
     {version:'3.5',date:'24/08/2026',description:'Distribuição inteligente de eletropostos ao longo de toda a rota, busca reforçada no trecho final/destino e versão centralizada em uma única fonte.'},
@@ -24,6 +25,9 @@ window.EV_CONFIG = {
   stationCacheTtlMs: 30*60*1000,
   fuelCacheTtlMs: 30*60*1000,
   recentTripsLimit: 8,
+  liveSafetyBufferKm: 25,
+  livePlanningBufferKm: 55,
+  liveGpsUpdateMs: 5000,
   co2KgPerLiter: 2.31,
   defaults: { kwhPrice: 0.75, gasPrice: 6.88, ethanolPrice: 5.07, startBattery: 80, startFuel: 40, fuelKpl: '' },
   services: {

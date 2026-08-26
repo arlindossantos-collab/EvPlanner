@@ -1,3 +1,16 @@
+# CHANGELOG — EV Planner Pro
+
+## 4.0.0 — 26/08/2026
+- Assistente de viagem em tempo real com GPS.
+- Progresso da rota e autonomia dinâmica para BEV, PHEV, REEV, HEV e MHEV.
+- Alertas antecipados de margem reduzida e autonomia insuficiente.
+- Próxima parada recomendada e plano B.
+- Orientações por voz.
+- Explicação da decisão do Plano Inteligente.
+- Indicador explícito de disponibilidade de carregadores: disponível, ocupado, fora de serviço ou desconhecido.
+- Preparação para integração futura com provedores de trânsito, clima e disponibilidade em tempo real.
+- Mantidas funcionalidades anteriores.
+
 # EV Planner Pro — Histórico de versões
 
 ## 3.10.0 — 26/08/2026

@@ -97,7 +97,35 @@
         <div id="recentTripsList" class="recent-trips"><div class="empty">As viagens calculadas aparecerão aqui.</div></div>
       </section>
 
-      <section id="smartPlan" class="card smart-plan-card"><div class="section-head"><h2><i class="fa-solid fa-route"></i> PLANO INTELIGENTE</h2><span id="smartPlanBadge" class="status neutral">Aguardando</span></div><div id="decisionHeadline" class="decision-headline"><span class="decision-icon">✓</span><div><b>Calcule a viagem</b><small>O sistema vai responder se a viagem é viável, onde parar, quanto gastar e qual estratégia é melhor.</small></div></div><div id="smartPlanContent" class="smart-plan-grid"><div class="empty">Calcule a viagem para descobrir se ela é viável, onde parar, quanto gastar e qual estratégia é mais segura e econômica.</div></div></section>
+      <section id="smartPlan" class="card smart-plan-card"><div class="section-head"><h2><i class="fa-solid fa-route"></i> PLANO INTELIGENTE</h2><div class="smart-head-actions"><button id="whyPlanBtn" class="btn ghost">ⓘ Por quê?</button><span id="smartPlanBadge" class="status neutral">Aguardando</span></div></div><div id="decisionHeadline" class="decision-headline"><span class="decision-icon">✓</span><div><b>Calcule a viagem</b><small>O sistema vai responder se a viagem é viável, onde parar, quanto gastar e qual estratégia é melhor.</small></div></div><div id="smartPlanContent" class="smart-plan-grid"><div class="empty">Calcule a viagem para descobrir se ela é viável, onde parar, quanto gastar e qual estratégia é mais segura e econômica.</div></div></section>
+
+      <section id="liveAssistant" class="card live-assistant-card">
+        <div class="section-head"><h2><i class="fa-solid fa-location-crosshairs"></i> ASSISTENTE DE VIAGEM</h2><span id="liveStatus" class="status neutral">Não iniciado</span></div>
+        <div class="live-intro">Depois de calcular a rota, inicie o acompanhamento. O EV Planner usa GPS, progresso da rota e sua telemetria informada para recalcular autonomia, alertas e próxima parada.</div>
+        <div class="live-controls">
+          <button id="startLiveBtn" class="btn primary"><i class="fa-solid fa-play"></i> Iniciar viagem</button>
+          <button id="stopLiveBtn" class="btn ghost" disabled><i class="fa-solid fa-stop"></i> Parar</button>
+          <button id="voiceLiveBtn" class="btn ghost"><i class="fa-solid fa-volume-high"></i> Voz</button>
+        </div>
+        <div class="live-inputs">
+          <div><label>Bateria atual <small>(opcional, leitura do painel)</small></label><input id="liveBatteryInput" type="number" min="0" max="100" step="1" placeholder="Auto pela rota"></div>
+          <div class="fuel-live-input"><label>Combustível atual <small>(opcional)</small></label><input id="liveFuelInput" type="number" min="0" step="0.1" placeholder="Auto pela rota"></div>
+        </div>
+        <div class="live-telemetry-grid">
+          <div><span>Posição</span><b id="livePosition">Aguardando GPS</b></div>
+          <div><span>Progresso</span><b id="liveProgress">—</b></div>
+          <div><span>Bateria atual</span><b id="liveBattery">—</b></div>
+          <div><span>Combustível atual</span><b id="liveFuel">—</b></div>
+          <div><span>Autonomia restante</span><b id="liveRange">—</b></div>
+          <div><span>Chegada estimada</span><b id="liveArrival">—</b></div>
+        </div>
+        <div id="liveDecision" class="live-decision neutral">Calcule a viagem e depois inicie o acompanhamento para receber decisões em tempo real.</div>
+        <div class="live-next-grid">
+          <div id="liveNextStop" class="live-stop-card"><span>Próxima parada</span><b>—</b><small>O sistema escolherá a melhor parada à frente.</small></div>
+          <div id="liveBackupStop" class="live-stop-card"><span>Plano B</span><b>—</b><small>Alternativa caso a primeira opção esteja indisponível.</small></div>
+        </div>
+        <div id="liveWhy" class="live-why">ⓘ As decisões combinam autonomia disponível, reserva configurada, compatibilidade do ponto e posição na rota.</div>
+      </section>
 
       <section id="tripSummary" class="card summary-card">
         <div class="section-head"><h2><i class="fa-solid fa-clipboard-check"></i> RESUMO DETALHADO DA VIAGEM</h2><button id="copySummaryBtn" class="btn ghost no-print"><i class="fa-regular fa-copy"></i> Copiar</button></div>
@@ -162,7 +190,7 @@
 </div></div>
 
 <div id="esgModal" class="modal hidden"><div class="modal-box"><div class="section-head"><h2>🌱 Dashboard ESG</h2><button id="closeEsg" class="icon-btn">×</button></div><div id="esgGrid" class="summary-grid"></div><button id="resetEsg" class="btn danger full">Zerar histórico</button></div></div>
-<div id="helpModal" class="modal hidden"><div class="modal-box"><div class="section-head"><h2>Como usar</h2><button id="closeHelp" class="icon-btn">×</button></div><div class="help"><p>1. Escolha a marca e o modelo/versão.</p><p>2. Informe origem, destino e, se quiser, paradas extras.</p><p>3. Ajuste a bateria inicial entre 0% e 100%.</p><p>4. Em veículos com motor a combustão, informe também os litros iniciais.</p><p>5. Use Casa/Trabalho para inserir favoritos na origem ou em qualquer destino.</p><p>6. Em Adicionar ponto, digite o endereço ou selecione a posição no mapa.</p><p>7. Use <b>Meus pontos</b> para editar ou excluir eletropostos cadastrados.</p><p>8. Viagens calculadas ficam em <b>Viagens recentes</b> para restauração rápida.</p><p>9. O sistema usa cache e timeout nas buscas para reduzir espera e evitar requisições presas.</p><p>10. Clique em <b>Calcular viagem</b>. O sistema exibirá <b>Cálculo concluído</b>, colorirá o trajeto conforme a energia disponível e apresentará o Plano Inteligente.</p><p>11. Verde indica autonomia segura; amarelo, reserva/parada preventiva; laranja, trecho com combustível; vermelho, autonomia insuficiente.</p></div></div></div>
+<div id="helpModal" class="modal hidden"><div class="modal-box"><div class="section-head"><h2>Como usar</h2><button id="closeHelp" class="icon-btn">×</button></div><div class="help"><p>1. Escolha a marca e o modelo/versão.</p><p>2. Informe origem, destino e, se quiser, paradas extras.</p><p>3. Ajuste a bateria inicial entre 0% e 100%.</p><p>4. Em veículos com motor a combustão, informe também os litros iniciais.</p><p>5. Use Casa/Trabalho para inserir favoritos na origem ou em qualquer destino.</p><p>6. Em Adicionar ponto, digite o endereço ou selecione a posição no mapa.</p><p>7. Use <b>Meus pontos</b> para editar ou excluir eletropostos cadastrados.</p><p>8. Viagens calculadas ficam em <b>Viagens recentes</b> para restauração rápida.</p><p>9. O sistema usa cache e timeout nas buscas para reduzir espera e evitar requisições presas.</p><p>10. Clique em <b>Calcular viagem</b>. O sistema exibirá <b>Cálculo concluído</b>, colorirá o trajeto conforme a energia disponível e apresentará o Plano Inteligente.</p><p>11. Verde indica autonomia segura; amarelo, reserva/parada preventiva; laranja, trecho com combustível; vermelho, autonomia insuficiente.</p><p>12. Após calcular, use <b>Iniciar viagem</b> para acompanhar a posição pelo GPS, receber alertas, próxima parada, plano B e orientações por voz. A disponibilidade de carregadores só será exibida como tempo real quando uma fonte externa fornecer esse dado.</p></div></div></div>
 <script src="app.js"></script>
 </body>
 </html>
